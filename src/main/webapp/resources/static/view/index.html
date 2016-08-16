@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<link rel="stylesheet" href="resources/static/css/bootstrap.css"/>
+		<link rel="stylesheet" href="resources/static/css/app.css"/>
+		<link rel="stylesheet" href="resources/static/css/angular-virtual-keyboard.css"/>
+		
+		<script src="resources/static/javascript/lib/angular-1.5.8.js"></script>
+		<script src="resources/static/javascript/lib/angular-ui-router-0.2.18.js"></script>		
+		<script src="resources/static/javascript/lib/angular-virtual-keyboard-0.4.3.js"></script>
+		
+		<script src="resources/static/javascript/app.js"></script>
+	</head>
+	
+	<body data-ng-app="posapp">
+		<nav  data-ng-controller="mainController" class="navbar navbar-inverse" role="navigation">
+   			<div class="navbar-header">
+        		<a class="navbar-brand" data-ui-sref="#">Miller's Cleaners</a>
+    		</div>
+    		<ul class="nav navbar-nav">
+        		<li><a data-ui-sref="order">Order</a></li>
+        		<li><a data-ui-sref="pickup">Pick-Up</a></li>
+        		<li><a data-ui-sref="newCustomer">About</a></li>
+    		</ul>
+		</nav>
+		
+		<div id="container-fluid">
+			<div id="content">
+				<div data-ng-controller="newCustomerController">
+					<div class="col-xs-1"></div>
+					<div class="col-xs-4">
+						<data-ng-keyboard-inputs input-objs="inputObjs"/>
+						<!-- <div class="row form-horizontal" data-ng-repeat="inputObj in inputObjs">
+							<div class="form-group form-group-lg">
+								<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>
+								<div class="col-xs-8">
+									<input class="form-control" data-ng-virtual-keyboard="{kt: 'POS Keyboard', relative: false}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.label}}">
+								</div>
+							</div>
+						</div> -->
+					</div>
+					<div class="col-xs-6">
+						{{inputObjs[0].value}}
+						{{inputObjs[1].value}}
+						{{inputObjs[2].value}}
+					</div>
+					<div class="col-xs-1"></div>
+
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

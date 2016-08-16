@@ -30,15 +30,7 @@
 				<div data-ng-controller="newCustomerController">
 					<div class="col-xs-1"></div>
 					<div class="col-xs-4">
-						<data-ng-keyboard-inputs input-objs="inputObjs"/>
-						<!-- <div class="row form-horizontal" data-ng-repeat="inputObj in inputObjs">
-							<div class="form-group form-group-lg">
-								<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>
-								<div class="col-xs-8">
-									<input class="form-control" data-ng-virtual-keyboard="{kt: 'POS Keyboard', relative: false}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.label}}">
-								</div>
-							</div>
-						</div> -->
+						<keyboard-input input-objs="inputObjs"></keyboard-input>
 					</div>
 					<div class="col-xs-6">
 						{{inputObjs[0].value}}

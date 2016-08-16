@@ -11,7 +11,7 @@ app.config(['VKI_CONFIG', function(VKI_CONFIG) {
 			         ], 
 			'lang': ["en-US"] };
 }]);
-/*
+
 app.config(['$locationProvider', '$stateProvider', '$urlRouterProvider', function($locationProvider, $stateProvider, $urlRouterProvider) {
     $locationProvider.html5Mode({enabled:true,   requireBase: false});
     
@@ -26,7 +26,7 @@ app.config(['$locationProvider', '$stateProvider', '$urlRouterProvider', functio
         });
         
 }]);
-*/
+
 app.factory('urlService', function() {
 	
 	var service = {};
@@ -62,25 +62,30 @@ app.factory('menuService', ['$http', 'urlService', function($http, urlService) {
 }]);
 
 app.factory('customerService', function() {
+	var _data = {};
 	return {
-		
+		saveOrUpdate: function() {
+			
+		},
+		search: function() {
+			
+		},
+		carryOverToNewCustomer() {
+			
+		},
 	};
 });
 
-app.directive('ngKeyboardInputs', [function() {
-	return {
-	    restrict: 'E',
-	    transclude: false,
-	    scope: {
-	    	'inputObjs' : '=inputObjs'
-	    },
-	    templateUrl: 	'keyboardInputs.html'
-	  };
-}]);
+app.component('keyboardInput', {
+	templateUrl: 'keyboardInputComponent.html',
+	bindings: {
+		inputObjs: '<'
+	}
+});
 
 app.run(function($templateCache) {
-	$templateCache.put('keyboardInputs.html', 
-			'<div class="row form-horizontal" data-ng-repeat="inputObj in inputObjs">'
+	$templateCache.put('keyboardInputComponent.html', 
+				'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
 			+		'<div class="form-group form-group-lg">'
 			+			'<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>'
 			+			'<div class="col-xs-8">'
@@ -89,8 +94,6 @@ app.run(function($templateCache) {
 			+		'</div>'
 			+	'</div>'
 	);
-	
-	
 });
 
 app.controller('mainController', ['$scope', 'menuService', function($scope, menuService) {

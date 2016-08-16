@@ -83,6 +83,16 @@ app.component('keyboardInput', {
 	}
 });
 
+app.component('newCustomer', {
+	controller : function($scope, $attrs, customerService) {
+		this.inputObjs = [	{'label': 'Last Name', 'value': ''},
+                     		{'label': 'First Name', 'value': ''},
+                     		{'label': 'Phone Number', 'value': ''}
+                     	];
+	},
+	templateUrl: 'newCustomer.html' 	
+});
+
 app.run(function($templateCache) {
 	$templateCache.put('keyboardInputComponent.html', 
 				'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
@@ -94,6 +104,19 @@ app.run(function($templateCache) {
 			+		'</div>'
 			+	'</div>'
 	);
+	$templateCache.put('newCustomer.html',
+				'<div id="newCustomer">'
+			+		'<div class="col-xs-1"></div>'
+			+		'<div class="col-xs-4">'
+			+		'<h1>New Customer</h1><br/>'
+			+			'<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input>'
+			+		'</div>'
+			+		'<div class="col-xs-6">'
+			+		'</div>'
+			+		'<div class="col-xs-1"></div>'
+			+	'</div>'
+	);
+	
 });
 
 app.controller('mainController', ['$scope', 'menuService', function($scope, menuService) {
@@ -102,14 +125,5 @@ app.controller('mainController', ['$scope', 'menuService', function($scope, menu
 			menuService.setMenuItems(res.data);
 		}, function (res) {		
 	});
-}]);
-
-//Change this to component
-app.controller('newCustomerController', ['$scope', 'customerService', function($scope, customerService) {
-	
-	$scope.inputObjs =	[	{'label': 'Last Name', 'value': ''},
-	                     		{'label': 'First Name', 'value': ''},
-	                     		{'label': 'Phone Number', 'value': ''}
-	                     	];
 }]);
 

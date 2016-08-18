@@ -15,8 +15,12 @@ public class DBNames {
     public static final String PICKUPDATE = "pickupDate";
     public static final String COMPLETED = "completed";
 
+    public static final String CREATEDAT = "createdAt";
+    public static final String UPDATEDAT = "updatedAt";
+
     public static final String LASTNAME = "lastName";
     public static final String FIRSTNAME = "firstName";
     public static final String NUMBER = "number";
+    public static final String PNUMBER = "pnumber";
 
 }

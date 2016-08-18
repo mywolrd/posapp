@@ -61,20 +61,63 @@ app.factory('menuService', ['$http', 'urlService', function($http, urlService) {
 	}
 }]);
 
-app.factory('customerService', function() {
+app.factory('customerService', ['$http', 'urlService', function($http, urlService) {
 	var _data = {};
 	return {
-		saveOrUpdate: function() {
-			
+		save: function(info, success, fail) {
+			$http.post(urlService.customer + '/save', info).then(success, fail);
 		},
-		search: function() {
-			
+		update: function(info, success, fail) {
+			$http.post(urlService.customer + '/update', info).then(success, fail);
 		},
-		carryOverToNewCustomer() {
-			
+		search: function(parameter, success, fail) {
+			$http.get(urlService.customer + '/search').then(success, fail);
 		},
+		setCurrentCustomer: function(customer) {
+			_data.current = customer;
+		},
+		resetCurrentCustomer: function() {
+			_data.previous = _data.current;
+			_data.current = null;
+		}
 	};
-});
+}]);
+
+app.factory('searchService', ['customerService', function(customerService) {
+	
+	var _data = {};
+	
+	function _isValidCustomerSearch (parameter) {
+		var status = false;
+		if(name.search(/[^A-Za-z\s]/) != -1)
+			  alert("Invalid name");
+		
+		return false;
+	}
+	
+	function _isValidOrderSearch (parameter) {
+		var status = false;
+		
+		return false;
+	}
+	
+	return {
+		data : _data,
+		isValidCustomerSearch: function(parameter) {
+			
+		},
+		isValidOrderSearch: function(parameter) {
+			
+		},
+		searchCustomer: function(lastName) {
+			var parameter = {parameterName: 'lastName', 
+							parameterValue: lastName};
+		},
+		searchOrder: function(parameter) {
+			
+		}
+	};
+}]);
 
 app.component('keyboardInput', {
 	templateUrl: 'keyboardInputComponent.html',
@@ -84,39 +127,40 @@ app.component('keyboardInput', {
 });
 
 app.component('newCustomer', {
-	controller : function($scope, $attrs, customerService) {
-		this.inputObjs = [	{'label': 'Last Name', 'value': ''},
-                     		{'label': 'First Name', 'value': ''},
-                     		{'label': 'Phone Number', 'value': ''}
+	controller: function($scope, customerService) {
+		$scope.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null},
+                     		{'label': 'First Name', 'placeholder': 'First Name', 'value': null},
+                     		{'label': 'Phone Number', 'placeholder': 'Phone Number', 'value': null}
                      	];
+		
+		$scope.save = function() {
+			customerService.save({	'lastName': $scope.inputObjs[0].value,
+									'firstName':$scope.inputObjs[1].value,
+									'phoneNumber': $scope.inputObjs[2].value},
+									function (res) {
+										customerService.setCurrentCustomer(res.data);
+										reset();}, 
+									function (res) {}	);
+		};
+		
+		function reset() {
+			$scope.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null},
+		                     		{'label': 'First Name', 'placeholder': 'First Name', 'value': null},
+		                     		{'label': 'Phone Number', 'placeholder': 'Phone Number', 'value': null}
+		                     	];
+		};
 	},
 	templateUrl: 'newCustomer.html' 	
 });
 
-app.run(function($templateCache) {
-	$templateCache.put('keyboardInputComponent.html', 
-				'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
-			+		'<div class="form-group form-group-lg">'
-			+			'<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>'
-			+			'<div class="col-xs-8">'
-			+				'<input class="form-control" data-ng-virtual-keyboard="{kt:' + "'POS Keyboard'" + ', relative: false, size: 5}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.label}}">'
-			+			'</div>'
-			+		'</div>'
-			+	'</div>'
-	);
-	$templateCache.put('newCustomer.html',
-				'<div id="newCustomer">'
-			+		'<div class="col-xs-1"></div>'
-			+		'<div class="col-xs-4">'
-			+		'<h1>New Customer</h1><br/>'
-			+			'<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input>'
-			+		'</div>'
-			+		'<div class="col-xs-6">'
-			+		'</div>'
-			+		'<div class="col-xs-1"></div>'
-			+	'</div>'
-	);
-	
+app.component('search', {
+	controller: function($scope, $attrs) {
+		
+	},
+	bindings: {
+		search : '&'
+	},
+	template: ''
 });
 
 app.controller('mainController', ['$scope', 'menuService', function($scope, menuService) {
@@ -127,3 +171,42 @@ app.controller('mainController', ['$scope', 'menuService', function($scope, menu
 	});
 }]);
 
+app.controller('customerSearchController', ['$scope', 'searchService', function($scope,searchService) {
+	$scope.inputObjs = [	
+                 		{'label': '', 'placeholder': '', 'value': null}
+                 	];
+	
+	$scope.search = function() {
+		
+	};
+}]);
+
+
+app.run(function($templateCache) {
+	$templateCache.put('keyboardInputComponent.html', 
+				'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
+			+		'<div class="form-group form-group-lg">'
+			+			'<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>'
+			+			'<div class="col-xs-8">'
+			+				'<input class="form-control" data-ng-virtual-keyboard="{kt:' + "'POS Keyboard'" + ', relative: false, size: 5}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.placeholder}}">'
+			+			'</div>'
+			+		'</div>'
+			+	'</div>'
+	);
+	$templateCache.put('newCustomer.html',
+				'<div class="row" id="newCustomer">'
+			+		'<div class="col-xs-1"></div>'
+			+		'<div class="col-xs-4">'
+			+			'<h1>New Customer</h1><br/>'
+			+			'<keyboard-input input-objs="inputObjs"></keyboard-input>'
+			+			'<br/>'
+			+			'<div class="row">'
+			+				'<button class="btn btn-primary btn-lg btn-block" data-ng-click="save()">Save</button>'
+			+			'</div>'
+			+		'</div>'
+			+		'<div class="col-xs-6">'			
+			+		'</div>'
+			+		'<div class="col-xs-1"></div>'
+			+	'</div>'
+	);
+});

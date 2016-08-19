@@ -1,8 +1,32 @@
 ul.navbar-nav li a {
 	font-size: 24px;
 	font-weight: bold;
+	cursor: pointer;
 }
 
 div[class^="no-padding"], div[class*=" no-padding"] {
 	padding: 0
+}
+
+.selected {
+	background-color: #B0C4DE;
+}
+
+.table {
+	cursor: pointer;
+	font-size: 19px;
+	font-weight: bold;
+	line-height: 2;
+}
+
+.borderless td, .borderless th {
+    border: none;
+}
+
+.dropdown-menu li a:hover {
+	background-color: #B0C4DE;
+}
+
+.navbar {
+	margin-bottom: 0
 }

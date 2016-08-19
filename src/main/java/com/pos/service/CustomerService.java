@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pos.dao.CustomerDao;
 import com.pos.model.application.Customer;
 import com.pos.model.parameter.CustomerParameter;
-import com.pos.model.parameter.SearchParameter;
 
 @Service
 public class CustomerService {
@@ -28,8 +27,8 @@ public class CustomerService {
     }
 
     @Transactional(readOnly = true)
-    public List<Customer> search(SearchParameter customer) {
-        return customerDao.search(customer);
+    public List<Customer> searchByLikeLastName(String querystr) {
+        return customerDao.searchByLikeLastName(querystr);
     }
 
     @Transactional(readOnly = true)

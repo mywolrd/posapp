@@ -2,50 +2,63 @@
 
 <html lang="en">
 	<head>
-		<link rel="stylesheet" href="resources/static/css/bootstrap.css"/>
+		<link rel="stylesheet" href="resources/static/css/bootstrap-3.3.7.min.css"/>
 		<link rel="stylesheet" href="resources/static/css/app.css"/>
 		<link rel="stylesheet" href="resources/static/css/angular-virtual-keyboard.css"/>
 		
+		<script src="resources/static/javascript/lib/jquery-3.1.0.min.js"></script>
+		
 		<script src="resources/static/javascript/lib/angular-1.5.8.js"></script>
-		<script src="resources/static/javascript/lib/angular-ui-router-0.2.18.js"></script>		
+		<script src="resources/static/javascript/lib/angular-ui-router-1.0.0-beta.1.js"></script>		
 		<script src="resources/static/javascript/lib/angular-virtual-keyboard-0.4.3.js"></script>
 		
+		<script src="resources/static/javascript/lib/bootstrap-3.3.7.min.js"></script>
+				
 		<script src="resources/static/javascript/app.js"></script>
 	</head>
 	
 	<body data-ng-app="posapp">
 		<nav  data-ng-controller="mainController" class="navbar navbar-inverse" role="navigation">
    			<div class="navbar-header">
-        		<a class="navbar-brand" data-ui-sref="#">Miller's Cleaners</a>
+        		<a class="navbar-brand" data-ui-sref="app">Miller's Cleaners</a>
     		</div>
     		<ul class="nav navbar-nav">
-        		<li><a data-ui-sref="order">Order</a></li>
-        		<li><a data-ui-sref="pickup">Pick-Up</a></li>
-        		<li><a data-ui-sref="newCustomer">Customer</a></li>
+    			<li class="dropdown">
+       				<a class="dropdown-toggle" data-toggle="dropdown" href="">Order
+        				<span class="caret">
+        				</span>
+        			</a>
+				    <ul class="dropdown-menu">
+					    <li><a ui-sref="neworder">New   </a></li>
+					    <li><a ui-sref="pickuporder">Pick Up</a></li>
+				   	</ul>
+				</li>    
+    			<li class="dropdown">
+       				<a class="dropdown-toggle" data-toggle="dropdown" href="">Customer
+        				<span class="caret">
+        				</span>
+        			</a>
+				    <ul class="dropdown-menu">
+					    <li><a ui-sref="newcustomer">New   </a></li>
+					    <li><a ui-sref="searchcustomer">Search</a></li>
+				   	</ul>
+				</li>        		
     		</ul>
 		</nav>
 		
 		<div id="container-fluid">
 			<div id="content">
-				<new-customer></new-customer>
-				<div class="row" data-ng-controller="searchController">
-					<div class="col-xs-1"></div>
-					<div class="col-xs-4">
-						<div class="row">
-							<div class="col-xs-4"></div>
-							<div class="col-xs-8">
-								<h1>Search</h1><br/>
-							</div>
-						</div>
-						<keyboard-input input-objs="inputObjs"></keyboard-input>
-						<div class="row">
-							<button class="btn btn-primary btn-lg btn-block" data-ng-click="search()">Search</button>						
-						</div>
-					</div>
-					<div class="col-xs-6">
-					</div>
-					<div class="col-xs-1"></div>
+				<div class="row">
+					<table class="table borderless">
+						<tbody>
+							<tr>
+								<td></td>
+							</tr>
+						</tbody>
+					</table>
 				</div>
+			
+				<ui-view></ui-view>
 			</div>
 		</div>
 	</body>

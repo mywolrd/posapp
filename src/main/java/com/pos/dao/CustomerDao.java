@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.pos.model.application.Customer;
 import com.pos.model.parameter.CustomerParameter;
-import com.pos.model.parameter.SearchParameter;
 
 public interface CustomerDao {
 
@@ -14,5 +13,5 @@ public interface CustomerDao {
 
     long update(CustomerParameter customer);
 
-    List<Customer> search(SearchParameter parameter);
+    List<Customer> searchByLikeLastName(String querystr);
 }

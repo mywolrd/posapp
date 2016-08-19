@@ -15,12 +15,11 @@ import com.pos.dao.CustomerDao;
 import com.pos.dao.jdbc.mapper.CustomerRowMapper;
 import com.pos.model.application.Customer;
 import com.pos.model.parameter.CustomerParameter;
-import com.pos.model.parameter.SearchParameter;
 
 @Repository
 public class JdbcCustomerDao extends JdbcBaseDao implements CustomerDao {
 
-    private final static String listByLastName = "SELECT * from CUSTOMERS where CUSTOMER.lastName like :lastName";
+    private final static String listByLastName = "SELECT * from CUSTOMERS where CUSTOMERS.lastName like :lastName";
     private final static String save = "INSERT into CUSTOMERS (lastName, firstName, pnumber, createdAt) values (:lastName, :firstName, :number, now()) ";
     private final static String update = "UPDATE CUSTOMERS set lastName = :lastName, firstName = :firstName, pnumber = :number, updatedAt = now() where customers.id = :id";
     private final static String uniqueById = "SELECT * from CUSTOMERS where CUSTOMERS.id = :id";
@@ -64,11 +63,13 @@ public class JdbcCustomerDao extends JdbcBaseDao implements CustomerDao {
     }
 
     @Override
-    public List<Customer> search(SearchParameter parameter) {
-        SqlParameterSource queryparameter = new MapSqlParameterSource().addValue(DBNames.LASTNAME, parameter.getParameterValue() + '%');
+    public List<Customer> searchByLikeLastName(String querystr) {
+        System.out.println(querystr);
+        SqlParameterSource parameter = new MapSqlParameterSource().addValue(DBNames.LASTNAME, querystr + "%");
         try {
-            return this.namedParameterJdbcTemplate.query(listByLastName, queryparameter, rowMapper);
+            return this.namedParameterJdbcTemplate.query(listByLastName, parameter, rowMapper);
         } catch (DataAccessException e) {
+            System.out.println(e.getMessage());
             return new LinkedList<Customer>();
         }
     }

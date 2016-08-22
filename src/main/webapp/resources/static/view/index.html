@@ -18,7 +18,7 @@
 	</head>
 	
 	<body data-ng-app="posapp">
-		<nav  data-ng-controller="mainController" class="navbar navbar-inverse" role="navigation">
+		<nav class="navbar navbar-inverse" role="navigation">
    			<div class="navbar-header">
         		<a class="navbar-brand" data-ui-sref="app">Miller's Cleaners</a>
     		</div>
@@ -49,15 +49,13 @@
 		<div id="container-fluid">
 			<div id="content">
 				<div class="row">
-					<table class="table borderless">
-						<tbody>
-							<tr>
-								<td></td>
-							</tr>
-						</tbody>
+					<table class="col-xs-12 table">
+						<tr>
+							<td class="col-xs-2"></td>
+						<td>Error Message</td></tr>
 					</table>
 				</div>
-			
+				
 				<ui-view></ui-view>
 			</div>
 		</div>

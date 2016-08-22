@@ -2,6 +2,8 @@ package com.pos.model.application;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class MenuItem {
 
     private Item item;
@@ -36,6 +38,7 @@ public class MenuItem {
         return item;
     }
 
+    @JsonIgnore
     public String getName() {
         if (null == this.item.getName() || this.item.getName().isEmpty())
             return this.item.getItemType().getName();

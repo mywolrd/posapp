@@ -1,6 +1,22 @@
 var app = 
 angular
 .module('posapp', ['ui.router', 'angular-virtual-keyboard'])
+.constant('APP_CONFIG', {
+
+	NAVIGATION : [
+	              {name: "POS App"},
+	              {name: "Order", menu: [{name: "New", link:"neworder"}, {name: "PickUp", link:"pickuporder"}]},
+	              {name: "Customer", menu:[{name: "New", link:"newcustomer"}, {name: "Search", link:"searchcustomer"}]}
+	              ],
+	
+	// true : requires a customer to save an order
+	// false: does not
+	CUSTOMER_MODE: true,
+
+	// true : pick a date from the order menu
+	// false: today's date 
+	READY_DATE: true
+})
 .config(['VKI_CONFIG', function(VKI_CONFIG) {
 	VKI_CONFIG.layout['POS Keyboard'] = {
 			'name': "POS Application Keyboard", 
@@ -40,10 +56,9 @@ angular
 
 }])
 .factory('stringService', function() {
-	var _NBSP: '\xa0';
+	var _NBSP = '\xa0';
 
 	return {
-		CONST: _const,
 		isLetterOnly: function(str) {
 			if(str.search(/[^A-Za-z\s]/) != -1)
 				return false;
@@ -109,7 +124,7 @@ angular
 			var str = '';
 			str += stringService.lpad(quantity, 5);
 			str += stringService.lpad(item.itemName, 30);
-			str += stringService.lpad(item.price.dollar, 5);
+			str += stringService.lpad(item.price.dollar, 10);
 			str += '.';
 			str += item.price.cent;
 			return str;
@@ -268,6 +283,37 @@ angular
 		}
 	};
 }])
+.component('navigation', {
+	controller: function(APP_CONFIG) {
+		console.log(APP_CONFIG);
+	},
+	template: 
+		'<nav class="navbar navbar-inverse" role="navigation">'
+		+	'<div class="navbar-header">'
+		+		'<a class="navbar-brand" data-ui-sref="app">POS App</a>'
+		+	'</div>'
+		+	'<ul class="nav navbar-nav">'
+		+		'<li class="dropdown">'
+		+			'<a class="dropdown-toggle" data-toggle="dropdown" href="">Order'
+		+				'<span class="caret"></span>'
+		+			'</a>'
+		+			'<ul class="dropdown-menu">'
+		+				'<li><a ui-sref="neworder">New   </a></li>'
+		+   			'<li><a ui-sref="pickuporder">Pick Up</a></li>'
+	   	+			'</ul>'
+	   	+		'</li>'    
+	   	+		'<li class="dropdown">'
+		+			'<a class="dropdown-toggle" data-toggle="dropdown" href="">Customer'
+		+				'<span class="caret"></span>'
+		+			'</a>'
+	    +			'<ul class="dropdown-menu">'
+		+				'<li><a ui-sref="newcustomer">New   </a></li>'
+		+   			'<li><a ui-sref="searchcustomer">Search</a></li>'
+	   	+			'</ul>'
+	   	+		'</li>'        		
+	   	+	'</ul>'
+	   	+'</nav>'
+})
 .component('keyboardInput', {
 	templateUrl: 'keyboardInputComponent.html',
 	bindings: {
@@ -363,8 +409,8 @@ angular
 	},
 	templateUrl: 'menu.html'
 })
-.component('neworder', {
-	controller : function(menuService, cartService) {
+.component('cartview', {
+	controller: function(cartService) {
 		this.$doCheck = function() {
 			var cart = cartService.getCart();
 			if(cart) {
@@ -372,6 +418,30 @@ angular
 			}
 		}
 	},
+	template: 	'<table class="table borderless">'
+	+			'<tbody>'
+	+				'<tr>'
+	+					'<td>Current Customer if needed</td>'
+	+				'</tr>'
+	+				'<tr>'
+	+					'<td>Pick ups</td>'
+	+				'</tr>'
+	+				'<tr>'
+	+					'<td>Date</td>'
+	+				'</tr>'
+	+				'<tr>'
+	+					'<td>Date</td>'
+	+				'</tr>'
+	+				'<tr data-ng-repeat="cartItem in $ctrl.cart">'
+	+			   		'<td>{{cartItem.toString()}}</td>'
+	+				'</tr>'
+	+				'<tr>'
+	+					'<td>Quantity</td> <td>Price</td>'
+	+				'</tr>'
+	+			'</tbody>'
+	+		'</table>'
+})
+.component('neworder', {
 	templateUrl: 'neworder.html'
 })
 .run(function($templateCache) {
@@ -429,28 +499,7 @@ angular
 			'<div class="row">'
 			+	'<div class="col-xs-1"></div>'
 			+	'<div class="col-xs-4">'
-			+		'<table class="table borderless">'
-			+			'<tbody>'
-			+				'<tr>'
-			+					'<td>Current Customer if needed</td>'
-			+				'</tr>'
-			+				'<tr>'
-			+					'<td>Pick ups</td>'
-			+				'</tr>'
-			+				'<tr>'
-			+					'<td>Date</td>'
-			+				'</tr>'
-			+				'<tr>'
-			+					'<td>Date</td>'
-			+				'</tr>'
-			+				'<tr data-ng-repeat="cartItem in $ctrl.cart">'
-			+			   		'<td>{{cartItem.toString()}}</td>'
-			+				'</tr>'
-			+				'<tr>'
-			+					'<td>Quantity</td> <td>Price</td>'
-			+				'</tr>'
-			+			'</tbody>'
-			+		'</table>'
+			+		'<cartview></cartview>'
 			+	'</div>'
 			+	'<div class="col-xs-6">'
 			+		'<menuview></menuview>'
@@ -460,7 +509,7 @@ angular
 
 	);
 })
-.run(['$http', 'menuService', function($http, menuService) {
+.run(['menuService', function(menuService) {
 	var numberOfButtons = 5;
 	
 	menuService.ajaxGetMenuItem(

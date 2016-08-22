@@ -18,34 +18,7 @@
 	</head>
 	
 	<body data-ng-app="posapp">
-		<nav class="navbar navbar-inverse" role="navigation">
-   			<div class="navbar-header">
-        		<a class="navbar-brand" data-ui-sref="app">Miller's Cleaners</a>
-    		</div>
-    		<ul class="nav navbar-nav">
-    			<li class="dropdown">
-       				<a class="dropdown-toggle" data-toggle="dropdown" href="">Order
-        				<span class="caret">
-        				</span>
-        			</a>
-				    <ul class="dropdown-menu">
-					    <li><a ui-sref="neworder">New   </a></li>
-					    <li><a ui-sref="pickuporder">Pick Up</a></li>
-				   	</ul>
-				</li>    
-    			<li class="dropdown">
-       				<a class="dropdown-toggle" data-toggle="dropdown" href="">Customer
-        				<span class="caret">
-        				</span>
-        			</a>
-				    <ul class="dropdown-menu">
-					    <li><a ui-sref="newcustomer">New   </a></li>
-					    <li><a ui-sref="searchcustomer">Search</a></li>
-				   	</ul>
-				</li>        		
-    		</ul>
-		</nav>
-		
+		<navigation></navigation>
 		<div id="container-fluid">
 			<div id="content">
 				<div class="row">
@@ -55,7 +28,6 @@
 						<td>Error Message</td></tr>
 					</table>
 				</div>
-				
 				<ui-view></ui-view>
 			</div>
 		</div>

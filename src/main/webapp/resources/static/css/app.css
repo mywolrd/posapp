@@ -1,3 +1,7 @@
+body {
+	font-family: Courier New;
+}
+
 ul.navbar-nav li a {
 	font-size: 24px;
 	font-weight: bold;
@@ -15,7 +19,7 @@ div[class^="no-padding"], div[class*=" no-padding"] {
 .table tbody tr td {
 	font-size: 19px;
 	font-weight: bold;
-	line-height: 2;
+	line-height: 1.5;
 	border: none;
 }
 

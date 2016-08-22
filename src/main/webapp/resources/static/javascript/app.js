@@ -39,6 +39,36 @@ angular
     	});
 
 }])
+.factory('stringService', function() {
+	var _NBSP: '\xa0';
+
+	return {
+		CONST: _const,
+		isLetterOnly: function(str) {
+			if(str.search(/[^A-Za-z\s]/) != -1)
+				return false;
+			
+			return true;
+		},
+		isNumberOnly: function(str) {
+			if(str.search(/[^0-9]/) != -1)
+				return false;
+			
+			return true;
+		},
+		lpad: function(s, len, char) {
+			var str = s.toString();
+			var pad = angular.isDefined(char) ? char : _NBSP; 
+			while (str.length < len) {
+				str = pad + str;
+			}
+			return str;
+		},
+		rpad: function(str, len, char) {
+			
+		}
+	};
+})
 .factory('urlService', function() {
 	
 	var service = {};
@@ -54,9 +84,37 @@ angular
 	
 	return service;
 })
-.factory('cartService', function() {
+.factory('cartService', ['stringService', function(stringService) {
 	var _data = {};
 	_data.cart = [];
+	
+	function _CartItem(item, quantity, newprice) {
+		var item = item;
+		var quantity = quantity;
+		var newprice = newprice;
+		
+		this.getItem = function() {
+			return item;
+		}
+		
+		this.getQuantity = function() {
+			return quantity;
+		}
+		
+		this.getNewprice = function() {
+			return newprice;
+		}
+		
+		this.toString = function() {
+			var str = '';
+			str += stringService.lpad(quantity, 5);
+			str += stringService.lpad(item.itemName, 30);
+			str += stringService.lpad(item.price.dollar, 5);
+			str += '.';
+			str += item.price.cent;
+			return str;
+		}
+	}
 	
 	return {
 		getCart: function() {
@@ -66,32 +124,35 @@ angular
 			_data.cart = [];
 			return _data.cart;
 		},
-		addItem: function(item) {
-			var itemCopy = angular.copy(item);
-			_data.cart.push(itemCopy);
-			console.log(itemCopy);
-			console.log(_data.cart);
+		addItem: function(menuItem) {
+			var itemCopy = angular.copy(menuItem.item);
+			var cartItem = new _CartItem(itemCopy, 1, null);
+			_data.cart.push(cartItem);
 		}
 	};
-})
+}])
 .factory('menuService', ['$http', 'urlService', 'cartService', function($http, urlService, cartService) {
 	
 	var _data = {};
-
+	var _CUR = 'current';
+	var	_PREV = 'previous';
+	var _MAIN = 'main';
+	var _MENU = 'menu';
+	
 	function _setCurrentMenu(menu) {
 		if(menu) {
-			if (_data['current'])
-				_data['previous'] = _data['current'];
-			_data['current'] = menu;
+			if (_data[_CUR])
+				_data[_PREV] = _data[_CUR];
+			_data[_CUR] = menu;
 		}
 	}
 	
 	function _showPreviousMenu() {
-		if(_data['previous']) {
-			var _currentMenu = _data['current'];
-			_data['current'] = _data['previous'];
+		if(_data[_PREV]) {
+			var _currentMenu = _data[_CUR];
+			_data[_CUR] = _data[_PREV];
 			if (_currentMenu)
-				_data['previous'] = _currentMenu;
+				_data[_PREV] = _currentMenu;
 		}
 	}
 	
@@ -130,18 +191,18 @@ angular
 	
 	return {
 		ajaxGetMenuItem: function(success, fail) {
-			if (!_data['menu'])
+			if (!_data[_MENU])
 				$http.get(urlService.menu + '/list').then(success, fail);
 		},
 		getMainMenu: function() {
-			if (_data['main'])
-				return _data['main'];
+			if (_data[_MAIN])
+				return _data[_MAIN];
 		
 			return [];
 		},
 		getCurrentMenu: function() {
-			if (_data['current'])
-				return _data['current'];
+			if (_data[_CUR])
+				return _data[_CUR];
 			
 			return [];
 		},
@@ -149,10 +210,10 @@ angular
 			_setCurrentMenu(menu);
 		},
 		buildMenu: function(menuItems, numberOfItems) {
-			if (!_data['main']) {
+			if (!_data[_MAIN]) {
 				var main = _buildMenu(menuItems, numberOfItems);
-				_data['main'] = main;
-				_data['current'] = main;
+				_data[_MAIN] = main;
+				_data[_CUR] = main;
 			}
 		}
 	}
@@ -207,31 +268,6 @@ angular
 		}
 	};
 }])
-.factory('stringService', function() {
-	return {
-		isLetterOnly: function(str) {
-			if(str.search(/[^A-Za-z\s]/) != -1)
-				return false;
-			
-			return true;
-		},
-		isNumberOnly: function(str) {
-			if(str.search(/[^0-9]/) != -1)
-				return false;
-			
-			return true;
-		},
-		lpad: function(str, len, char) {
-			var pad = typeof char !== 'undefined' ? char : '0'; 
-			while (str.length < len) 
-				str = pad + str;
-			return str;
-		},
-		rpad: function(str, lenm char) {
-			
-		}
-	};
-})
 .component('keyboardInput', {
 	templateUrl: 'keyboardInputComponent.html',
 	bindings: {
@@ -332,7 +368,6 @@ angular
 		this.$doCheck = function() {
 			var cart = cartService.getCart();
 			if(cart) {
-				console.log(this.cart);
 				this.cart = cart;
 			}
 		}
@@ -408,8 +443,8 @@ angular
 			+				'<tr>'
 			+					'<td>Date</td>'
 			+				'</tr>'
-			+				'<tr data-ng-repeat="item in $ctrl.cart">'
-			+			   		'<td>{{item.item.itemName}}</td>'
+			+				'<tr data-ng-repeat="cartItem in $ctrl.cart">'
+			+			   		'<td>{{cartItem.toString()}}</td>'
 			+				'</tr>'
 			+				'<tr>'
 			+					'<td>Quantity</td> <td>Price</td>'

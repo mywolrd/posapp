@@ -301,24 +301,8 @@ angular
 			return arr;
 		}
 	},
-	template: 
-		'<nav class="navbar navbar-inverse" role="navigation">'
-		+	'<div class="navbar-header">'
-		+		'<a class="navbar-brand" data-ui-sref="app">POS App</a>'
-		+	'</div>'
-		+	'<ul class="nav navbar-nav">'
-		+		'<li class="dropdown" data-ng-repeat="navigation in $ctrl.navigations">'
-		+			'<a class="dropdown-toggle" data-toggle="dropdown" href="">{{navigation.name}}'
-		+				'<span class="caret"></span>'
-		+			'</a>'
-		+			'<ul class="dropdown-menu">'
-		+				'<li data-ng-repeat="route in navigation.menu">'
-		+					'<a ui-sref="{{route.link}}">{{route.name}}</a>'
-		+				'</li>'
-	   	+			'</ul>'
-	   	+		'</li>'            		
-	   	+	'</ul>'
-	   	+'</nav>'
+	templateUrl: 'navigation.html'
+		
 })
 .component('keyboardInput', {
 	templateUrl: 'keyboardInputComponent.html',
@@ -453,6 +437,26 @@ angular
 	templateUrl: 'neworder.html'
 })
 .run(function($templateCache) {
+	$templateCache.put('navigation.html',
+			'<nav class="navbar navbar-inverse" role="navigation">'
+			+	'<div class="navbar-header">'
+			+		'<a class="navbar-brand" data-ui-sref="app">POS App</a>'
+			+	'</div>'
+			+	'<ul class="nav navbar-nav">'
+			+		'<li class="dropdown" data-ng-repeat="navigation in $ctrl.navigations">'
+			+			'<a class="dropdown-toggle" data-toggle="dropdown" href="">{{navigation.name}}'
+			+				'<span class="caret"></span>'
+			+			'</a>'
+			+			'<ul class="dropdown-menu">'
+			+				'<li data-ng-repeat="route in navigation.menu">'
+			+					'<a ui-sref="{{route.link}}">{{route.name}}</a>'
+			+				'</li>'
+		   	+			'</ul>'
+		   	+		'</li>'            		
+		   	+	'</ul>'
+		   	+'</nav>'	
+	);
+	
 	$templateCache.put('keyboardInputComponent.html', 
 				'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
 			+		'<div class="form-group form-group-lg">'

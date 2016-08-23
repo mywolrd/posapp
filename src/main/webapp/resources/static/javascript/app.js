@@ -5,8 +5,8 @@ angular
 
 	NAVIGATION : [
 	              {name: "POS App"},
-	              {name: "Order", menu: [{name: "New", link:"neworder"}, {name: "PickUp", link:"pickuporder"}]},
-	              {name: "Customer", menu:[{name: "New", link:"newcustomer"}, {name: "Search", link:"searchcustomer"}]}
+	              {name: "Order", menu: [{name: "New", link:"neworder"}, {name: "PickUp", link:"pickuporder"}], customer:false},
+	              {name: "Customer", menu:[{name: "New", link:"newcustomer"}, {name: "Search", link:"searchcustomer"}], customer:true}
 	              ],
 	
 	// true : requires a customer to save an order
@@ -285,7 +285,21 @@ angular
 }])
 .component('navigation', {
 	controller: function(APP_CONFIG) {
-		console.log(APP_CONFIG);
+		var navigationObj = APP_CONFIG.NAVIGATION;
+		
+		this.root = navigationObj.splice(0, 1);
+		this.navigations = checkCustomerMode(navigationObj);
+		
+		function checkCustomerMode(navigationObj) {
+			var arr = [];
+			var i, len;
+			for (i=0,len = navigationObj.length; i < len; i++) {
+				if (!(navigationObj[i].customer & !APP_CONFIG.CUSTOMER_MODE)) {
+					arr.push(navigationObj[i]);
+				}
+			}
+			return arr;
+		}
 	},
 	template: 
 		'<nav class="navbar navbar-inverse" role="navigation">'
@@ -293,24 +307,16 @@ angular
 		+		'<a class="navbar-brand" data-ui-sref="app">POS App</a>'
 		+	'</div>'
 		+	'<ul class="nav navbar-nav">'
-		+		'<li class="dropdown">'
-		+			'<a class="dropdown-toggle" data-toggle="dropdown" href="">Order'
+		+		'<li class="dropdown" data-ng-repeat="navigation in $ctrl.navigations">'
+		+			'<a class="dropdown-toggle" data-toggle="dropdown" href="">{{navigation.name}}'
 		+				'<span class="caret"></span>'
 		+			'</a>'
 		+			'<ul class="dropdown-menu">'
-		+				'<li><a ui-sref="neworder">New   </a></li>'
-		+   			'<li><a ui-sref="pickuporder">Pick Up</a></li>'
+		+				'<li data-ng-repeat="route in navigation.menu">'
+		+					'<a ui-sref="{{route.link}}">{{route.name}}</a>'
+		+				'</li>'
 	   	+			'</ul>'
-	   	+		'</li>'    
-	   	+		'<li class="dropdown">'
-		+			'<a class="dropdown-toggle" data-toggle="dropdown" href="">Customer'
-		+				'<span class="caret"></span>'
-		+			'</a>'
-	    +			'<ul class="dropdown-menu">'
-		+				'<li><a ui-sref="newcustomer">New   </a></li>'
-		+   			'<li><a ui-sref="searchcustomer">Search</a></li>'
-	   	+			'</ul>'
-	   	+		'</li>'        		
+	   	+		'</li>'            		
 	   	+	'</ul>'
 	   	+'</nav>'
 })
@@ -321,18 +327,18 @@ angular
 	}
 })
 .component('newcustomer', {
-	controller: function($scope, customerService) {
-		$scope.title = 'New Customer';
-		$scope.actionName = 'Save';
-		$scope.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null, required: true},
+	controller: function(customerService) {
+		this.title = 'New Customer';
+		this.actionName = 'Save';
+		this.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null, required: true},
                      		{'label': 'First Name', 'placeholder': 'First Name', 'value': null, required: false},
                      		{'label': 'Phone Number', 'placeholder': 'Phone Number', 'value': null, required: false}
                      	];
 		
-		$scope.action = function() {
-			customerService.save({	'lastName': $scope.inputObjs[0].value,
-									'firstName':$scope.inputObjs[1].value,
-									'phoneNumber': $scope.inputObjs[2].value},
+		this.action = function() {
+			customerService.save({	'lastName': this.inputObjs[0].value,
+									'firstName':this.inputObjs[1].value,
+									'phoneNumber': this.inputObjs[2].value},
 									function (res) {
 										customerService.setCurrentCustomer(res.data);
 										reset();
@@ -341,7 +347,7 @@ angular
 		};
 		
 		function reset() {
-			$scope.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null, required: true},
+			this.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null, required: true},
 		                     		{'label': 'First Name', 'placeholder': 'First Name', 'value': null, required: false},
 		                     		{'label': 'Phone Number', 'placeholder': 'Phone Number', 'value': null, required: false}
 		                     	];
@@ -350,19 +356,21 @@ angular
 	templateUrl: 'inputs.html' 	
 })
 .component('customersearch', {
-	controller: function($scope, customerService) {
-		$scope.title = 'Search';
-		$scope.actionName = 'Search';
-		$scope.idSelected = 0;
-		$scope.inputObjs = [	
+	controller: function(customerService) {
+		
+		this.title = 'Search';
+		this.actionName = 'Search';
+		this.idSelected = 0;
+		this.inputObjs = [	
 	                 		{label: 'Customer', placeholder: 'Last Name', value: null, required: true}
 	                 	];
 		
-		$scope.action = function() {
-			customerService.search($scope.inputObjs[0].value,
-					function(res) {
-					$scope.results = res.data;
-					$scope.results.map(function(customer) {
+		this.action = function() {
+			var ctrl = this;
+			customerService.search(this.inputObjs[0].value,
+				function(res) {
+					ctrl.results = res.data;
+					ctrl.results.map(function(customer) {
 						customer.strs = toStrings(customer);
 				});
 				}, function(res) {
@@ -370,8 +378,8 @@ angular
 				});
 		};
 		
-		$scope.rowClickAction = function(customer) {
-			$scope.idSelected = customer.id;
+		this.rowClickAction = function(customer) {
+			this.idSelected = customer.id;
 			customerService.setCurrentCustomer(customer);
 		};
 		
@@ -391,8 +399,8 @@ angular
 		};
 		
 		function reset() {
-			$scope.inputObjs = [	
-		                 		{label: 'Customer', placeholder: 'Last Name', value: null, required:true}
+			this.inputObjs = [	
+		        {label: 'Customer', placeholder: 'Last Name', value: null, required:true}
 		                 	];
 		};
 	},
@@ -461,17 +469,17 @@ angular
 			+		'<div class="col-xs-1"></div>'
 			+		'<div class="col-xs-4">'
 			+			'<h1>{{title}}</h1><br/>'
-			+			'<keyboard-input input-objs="inputObjs"></keyboard-input>'
+			+			'<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input>'
 			+			'<br/>'
 			+			'<div class="row">'
-			+				'<button class="btn btn-primary btn-lg btn-block" data-ng-click="action()">{{actionName}}</button>'
+			+				'<button class="btn btn-primary btn-lg btn-block" data-ng-click="$ctrl.action()">{{$ctrl.actionName}}</button>'
 			+			'</div>'
 			+		'</div>'
 			+		'<div class="col-xs-6">'
 			+			'<br/><br/>'
 			+			'<table class="table">'
 			+				'<tbody>'
-			+					'<tr class="cursor-pointer" data-ng-click="rowClickAction(row)" data-ng-repeat="row in ::results" data-ng-class="row.id === idSelected ?' + "'selected' : ''" + '">'
+			+					'<tr class="cursor-pointer" data-ng-click="$ctrl.rowClickAction(row)" data-ng-repeat="row in $ctrl.results" data-ng-class="row.id === $ctrl.idSelected ?' + "'selected' : ''" + '">'
 			+						'<td>{{$index+1}}</td>'				
 			+						'<td data-ng-repeat="str in ::row.strs">{{::str}}</td>'
 			+					'</tr>'

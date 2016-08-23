@@ -64,12 +64,10 @@ public class JdbcCustomerDao extends JdbcBaseDao implements CustomerDao {
 
     @Override
     public List<Customer> searchByLikeLastName(String querystr) {
-        System.out.println(querystr);
         SqlParameterSource parameter = new MapSqlParameterSource().addValue(DBNames.LASTNAME, querystr + "%");
         try {
             return this.namedParameterJdbcTemplate.query(listByLastName, parameter, rowMapper);
         } catch (DataAccessException e) {
-            System.out.println(e.getMessage());
             return new LinkedList<Customer>();
         }
     }

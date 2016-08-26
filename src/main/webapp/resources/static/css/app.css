@@ -38,3 +38,10 @@ div[class^="no-padding"], div[class*=" no-padding"] {
 .navbar {
 	margin-bottom: 0
 }
+
+td .btn {
+	font-size: 19px;
+	font-weight: bold;
+	line-height: 1.5;
+	background-color: aliceblue;
+}

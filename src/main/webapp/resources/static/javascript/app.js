@@ -8,11 +8,18 @@ angular
 	              {name: "Order", menu: [{name: "New", link:"neworder"}, {name: "PickUp", link:"pickuporder"}], customer:false},
 	              {name: "Customer", menu:[{name: "New", link:"newcustomer"}, {name: "Search", link:"searchcustomer"}], customer:true}
 	              ],
-	
-	// true : requires a customer to save an order
+
+	CART_INFO : [{},
+	             {},
+	             {}],        
+	// true : requires a customer to complete an order
 	// false: does not
 	CUSTOMER_MODE: true,
 
+	// false : requires a ready date/time to complete an order
+	// true  : does not
+	FIRST_COME_FIRST_SERVE: false,
+	
 	// true : pick a date from the order menu
 	// false: today's date 
 	READY_DATE: true
@@ -143,31 +150,30 @@ angular
 			var itemCopy = angular.copy(menuItem.item);
 			var cartItem = new _CartItem(itemCopy, 1, null);
 			_data.cart.push(cartItem);
+		}, 
+		getCartInfo: function() {
+			
 		}
 	};
 }])
 .factory('menuService', ['$http', 'urlService', 'cartService', function($http, urlService, cartService) {
 	
 	var _data = {};
-	var _CUR = 'current';
-	var	_PREV = 'previous';
-	var _MAIN = 'main';
-	var _MENU = 'menu';
 	
 	function _setCurrentMenu(menu) {
 		if(menu) {
-			if (_data[_CUR])
-				_data[_PREV] = _data[_CUR];
-			_data[_CUR] = menu;
+			if (_data.current)
+				_data.previous = _data.current;
+			_data.current = menu;
 		}
 	}
 	
 	function _showPreviousMenu() {
-		if(_data[_PREV]) {
-			var _currentMenu = _data[_CUR];
-			_data[_CUR] = _data[_PREV];
+		if(_data.previous) {
+			var _currentMenu = _data.current;
+			_data.current = _data.previous;
 			if (_currentMenu)
-				_data[_PREV] = _currentMenu;
+				_data.previous = _currentMenu;
 		}
 	}
 	
@@ -206,18 +212,18 @@ angular
 	
 	return {
 		ajaxGetMenuItem: function(success, fail) {
-			if (!_data[_MENU])
+			if (!_data.menu)
 				$http.get(urlService.menu + '/list').then(success, fail);
 		},
 		getMainMenu: function() {
-			if (_data[_MAIN])
-				return _data[_MAIN];
+			if (_data.main)
+				return _data.main;
 		
 			return [];
 		},
 		getCurrentMenu: function() {
-			if (_data[_CUR])
-				return _data[_CUR];
+			if (_data.current)
+				return _data.current;
 			
 			return [];
 		},
@@ -225,10 +231,10 @@ angular
 			_setCurrentMenu(menu);
 		},
 		buildMenu: function(menuItems, numberOfItems) {
-			if (!_data[_MAIN]) {
+			if (!_data.main) {
 				var main = _buildMenu(menuItems, numberOfItems);
-				_data[_MAIN] = main;
-				_data[_CUR] = main;
+				_data.main = main;
+				_data.current = main;
 			}
 		}
 	}
@@ -245,10 +251,12 @@ angular
 		},
 		
 		search: function(querystr, success, fail) {
-			if (null != querystr)
+			if (querystr)
 				$http.get(urlService.customer + '/search/' + querystr.toLowerCase()).then(success, fail);
 		},
 		
+		// After setting the current customer value,  
+		// it should route to another view.
 		setCurrentCustomer: function(customer) {
 			_data.previous = _data.current;
 			_data.current = customer;
@@ -261,6 +269,28 @@ angular
 		resetCurrentCustomer: function() {
 			_data.previous = _data.current;
 			_data.current = null;
+		}
+	};
+}])
+.factory('routingHelperService', ['$state', function($state) {
+	var _data = {};
+	
+	return {
+		setRoute: function(next, previous) {
+			_data.next = next;
+			if (!previous) {
+				_data.previous = $state.current.name;
+			}
+			if (previous)
+				_data.previous = previous;
+		},
+		go: function() {
+			if (_data.next)
+				$state.go(_data.next);
+		},
+		back: function() {
+			if (_data.previous)
+				$state.go(_data.previous);
 		}
 	};
 }])
@@ -340,7 +370,7 @@ angular
 	templateUrl: 'inputs.html' 	
 })
 .component('customersearch', {
-	controller: function(customerService) {
+	controller: function(customerService, routingHelperService) {
 		
 		this.title = 'Search';
 		this.actionName = 'Search';
@@ -356,7 +386,7 @@ angular
 					ctrl.results = res.data;
 					ctrl.results.map(function(customer) {
 						customer.strs = toStrings(customer);
-				});
+					});
 				}, function(res) {
 					
 				});
@@ -365,6 +395,10 @@ angular
 		this.rowClickAction = function(customer) {
 			this.idSelected = customer.id;
 			customerService.setCurrentCustomer(customer);
+		};
+
+		this.select = function() {
+			
 		};
 		
 		function toStrings(customer) {
@@ -402,36 +436,29 @@ angular
 	templateUrl: 'menu.html'
 })
 .component('cartview', {
-	controller: function(cartService) {
+	controller: function(cartService, customerService, routingHelperService) {
 		this.$doCheck = function() {
 			var cart = cartService.getCart();
 			if(cart) {
 				this.cart = cart;
 			}
 		}
+		
+		this.cartInfo = [
+		                 {name: "Customer", enabled: true, 
+		                	 action: function() {
+		                		 var currentCustomer = customerService.getCurrentCustomer();
+		                		 if(!currentCustomer) {
+		                			 routingHelperService.setRoute('searchcustomer');
+		                			 routingHelperService.go();
+		                		 }
+		                 	}
+		                 }, 
+		                 {name: "Existing Order if relavant", enabled: true, action: function() {}}, 
+		                 {name: "today's date", enabled: true, action: function() {}}, 
+		                 {name: "ready date", enabled: true, action: function() {}}];
 	},
-	template: 	'<table class="table borderless">'
-	+			'<tbody>'
-	+				'<tr>'
-	+					'<td>Current Customer if needed</td>'
-	+				'</tr>'
-	+				'<tr>'
-	+					'<td>Pick ups</td>'
-	+				'</tr>'
-	+				'<tr>'
-	+					'<td>Date</td>'
-	+				'</tr>'
-	+				'<tr>'
-	+					'<td>Date</td>'
-	+				'</tr>'
-	+				'<tr data-ng-repeat="cartItem in $ctrl.cart">'
-	+			   		'<td>{{cartItem.toString()}}</td>'
-	+				'</tr>'
-	+				'<tr>'
-	+					'<td>Quantity</td> <td>Price</td>'
-	+				'</tr>'
-	+			'</tbody>'
-	+		'</table>'
+	templateUrl: 'cartview.html'
 })
 .component('neworder', {
 	templateUrl: 'neworder.html'
@@ -519,6 +546,25 @@ angular
 			+	'<div class="col-xs-1"></div>'
 			+'</div>'
 
+	);
+	
+	$templateCache.put('cartview.html', 
+				'<table class="table">'
+			+			'<tbody>'
+			+				'<tr data-ng-repeat="info in $ctrl.cartInfo">'
+			+					'<td data-ng-if="info.enabled">'
+			+						'<button class="btn btn-block" data-ng-click="info.action()">{{info.name}}</button>'
+			+					'</td>'
+			+					'<td data-ng-if="!info.enabled"><label>{{info.name}}</label></td>'
+			+				'</tr>'
+			+				'<tr data-ng-repeat="cartItem in $ctrl.cart">'
+			+			   		'<td>{{cartItem.toString()}}</td>'
+			+				'</tr>'
+			+				'<tr>'
+			+					'<td>Quantity</td> <td>Price</td>'
+			+				'</tr>'
+			+			'</tbody>'
+			+		'</table>'
 	);
 })
 .run(['menuService', function(menuService) {

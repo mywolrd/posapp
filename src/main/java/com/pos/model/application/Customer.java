@@ -2,6 +2,8 @@ package com.pos.model.application;
 
 import java.time.LocalDateTime;
 
+import com.google.common.base.Objects;
+
 public class Customer {
 
     private long id;
@@ -34,6 +36,27 @@ public class Customer {
 
     public String getNumber() {
         return this.number;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.id, this.firstName, this.lastName,
+                this.number);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (null == obj)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Customer other = (Customer) obj;
+        return Objects.equal(this.id, other.id)
+                && Objects.equal(this.lastName, other.lastName)
+                && Objects.equal(this.firstName, other.firstName)
+                && Objects.equal(this.number, other.number);
     }
 
     public static class CustomerBuilder {

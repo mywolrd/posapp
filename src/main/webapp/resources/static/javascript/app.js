@@ -16,6 +16,10 @@ angular
 	// false: does not
 	CUSTOMER_MODE: true,
 
+	SHOW_ADD_ON_ITEMS: true,
+	NUMBER_OF_ADD_ON_ITEM_BUTTONS: 4,
+	NUMBER_OF_BUTTONS_MENU: 5,
+	
 	// false : requires a ready date/time to complete an order
 	// true  : does not
 	FIRST_COME_FIRST_SERVE: false,
@@ -106,7 +110,7 @@ angular
 	
 	return service;
 })
-.factory('cartService', ['stringService', function(stringService) {
+.factory('cartService', ['APP_CONFIG', 'stringService', function(APP_CONFIG, stringService) {
 	var _data = {};
 	_data.cart = [];
 	
@@ -152,11 +156,11 @@ angular
 			_data.cart.push(cartItem);
 		}, 
 		getCartInfo: function() {
-			
+			var cartInfo = [];
 		}
 	};
 }])
-.factory('menuService', ['$http', 'urlService', 'cartService', function($http, urlService, cartService) {
+.factory('menuService', ['APP_CONFIG', '$http', 'urlService', 'cartService', function(APP_CONFIG, $http, urlService, cartService) {
 	
 	var _data = {};
 	
@@ -174,6 +178,52 @@ angular
 			_data.current = _data.previous;
 			if (_currentMenu)
 				_data.previous = _currentMenu;
+		}
+	}
+	
+	function _buildAddOnItemsMenu(addOnItems) {
+		if (!_data.addOnItems) {
+			_data.addOnItems = addOnItems;
+			
+			_data.addOn_num_of_buttons = APP_CONFIG.NUMBER_OF_ADD_ON_ITEM_BUTTONS;
+			_data.addOn_begin = 0;
+			
+			_setAddOnCurrent();
+		}
+	}
+	
+	function _resetAddOnItems() {
+		if (_data.addOnItems) {
+			_data.addOn_begin = 0;
+			
+			_setAddOnCurrent();
+		}
+	}
+	
+	function _setAddOnCurrent () {
+		if (_data.addOn_begin >= 0) {
+			_data.addOn_end = _data.addOn_begin + _data.addOn_num_of_buttons;
+			_data.addOn_current = _data.addOnItems.slice(_data.addOn_begin, _data.addOn_end);
+		}
+	}
+	
+	function _addOn_move_left() {
+		if (angular.isDefined(_data.addOn_begin)) {
+			if (_data.addOn_begin > 0) {
+				_data.addOn_begin = _data.addOn_begin - 1;
+				
+				_setAddOnCurrent();
+			}
+		} 
+	}
+	
+	function _addOn_move_right() {
+		if (angular.isDefined(_data.addOn_end)) {
+			if (_data.addOn_end < _data.addOnItems.length) {
+				_data.addOn_begin = _data.addOn_begin + 1;
+				
+				_setAddOnCurrent();
+			}
 		}
 	}
 	
@@ -211,6 +261,10 @@ angular
 	}
 	
 	return {
+		ajaxGetAddOnItem: function(success, fail) {
+			if (!_data.addonitems && APP_CONFIG.SHOW_ADD_ON_ITEMS)
+				$http.get(urlService.menu + '/addonitem/list').then(success, fail);
+		},
 		ajaxGetMenuItem: function(success, fail) {
 			if (!_data.menu)
 				$http.get(urlService.menu + '/list').then(success, fail);
@@ -230,9 +284,26 @@ angular
 		setCurrentMenu: function(menu) {
 			_setCurrentMenu(menu);
 		},
-		buildMenu: function(menuItems, numberOfItems) {
+		getAddOnItems: function() {
+			if (_data.addOnItems) {
+				_resetAddOnItems();
+				return _data.addOn_current;
+			}
+			
+			return [];
+		},
+		getCurrentAddOnItems: function() {
+			if (_data.addOn_current)
+				return _data.addOn_current;
+			
+			return [];
+		},
+		buildAddOnMenu: function(addOnItems) {
+			_buildAddOnItemsMenu(addOnItems);
+		},
+		buildMainMenu: function(menuItems) {
 			if (!_data.main) {
-				var main = _buildMenu(menuItems, numberOfItems);
+				var main = _buildMenu(menuItems, APP_CONFIG.NUMBER_OF_BUTTONS_MENU);
 				_data.main = main;
 				_data.current = main;
 			}
@@ -395,12 +466,9 @@ angular
 		this.rowClickAction = function(customer) {
 			this.idSelected = customer.id;
 			customerService.setCurrentCustomer(customer);
+			routingHelperService.back();
 		};
 
-		this.select = function() {
-			
-		};
-		
 		function toStrings(customer) {
 			var strs = [];
 			strs.push(customer.lastName);
@@ -425,7 +493,7 @@ angular
 	templateUrl: 'inputs.html' 	
 })
 .component('menuview', {
-	controller : function(menuService) {
+	controller: function(menuService) {
 		this.$doCheck = function() {
 			var menu = menuService.getCurrentMenu();
 			if (menu) {
@@ -435,23 +503,74 @@ angular
 	},
 	templateUrl: 'menu.html'
 })
+.component('addonitemview', {
+	controller: function(menuService) {
+		var ctrl = this;
+		
+		ctrl.$doCheck = function() {
+			var addOnMenu = menuService.getCurrentAddOnItems();
+			ctrl.addOnItems = addOnMenu;
+		}
+		
+		ctrl.toLeft = function() {
+			
+		}
+		
+		ctrl.toRight = function() {
+			
+		}
+		
+		ctrl.addOnItems = [];
+	},
+	template: 	'<table class="table borderless">'
+			+		'<tr>'
+			+			'<td class="col-xs-1">to left</td>'
+			+			'<td class="col-xs-1"></td>'
+			+			'<td class="col-xs-2" data-ng-repeat="addOnItem in $ctrl.addOnItems">'
+			+				'<button class="btn-block">{{addOnItem.name}}</button>'
+			+			'</td>'
+			+			'<td class="col-xs-1"></td>'
+			+			'<td class="col-xs-1">to right</td>'
+			+		'<tr>'
+			+	'</table>'
+})
+.component('menunumpad', {
+	// Angular-virtual-keyboard requires an input field and a keyboard shows
+	// only when the input field is focused.
+	// This number pad should always display.
+	controller: function(cartService) {
+		var ctrl = this;
+		ctrl.labels = [['0', '1', '2', '3', '4', '5'],
+		               ['6', '7', '8', '9', '0', '']]
+	},
+	template: '<table class="table borderless">'
+			+	'<tr data-ng-repeat="row in $ctrl.labels">'
+			+		'<td class="col-xs-2" data-ng-repeat="label in row">'
+			+			'<button data-ng-if="label" class="btn-block">{{label}}</button>'
+			+		'</td>'
+			+	'</tr>'
+			+	'</table>'
+})
 .component('cartview', {
 	controller: function(cartService, customerService, routingHelperService) {
+		var ctrl = this;
+		
 		this.$doCheck = function() {
 			var cart = cartService.getCart();
 			if(cart) {
 				this.cart = cart;
+			}
+			var currentCustomer = customerService.getCurrentCustomer();
+			if (currentCustomer) {
+				this.cartInfo[0].name = currentCustomer.strs[0];
 			}
 		}
 		
 		this.cartInfo = [
 		                 {name: "Customer", enabled: true, 
 		                	 action: function() {
-		                		 var currentCustomer = customerService.getCurrentCustomer();
-		                		 if(!currentCustomer) {
-		                			 routingHelperService.setRoute('searchcustomer');
-		                			 routingHelperService.go();
-		                		 }
+		                		 routingHelperService.setRoute('searchcustomer');
+		                		 routingHelperService.go();
 		                 	}
 		                 }, 
 		                 {name: "Existing Order if relavant", enabled: true, action: function() {}}, 
@@ -532,6 +651,8 @@ angular
 			+		'</tr>'
 			+	'</tbody>'
 			+'</table>'
+			+'<addonitemview></addonitemview>'
+			+'<menunumpad></menunumpad>'
 	);
 	
 	$templateCache.put('neworder.html',
@@ -567,18 +688,19 @@ angular
 			+		'</table>'
 	);
 })
-.run(['menuService', function(menuService) {
-	var numberOfButtons = 5;
-	
+.run(['menuService', function(menuService) {	
 	menuService.ajaxGetMenuItem(
 		function (res) {
-			//menuService.setMenuItems(res.data);
-			processMenuItems(res.data);
+			menuService.buildMainMenu(res.data);
 		}, function (res) {		
 	});
-	
-	function processMenuItems(menuItems) {		
-		var menu = menuService.buildMenu(menuItems, numberOfButtons);
-	};
+	var addOnItems = [{name: 'Button1', price: {dollar: 5, cent: 0}},
+	                   {name: 'Button2', price: {dollar: 5, cent: 0}},
+	                   {name: 'Button3', price: {dollar: 5, cent: 0}},
+	                   {name: 'Button4', price: {dollar: 5, cent: 0}},
+	                   {name: 'Button5', price: {dollar: 5, cent: 0}},
+	                   {name: 'Button6', price: {dollar: 5, cent: 0}},
+	                   {name: 'Button7', price: {dollar: 5, cent: 0}}];
+	menuService.buildAddOnMenu(addOnItems);
 }]);
 

@@ -1,72 +1,10 @@
-var app = 
-angular
-.module('posapp', ['ui.router', 'angular-virtual-keyboard'])
-.constant('APP_CONFIG', {
+//	Services
+//	States and data are shared in services.
 
-	NAVIGATION : [
-	              {name: "POS App"},
-	              {name: "Order", menu: [{name: "New", link:"neworder"}, {name: "PickUp", link:"pickuporder"}], customer:false},
-	              {name: "Customer", menu:[{name: "New", link:"newcustomer"}, {name: "Search", link:"searchcustomer"}], customer:true}
-	              ],
-
-	CART_INFO : [{},
-	             {},
-	             {}],        
-	// true : requires a customer to complete an order
-	// false: does not
-	CUSTOMER_MODE: true,
-
-	SHOW_ADD_ON_ITEMS: true,
-	NUMBER_OF_ADD_ON_ITEM_BUTTONS: 4,
-	NUMBER_OF_BUTTONS_MENU: 5,
-	
-	// false : requires a ready date/time to complete an order
-	// true  : does not
-	FIRST_COME_FIRST_SERVE: false,
-	
-	// true : pick a date from the order menu
-	// false: today's date 
-	READY_DATE: true
-})
-.config(['VKI_CONFIG', function(VKI_CONFIG) {
-	VKI_CONFIG.layout['POS Keyboard'] = {
-			'name': "POS Application Keyboard", 
-			'keys': [
-			         [["0"],["1"],["2"],["3"],["4"],["5"],["6"],["7"],["8"], ["9"]],
-			         [["A"],["B"],["C"],["D"],["E"],["F"],["G"],["H"],["I"], ["J"]],
-			         [["K"],["L"],["M"],["N"],["O"],["P"],["Q"],["R"],["S"], ["T"]],
-			         [["U"],["V"],["W"],["X"],["Y"],["Z"],["",""],["",""],["",""],["",""]],
-			         [[" ", " "],["Bksp", "Bksp"],["Enter", "Enter"]]
-			         ], 
-			'lang': ["en-US"] };
-}])
-.config(['$locationProvider', '$stateProvider', '$urlRouterProvider', function($locationProvider, $stateProvider, $urlRouterProvider) {
-    $locationProvider.html5Mode({enabled:true,   requireBase: false});
-    $urlRouterProvider.otherwise('/app');
-    $stateProvider        
-        .state('app', {
-            url: '/app',
-            template: "<neworder></neworder>"
-        })
-        .state('newcustomer', {
-        	url: '/app/newcustomer',
-        	template: '<newcustomer></newcustomer>'
-        })
-        .state('searchcustomer', {
-        	url: '/app/searchcustomer',
-        	template: '<customersearch></customersearch>'
-        })
-    	.state('neworder', {
-    		url: '/app/neworder',
-    		template: '<neworder></neworder>'
-    	})
-    	.state('pickuporder', {
-    		url: '/app/pickuporder',
-    		tempate: '<h2>Pick Up Order</h2>'
-    	});
-
-}])
-.factory('stringService', function() {
+/**
+ 	String Service
+**/
+function stringService() {
 	var _NBSP = '\xa0';
 
 	return {
@@ -91,64 +29,42 @@ angular
 			return str;
 		},
 		rpad: function(str, len, char) {
-			
+			//TODO
+			//Do I need this?
 		}
 	};
-})
-.factory('urlService', function() {
-	
-	var service = {};
+}
+
+/**
+ 	Url Service
+**/
+function urlService() {
 	var protocol = location.protocol;
 	var host = location.host;
 	var root = 'app';
 	var base = protocol + '//' + host + '/' + root;
 	
-	service.main = base + '/main';
-	service.menu = base + '/menu';
-	service.order = base + '/order';
-	service.customer = base + '/customer';
-	
-	return service;
-})
-.factory('cartService', ['APP_CONFIG', 'stringService', function(APP_CONFIG, stringService) {
+	return {
+		main: base + '/main',
+		menu: base + '/menu',
+		order: base + '/order',
+		customer: base + '/customer',
+	}
+}
+
+/**
+ 	Cart Service
+**/
+function cartService(APP_CONFIG, stringService) {
 	var _data = {};
 	_data.cart = [];
-	
-	function _CartItem(item, quantity, newprice) {
-		var item = item;
-		var quantity = quantity;
-		var newprice = newprice;
 		
-		this.getItem = function() {
-			return item;
-		}
-		
-		this.getQuantity = function() {
-			return quantity;
-		}
-		
-		this.getNewprice = function() {
-			return newprice;
-		}
-		
-		this.toString = function() {
-			var str = '';
-			str += stringService.lpad(quantity, 5);
-			str += stringService.lpad(item.itemName, 30);
-			str += stringService.lpad(item.price.dollar, 10);
-			str += '.';
-			str += item.price.cent;
-			return str;
-		}
-	}
-	
 	return {
 		getCart: function() {
 			return _data.cart;
 		},
 		clearCart: function() {
 			_data.cart = [];
-			return _data.cart;
 		},
 		addItem: function(menuItem) {
 			var itemCopy = angular.copy(menuItem.item);
@@ -159,8 +75,105 @@ angular
 			var cartInfo = [];
 		}
 	};
-}])
-.factory('menuService', ['APP_CONFIG', '$http', 'urlService', 'cartService', function(APP_CONFIG, $http, urlService, cartService) {
+}
+
+function _CartItem(item, quantity, newprice) {
+	var item = item;
+	var quantity = quantity;
+	var newprice = newprice;
+	
+	this.getItem = function() {
+		return item;
+	}
+	
+	this.getQuantity = function() {
+		return quantity;
+	}
+	
+	this.getNewprice = function() {
+		return newprice;
+	}
+	
+	this.toString = function() {
+		var str = '';
+		str += stringService.lpad(quantity, 5);
+		str += stringService.lpad(item.itemName, 30);
+		str += stringService.lpad(item.price.dollar, 10);
+		str += '.';
+		str += item.price.cent;
+		return str;
+	}
+}
+
+/**
+ 	Customer Service
+**/
+function customerService($http, urlService, stringService) {
+	var _data = {};
+	return {
+		save: function(info, success, fail) {
+			$http.post(urlService.customer + '/save', info).then(success, fail);
+		},
+		
+		update: function(info, success, fail) {
+			$http.post(urlService.customer + '/update', info).then(success, fail);
+		},
+		
+		search: function(querystr, success, fail) {
+			if (querystr)
+				$http.get(urlService.customer + '/search/' + querystr.toLowerCase()).then(success, fail);
+		},
+		
+		setCurrentCustomer: function(customer) {
+			if (customer) {
+				_data.previous = _data.current;
+				_data.current = customer;
+			}
+		},
+		
+		getCurrentCustomer: function() {
+			if (_data.current)
+				return _data.current;
+			
+			return null;
+		},
+		
+		clearCurrentCustomer: function() {
+			if (_data.current)
+				_data.previous = _data.current;
+			
+			_data.current = null;
+		}
+	};
+}
+
+/**
+ 	Order Service
+**/
+function orderService($http, urlService, stringService){
+	return {
+		save: function() {
+			
+		},
+		
+		update: function() {
+			
+		},
+		
+		pickup: function() {
+			
+		},
+		
+		search: function() {
+			
+		}
+	};
+}
+
+/** TODO Should this be 
+	Menu Service
+**/
+function menuService(APP_CONFIG, $http, urlService, cartService) {
 	
 	var _data = {};
 	
@@ -309,81 +322,111 @@ angular
 			}
 		}
 	}
-}])
-.factory('customerService', ['$http', 'urlService', 'stringService', function($http, urlService, stringService) {
-	var _data = {};
-	return {
-		save: function(info, success, fail) {
-			$http.post(urlService.customer + '/save', info).then(success, fail);
-		},
-		
-		update: function(info, success, fail) {
-			$http.post(urlService.customer + '/update', info).then(success, fail);
-		},
-		
-		search: function(querystr, success, fail) {
-			if (querystr)
-				$http.get(urlService.customer + '/search/' + querystr.toLowerCase()).then(success, fail);
-		},
-		
-		// After setting the current customer value,  
-		// it should route to another view.
-		setCurrentCustomer: function(customer) {
-			_data.previous = _data.current;
-			_data.current = customer;
-		},
-		
-		getCurrentCustomer: function() {
-			return _data.current;
-		},
-		
-		resetCurrentCustomer: function() {
-			_data.previous = _data.current;
-			_data.current = null;
-		}
-	};
-}])
-.factory('routingHelperService', ['$state', function($state) {
+}
+
+/**
+ 	View Route Service
+**/
+function viewRouteService($state) {
 	var _data = {};
 	
 	return {
 		setRoute: function(next, previous) {
-			_data.next = next;
+			if (next) {
+				_data.next = next;
+			}
+			
 			if (!previous) {
 				_data.previous = $state.current.name;
-			}
-			if (previous)
+			} else {
 				_data.previous = previous;
+			}
 		},
 		go: function() {
-			if (_data.next)
+			if (_data.next) {
 				$state.go(_data.next);
+			}
 		},
 		back: function() {
-			if (_data.previous)
+			if (_data.previous) {
 				$state.go(_data.previous);
+			}
 		}
 	};
+}
+
+var app = 
+angular
+.module('posapp', ['ui.router', 'angular-virtual-keyboard'])
+.constant('APP_CONFIG', {
+
+	NAVIGATION : [
+	              {name: "POS App"},
+	              {name: "Order", menu: [{name: "New", link:"neworder"}, {name: "PickUp", link:"pickuporder"}], customer:false},
+	              {name: "Customer", menu:[{name: "New", link:"newcustomer"}, {name: "Search", link:"searchcustomer"}], customer:true}
+	              ],
+     
+	// true : requires a customer to complete an order
+	// false: does not
+	CUSTOMER_MODE: true,
+
+	SHOW_ADD_ON_ITEMS: true,
+	NUMBER_OF_ADD_ON_ITEM_BUTTONS: 4,
+	NUMBER_OF_BUTTONS_MENU: 5,
+	
+	// false : requires a ready date/time to complete an order
+	// true  : does not
+	FIRST_COME_FIRST_SERVE: false,
+	
+	// true : pick a date from the order menu
+	// false: today's date 
+	READY_DATE: true
+})
+.config(['VKI_CONFIG', function(VKI_CONFIG) {
+	VKI_CONFIG.layout['POS Keyboard'] = {
+			'name': "POS Application Keyboard", 
+			'keys': [
+			         [["0"],["1"],["2"],["3"],["4"],["5"],["6"],["7"],["8"], ["9"]],
+			         [["A"],["B"],["C"],["D"],["E"],["F"],["G"],["H"],["I"], ["J"]],
+			         [["K"],["L"],["M"],["N"],["O"],["P"],["Q"],["R"],["S"], ["T"]],
+			         [["U"],["V"],["W"],["X"],["Y"],["Z"],["",""],["",""],["",""],["",""]],
+			         [[" ", " "],["Bksp", "Bksp"],["Enter", "Enter"]]
+			         ], 
+			'lang': ["en-US"] };
 }])
-.factory('orderService', ['$http', 'urlService', 'stringService', function($http, urlService, stringService){
-	return {
-		save: function() {
-			
-		},
-		
-		update: function() {
-			
-		},
-		
-		pickup: function() {
-			
-		},
-		
-		search: function() {
-			
-		}
-	};
+.config(['$locationProvider', '$stateProvider', '$urlRouterProvider', function($locationProvider, $stateProvider, $urlRouterProvider) {
+    $locationProvider.html5Mode({enabled:true,   requireBase: false});
+    $urlRouterProvider.otherwise('/app');
+    $stateProvider        
+        .state('app', {
+            url: '/app',
+            template: "<neworder></neworder>"
+        })
+        .state('newcustomer', {
+        	url: '/app/newcustomer',
+        	template: '<newcustomer></newcustomer>'
+        })
+        .state('searchcustomer', {
+        	url: '/app/searchcustomer',
+        	template: '<customersearch></customersearch>'
+        })
+    	.state('neworder', {
+    		url: '/app/neworder',
+    		template: '<neworder></neworder>'
+    	})
+    	.state('pickuporder', {
+    		url: '/app/pickuporder',
+    		tempate: '<h2>Pick Up Order</h2>'
+    	});
+
 }])
+.factory('stringService', stringService)
+.factory('urlService', urlService)
+.factory('cartService', ['APP_CONFIG', 'stringService', cartService])
+.factory('menuService', ['APP_CONFIG', '$http', 'urlService', 'cartService', menuService])
+.factory('customerService', ['$http', 'urlService', 'stringService', customerService])
+.factory('viewRouteService', ['$state', viewRouteService])
+.factory('orderService', ['$http', 'urlService', 'stringService', orderService])
 .component('navigation', {
 	controller: function(APP_CONFIG) {
 		var navigationObj = APP_CONFIG.NAVIGATION;
@@ -441,7 +484,7 @@ angular
 	templateUrl: 'inputs.html' 	
 })
 .component('customersearch', {
-	controller: function(customerService, routingHelperService) {
+	controller: function(customerService, viewRouteService) {
 		
 		this.title = 'Search';
 		this.actionName = 'Search';
@@ -466,7 +509,7 @@ angular
 		this.rowClickAction = function(customer) {
 			this.idSelected = customer.id;
 			customerService.setCurrentCustomer(customer);
-			routingHelperService.back();
+			viewRouteService.back();
 		};
 
 		function toStrings(customer) {
@@ -513,24 +556,24 @@ angular
 		}
 		
 		ctrl.toLeft = function() {
-			
+			console.log("left");
 		}
 		
 		ctrl.toRight = function() {
-			
+			console.log("right");
 		}
 		
 		ctrl.addOnItems = [];
 	},
 	template: 	'<table class="table borderless">'
 			+		'<tr>'
-			+			'<td class="col-xs-1">to left</td>'
+			+			'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.toLeft()"><</button></td>'
 			+			'<td class="col-xs-1"></td>'
 			+			'<td class="col-xs-2" data-ng-repeat="addOnItem in $ctrl.addOnItems">'
 			+				'<button class="btn-block">{{addOnItem.name}}</button>'
 			+			'</td>'
 			+			'<td class="col-xs-1"></td>'
-			+			'<td class="col-xs-1">to right</td>'
+			+			'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.toRight()">></button></td>'
 			+		'<tr>'
 			+	'</table>'
 })
@@ -552,7 +595,7 @@ angular
 			+	'</table>'
 })
 .component('cartview', {
-	controller: function(cartService, customerService, routingHelperService) {
+	controller: function(cartService, customerService, viewRouteService) {
 		var ctrl = this;
 		
 		this.$doCheck = function() {
@@ -569,8 +612,8 @@ angular
 		this.cartInfo = [
 		                 {name: "Customer", enabled: true, 
 		                	 action: function() {
-		                		 routingHelperService.setRoute('searchcustomer');
-		                		 routingHelperService.go();
+		                		 viewRouteService.setRoute('searchcustomer');
+		                		 viewRouteService.go();
 		                 	}
 		                 }, 
 		                 {name: "Existing Order if relavant", enabled: true, action: function() {}}, 

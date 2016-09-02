@@ -170,6 +170,72 @@ function orderService($http, urlService, stringService){
 	};
 }
 
+
+/**
+ 	Navigation Service
+**/
+function navigationService(APP_CONFIG, $state) {
+	var _data = {};
+	
+	function _buildNavigation() {
+		var navigationObj = APP_CONFIG.NAVIGATION;
+		var customerMode  = APP_CONFIG.CUSTOMER_MODE;
+		if (navigationObj) {
+			_data.root = navigationObj.splice(0, 1);
+			
+			var arr = [];
+			var i, len;
+			for (i=0,len = navigationObj.length; i < len; i++) {
+				if (!(navigationObj[i].customer & !customerMode)) {
+					arr.push(navigationObj[i]);
+				}
+			}
+			_data.navigations = arr;
+		}
+	}
+	
+	return {
+		setRoute: function(next, previous) {
+			if (next) {
+				_data.next = next;
+			}
+			
+			if (!previous) {
+				_data.previous = $state.current.name;
+			} else {
+				_data.previous = previous;
+			}
+		},
+		go: function() {
+			if (_data.next) {
+				$state.go(_data.next);
+			}
+		},
+		back: function() {
+			if (_data.previous) {
+				$state.go(_data.previous);
+			}
+		},
+		getRoot: function() {
+			if (_data.root)
+				return _data.root;
+			
+			return null;
+		},
+		getNavigation: function() {
+			if (_data.navigations) {
+				return _data.navigations;
+			}
+			return null;
+		},
+		buildNavigation: function() {
+			if (!_data.root && !_data.navigations) {
+				_buildNavigation();
+			}
+		}
+	};
+}
+
 /** TODO Should this be 
 	Menu Service
 **/
@@ -324,74 +390,7 @@ function menuService(APP_CONFIG, $http, urlService, cartService) {
 	}
 }
 
-/**
- 	Navigation Service
-**/
-function navigationService(APP_CONFIG, $state) {
-	var _data = {};
-	
-	function _buildNavigation() {
-		var navigationObj = APP_CONFIG.NAVIGATION;
-		var customerMode  = APP_CONFIG.CUSTOMER_MODE;
-		if (navigationObj) {
-			_data.root = navigationObj.splice(0, 1);
-			
-			var arr = [];
-			var i, len;
-			for (i=0,len = navigationObj.length; i < len; i++) {
-				if (!(navigationObj[i].customer & !customerMode)) {
-					arr.push(navigationObj[i]);
-				}
-			}
-			_data.navigations = arr;
-		}
-	}
-	
-	return {
-		setRoute: function(next, previous) {
-			if (next) {
-				_data.next = next;
-			}
-			
-			if (!previous) {
-				_data.previous = $state.current.name;
-			} else {
-				_data.previous = previous;
-			}
-		},
-		go: function() {
-			if (_data.next) {
-				$state.go(_data.next);
-			}
-		},
-		back: function() {
-			if (_data.previous) {
-				$state.go(_data.previous);
-			}
-		},
-		getRoot: function() {
-			if (_data.root)
-				return _data.root;
-			
-			return null;
-		},
-		getNavigation: function() {
-			if (_data.navigations) {
-				return _data.navigations;
-			}
-			return null;
-		},
-		buildNavigation: function() {
-			if (!_data.root && !_data.navigations) {
-				_buildNavigation();
-			}
-		}
-	};
-}
-
-
-var app = 
-angular
+var app = angular
 .module('posapp', ['ui.router', 'angular-virtual-keyboard'])
 .constant('APP_CONFIG', {
 
@@ -400,7 +399,13 @@ angular
 	              {name: "Order", menu: [{name: "New", link:"neworder"}, {name: "PickUp", link:"pickuporder"}], customer:false},
 	              {name: "Customer", menu:[{name: "New", link:"newcustomer"}, {name: "Search", link:"searchcustomer"}], customer:true}
 	              ],
-     
+	NEW_CUSTOMER_INPUT: [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null, required: true},
+                     		{'label': 'First Name', 'placeholder': 'First Name', 'value': null, required: false},
+                     		{'label': 'Phone Number', 'placeholder': 'Phone Number', 'value': null, required: false}
+                     	],
+    SEARCH_CUSTOMER_INPUT: [	
+                            {label: 'Customer', placeholder: 'Last Name', value: null, required:true}
+		                 	],
 	// true : requires a customer to complete an order
 	// false: does not
 	CUSTOMER_MODE: true,
@@ -462,6 +467,7 @@ angular
 .factory('customerService', ['$http', 'urlService', 'stringService', customerService])
 .factory('navigationService', ['APP_CONFIG', '$state', navigationService])
 .factory('orderService', ['$http', 'urlService', 'stringService', orderService])
+
 .component('navigation', {
 	controller: function(navigationService) {
 		var ctrl = this;
@@ -473,7 +479,6 @@ angular
 		}
 	},
 	templateUrl: 'navigation.html'
-		
 })
 .component('keyboardInput', {
 	templateUrl: 'keyboardInputComponent.html',
@@ -483,14 +488,16 @@ angular
 })
 .component('newcustomer', {
 	controller: function(customerService) {
-		this.title = 'New Customer';
-		this.actionName = 'Save';
-		this.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null, required: true},
+		var ctrl = this;
+		
+		ctrl.title = 'New Customer';
+		ctrl.actionName = 'Save';
+		ctrl.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null, required: true},
                      		{'label': 'First Name', 'placeholder': 'First Name', 'value': null, required: false},
                      		{'label': 'Phone Number', 'placeholder': 'Phone Number', 'value': null, required: false}
                      	];
 		
-		this.action = function() {
+		ctrl.action = function() {
 			customerService.save({	'lastName': this.inputObjs[0].value,
 									'firstName':this.inputObjs[1].value,
 									'phoneNumber': this.inputObjs[2].value},
@@ -502,7 +509,7 @@ angular
 		};
 		
 		function reset() {
-			this.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null, required: true},
+			ctrl.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null, required: true},
 		                     		{'label': 'First Name', 'placeholder': 'First Name', 'value': null, required: false},
 		                     		{'label': 'Phone Number', 'placeholder': 'Phone Number', 'value': null, required: false}
 		                     	];

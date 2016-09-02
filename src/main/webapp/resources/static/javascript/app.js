@@ -325,10 +325,27 @@ function menuService(APP_CONFIG, $http, urlService, cartService) {
 }
 
 /**
- 	View Route Service
+ 	Navigation Service
 **/
-function viewRouteService($state) {
+function navigationService(APP_CONFIG, $state) {
 	var _data = {};
+	
+	function _buildNavigation() {
+		var navigationObj = APP_CONFIG.NAVIGATION;
+		var customerMode  = APP_CONFIG.CUSTOMER_MODE;
+		if (navigationObj) {
+			_data.root = navigationObj.splice(0, 1);
+			
+			var arr = [];
+			var i, len;
+			for (i=0,len = navigationObj.length; i < len; i++) {
+				if (!(navigationObj[i].customer & !customerMode)) {
+					arr.push(navigationObj[i]);
+				}
+			}
+			_data.navigations = arr;
+		}
+	}
 	
 	return {
 		setRoute: function(next, previous) {
@@ -351,9 +368,27 @@ function viewRouteService($state) {
 			if (_data.previous) {
 				$state.go(_data.previous);
 			}
+		},
+		getRoot: function() {
+			if (_data.root)
+				return _data.root;
+			
+			return null;
+		},
+		getNavigation: function() {
+			if (_data.navigations) {
+				return _data.navigations;
+			}
+			return null;
+		},
+		buildNavigation: function() {
+			if (!_data.root && !_data.navigations) {
+				_buildNavigation();
+			}
 		}
 	};
 }
+
 
 var app = 
 angular
@@ -425,24 +460,16 @@ angular
 .factory('cartService', ['APP_CONFIG', 'stringService', cartService])
 .factory('menuService', ['APP_CONFIG', '$http', 'urlService', 'cartService', menuService])
 .factory('customerService', ['$http', 'urlService', 'stringService', customerService])
-.factory('viewRouteService', ['$state', viewRouteService])
+.factory('navigationService', ['APP_CONFIG', '$state', navigationService])
 .factory('orderService', ['$http', 'urlService', 'stringService', orderService])
 .component('navigation', {
-	controller: function(APP_CONFIG) {
-		var navigationObj = APP_CONFIG.NAVIGATION;
-		
-		this.root = navigationObj.splice(0, 1);
-		this.navigations = checkCustomerMode(navigationObj);
-		
-		function checkCustomerMode(navigationObj) {
-			var arr = [];
-			var i, len;
-			for (i=0,len = navigationObj.length; i < len; i++) {
-				if (!(navigationObj[i].customer & !APP_CONFIG.CUSTOMER_MODE)) {
-					arr.push(navigationObj[i]);
-				}
-			}
-			return arr;
+	controller: function(navigationService) {
+		var ctrl = this;
+		ctrl.$onInit = function() {
+			if (!navigationService.getNavigation())
+				navigationService.buildNavigation();
+			
+			ctrl.navigations = navigationService.getNavigation();
 		}
 	},
 	templateUrl: 'navigation.html'
@@ -484,7 +511,7 @@ angular
 	templateUrl: 'inputs.html' 	
 })
 .component('customersearch', {
-	controller: function(customerService, viewRouteService) {
+	controller: function(customerService, navigationService) {
 		
 		this.title = 'Search';
 		this.actionName = 'Search';
@@ -509,7 +536,7 @@ angular
 		this.rowClickAction = function(customer) {
 			this.idSelected = customer.id;
 			customerService.setCurrentCustomer(customer);
-			viewRouteService.back();
+			navigationService.back();
 		};
 
 		function toStrings(customer) {
@@ -595,7 +622,7 @@ angular
 			+	'</table>'
 })
 .component('cartview', {
-	controller: function(cartService, customerService, viewRouteService) {
+	controller: function(cartService, customerService, navigationService) {
 		var ctrl = this;
 		
 		this.$doCheck = function() {
@@ -612,8 +639,8 @@ angular
 		this.cartInfo = [
 		                 {name: "Customer", enabled: true, 
 		                	 action: function() {
-		                		 viewRouteService.setRoute('searchcustomer');
-		                		 viewRouteService.go();
+		                		 navigationService.setRoute('searchcustomer');
+		                		 navigationService.go();
 		                 	}
 		                 }, 
 		                 {name: "Existing Order if relavant", enabled: true, action: function() {}}, 

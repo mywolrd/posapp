@@ -15,6 +15,9 @@ import com.pos.model.application.OrderDetails;
 public class JdbcOrderDetailsDao extends JdbcBaseDao implements OrderDetailsDao {
 
     private final static String uniqueById = "SELECT * from ORDER_DETAILS where ORDER_DETAILS.id = :id";
+    private final static String listByOrderId = "SELECT * from ORDER_DETAILS where ORDER_DETAILS.orderId = :orderId";
+    private final static String save = "INSERT INTO ORDER_DETAILS (orderId, itemId, quantity, newdollar, newcent) values (:orderId, :itemId, :quantity, :dollar, :cent)";
+    private final static String deactive = "UPDATE ORDER_DETAILS set active = :active where ORDER_DETAILS.id = :id";
 
     @Override
     public OrderDetails uniqueById(long id) {
@@ -28,7 +31,12 @@ public class JdbcOrderDetailsDao extends JdbcBaseDao implements OrderDetailsDao 
 
     @Override
     public List<OrderDetails> listByOrderId(long orderId) {
-        return null;
+        SqlParameterSource parameter = new MapSqlParameterSource().addValue(DBNames.ORDERID, orderId);
+        try {
+            return this.namedParameterJdbcTemplate.query(listByOrderId, parameter, new BeanPropertyRowMapper<>(OrderDetails.class));
+        } catch (DataAccessException e) {
+            return null;
+        }
     }
 
     @Override

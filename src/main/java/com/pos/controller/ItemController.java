@@ -3,26 +3,28 @@ package com.pos.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.pos.model.application.MenuItem;
-import com.pos.service.MenuService;
+import com.pos.model.application.Item;
+import com.pos.service.ItemService;
 
 @Controller
-@RequestMapping("/menu")
-public class MenuController {
+@RequestMapping("/item")
+public class ItemController {
 
-    // TODO remove this controller
     @Autowired
-    private MenuService menuService;
+    private ItemService itemService;
 
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
-    public List<MenuItem> listMenuItem() {
-        return this.menuService.listMenuItem();
+    public ResponseEntity<List<Item>> listItems() {
+        return new ResponseEntity<>(itemService.listActiveItems(),
+                HttpStatus.OK);
     }
 
 }

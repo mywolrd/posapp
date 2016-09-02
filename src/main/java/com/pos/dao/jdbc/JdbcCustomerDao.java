@@ -23,6 +23,7 @@ public class JdbcCustomerDao extends JdbcBaseDao implements CustomerDao {
     private final static String save = "INSERT into CUSTOMERS (lastName, firstName, pnumber, createdAt) values (:lastName, :firstName, :number, now()) ";
     private final static String update = "UPDATE CUSTOMERS set lastName = :lastName, firstName = :firstName, pnumber = :number, updatedAt = now() where customers.id = :id";
     private final static String uniqueById = "SELECT * from CUSTOMERS where CUSTOMERS.id = :id";
+
     @Autowired
     private CustomerRowMapper rowMapper;
 

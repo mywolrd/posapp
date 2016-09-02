@@ -23,10 +23,13 @@ public class OrderDetailsTest {
         Item car = TestUtils.createCar(before);
         int quantity = 1;
 
-        OrderDetails orderDetails = TestUtils.createOrderDetails(car, quantity, after);
+        OrderDetails orderDetails = TestUtils.createOrderDetails(car, quantity,
+                after);
 
-        Assert.assertFalse("Should not be equal.", before.equals(orderDetails.getPrice()));
-        Assert.assertTrue("Should be equal", after.equals(orderDetails.getPrice()));
+        Assert.assertFalse("Should not be equal.",
+                before.equals(orderDetails.getPrice()));
+        Assert.assertTrue("Should be equal",
+                after.equals(orderDetails.getPrice()));
     }
 
     @Test
@@ -39,9 +42,11 @@ public class OrderDetailsTest {
         Item car = TestUtils.createCar(before);
         int quantity = 1;
 
-        OrderDetails orderDetails = TestUtils.createOrderDetails(car, quantity, after);
+        OrderDetails orderDetails = TestUtils.createOrderDetails(car, quantity,
+                after);
 
-        Assert.assertTrue("Should be equal.", before.equals(orderDetails.getPrice()));
+        Assert.assertTrue("Should be equal.",
+                before.equals(orderDetails.getPrice()));
     }
 
     @Test
@@ -53,11 +58,10 @@ public class OrderDetailsTest {
         Item car = TestUtils.createCar(price);
         int quantity = 10;
 
-        OrderDetails orderDetails = TestUtils.createOrderDetails(car, quantity, null);
+        OrderDetails orderDetails = TestUtils.createOrderDetails(car, quantity,
+                null);
 
-        Assert.assertTrue("Should be equal.", price.equals(orderDetails.getPrice()));
-
-        Assert.assertFalse("Should not be equal", price.equals(orderDetails.getSubtotal()));
-        Assert.assertTrue("Should be equal", Price.multiply(price, quantity).equals(orderDetails.getSubtotal()));
+        Assert.assertTrue("Should be equal.",
+                price.equals(orderDetails.getPrice()));
     }
 }

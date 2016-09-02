@@ -58,7 +58,35 @@ function urlService() {
 function cartService(APP_CONFIG, stringService) {
 	var _data = {};
 	_data.cart = [];
+	
+	function _CartItem(item, quantity, newprice) {
+		var item = item;
+		var quantity = quantity;
+		var newprice = newprice;
 		
+		this.getItem = function() {
+			return item;
+		}
+		
+		this.getQuantity = function() {
+			return quantity;
+		}
+		
+		this.getNewprice = function() {
+			return newprice;
+		}
+		
+		this.toString = function() {
+			var str = '';
+			str += stringService.lpad(quantity, 5);
+			str += stringService.lpad(item.itemName, 30);
+			str += stringService.lpad(item.price.dollar, 10);
+			str += '.';
+			str += item.price.cent;
+			return str;
+		}
+	}
+	
 	return {
 		getCart: function() {
 			return _data.cart;
@@ -77,40 +105,18 @@ function cartService(APP_CONFIG, stringService) {
 	};
 }
 
-function _CartItem(item, quantity, newprice) {
-	var item = item;
-	var quantity = quantity;
-	var newprice = newprice;
-	
-	this.getItem = function() {
-		return item;
-	}
-	
-	this.getQuantity = function() {
-		return quantity;
-	}
-	
-	this.getNewprice = function() {
-		return newprice;
-	}
-	
-	this.toString = function() {
-		var str = '';
-		str += stringService.lpad(quantity, 5);
-		str += stringService.lpad(item.itemName, 30);
-		str += stringService.lpad(item.price.dollar, 10);
-		str += '.';
-		str += item.price.cent;
-		return str;
-	}
-}
-
 /**
  	Customer Service
 **/
-function customerService($http, urlService, stringService) {
+function customerService(APP_CONFIG, $http, urlService, stringService) {
 	var _data = {};
 	return {
+		getNewCustomerInput: function() {
+			return angular.copy(APP_CONFIG.NEW_CUSTOMER_INPUT);
+		},
+		getSearchCustomerInput: function() {
+			return angular.copy(APP_CONFIG.SEARCH_CUSTOMER_INPUT);
+		},
 		save: function(info, success, fail) {
 			$http.post(urlService.customer + '/save', info).then(success, fail);
 		},
@@ -147,9 +153,6 @@ function customerService($http, urlService, stringService) {
 	};
 }
 
-/**
- 	Order Service
-**/
 function orderService($http, urlService, stringService){
 	return {
 		save: function() {
@@ -236,7 +239,8 @@ function navigationService(APP_CONFIG, $state) {
 	};
 }
 
-/** TODO Should this be 
+
+/** TODO maybe too big, doing too much
 	Menu Service
 **/
 function menuService(APP_CONFIG, $http, urlService, cartService) {
@@ -377,6 +381,12 @@ function menuService(APP_CONFIG, $http, urlService, cartService) {
 			
 			return [];
 		},
+		moveLeftAddOnItems: function() {
+			_addOn_move_left();
+		},
+		moveRightAddOnItems: function() {
+			_addOn_move_right();
+		},
 		buildAddOnMenu: function(addOnItems) {
 			_buildAddOnItemsMenu(addOnItems);
 		},
@@ -464,7 +474,7 @@ var app = angular
 .factory('urlService', urlService)
 .factory('cartService', ['APP_CONFIG', 'stringService', cartService])
 .factory('menuService', ['APP_CONFIG', '$http', 'urlService', 'cartService', menuService])
-.factory('customerService', ['$http', 'urlService', 'stringService', customerService])
+.factory('customerService', ['APP_CONFIG', '$http', 'urlService', 'stringService', customerService])
 .factory('navigationService', ['APP_CONFIG', '$state', navigationService])
 .factory('orderService', ['$http', 'urlService', 'stringService', orderService])
 
@@ -492,79 +502,71 @@ var app = angular
 		
 		ctrl.title = 'New Customer';
 		ctrl.actionName = 'Save';
-		ctrl.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null, required: true},
-                     		{'label': 'First Name', 'placeholder': 'First Name', 'value': null, required: false},
-                     		{'label': 'Phone Number', 'placeholder': 'Phone Number', 'value': null, required: false}
-                     	];
+		ctrl.inputObjs = customerService.getNewCustomerInput();
 		
 		ctrl.action = function() {
-			customerService.save({	'lastName': this.inputObjs[0].value,
-									'firstName':this.inputObjs[1].value,
-									'phoneNumber': this.inputObjs[2].value},
-									function (res) {
-										customerService.setCurrentCustomer(res.data);
-										reset();
-									}, 
-									function (res) {});
+			var param = {	'lastName': this.inputObjs[0].value,
+							'firstName':this.inputObjs[1].value,
+							'phoneNumber': this.inputObjs[2].value
+						}
+			customerService.save(param,
+								function (res) {
+									customerService.setCurrentCustomer(res.data);
+									reset();
+								}, 
+								function (res) {});
 		};
 		
 		function reset() {
-			ctrl.inputObjs = [	{'label': 'Last Name', 'placeholder': 'Last Name', 'value': null, required: true},
-		                     		{'label': 'First Name', 'placeholder': 'First Name', 'value': null, required: false},
-		                     		{'label': 'Phone Number', 'placeholder': 'Phone Number', 'value': null, required: false}
-		                     	];
+			ctrl.inputObjs = customerService.getNewCustomerInput();
 		};
 	},
 	templateUrl: 'inputs.html' 	
 })
 .component('customersearch', {
 	controller: function(customerService, navigationService) {
+		var ctrl = this;
 		
-		this.title = 'Search';
-		this.actionName = 'Search';
-		this.idSelected = 0;
-		this.inputObjs = [	
-	                 		{label: 'Customer', placeholder: 'Last Name', value: null, required: true}
-	                 	];
+		ctrl.title = 'Search';
+		ctrl.actionName = 'Search';
+		ctrl.idSelected = 0;
+		ctrl.inputObjs = customerService.getSearchCustomerInput();
 		
-		this.action = function() {
-			var ctrl = this;
-			customerService.search(this.inputObjs[0].value,
+		ctrl.action = function() {
+			customerService.search(ctrl.inputObjs[0].value,
 				function(res) {
 					ctrl.results = res.data;
 					ctrl.results.map(function(customer) {
-						customer.strs = toStrings(customer);
+						customer.displayValue = formatString(customer);
 					});
 				}, function(res) {
 					
 				});
 		};
 		
-		this.rowClickAction = function(customer) {
-			this.idSelected = customer.id;
+		ctrl.rowClickAction = function(customer) {
+			//this.idSelected = customer.id;
 			customerService.setCurrentCustomer(customer);
 			navigationService.back();
 		};
 
-		function toStrings(customer) {
-			var strs = [];
-			strs.push(customer.lastName);
+		function formatString(customer) {
+			var displayValue = [];
+			displayValue.push(customer.lastName);
 			
 			if (customer.firstName) {
-				strs.push(customer.firstName);
+				displayValue.push(customer.firstName);
 			}
 			
 			if (customer.number) {
-				strs.push(customer.number);
+				displayValue.push(customer.number);
 			}
 			
-			return strs;
+			return displayValue;
 		};
 		
 		function reset() {
-			this.inputObjs = [	
-		        {label: 'Customer', placeholder: 'Last Name', value: null, required:true}
-		                 	];
+			ctrl.inputObjs = customerService.getSearchCustomerInput();
 		};
 	},
 	templateUrl: 'inputs.html' 	
@@ -590,11 +592,11 @@ var app = angular
 		}
 		
 		ctrl.toLeft = function() {
-			console.log("left");
+			menuService.moveRightAddOnItems();
 		}
 		
 		ctrl.toRight = function() {
-			console.log("right");
+			menuService.moveLeftAddOnItems();
 		}
 		
 		ctrl.addOnItems = [];
@@ -617,8 +619,8 @@ var app = angular
 	// This number pad should always display.
 	controller: function(cartService) {
 		var ctrl = this;
-		ctrl.labels = [['0', '1', '2', '3', '4', '5'],
-		               ['6', '7', '8', '9', '0', '']]
+		ctrl.labels = [['1', '2', '3', '4', '5', 'Delete'],
+		               ['6', '7', '8', '9', '0', 'Save']]
 	},
 	template: '<table class="table borderless">'
 			+	'<tr data-ng-repeat="row in $ctrl.labels">'
@@ -639,7 +641,7 @@ var app = angular
 			}
 			var currentCustomer = customerService.getCurrentCustomer();
 			if (currentCustomer) {
-				this.cartInfo[0].name = currentCustomer.strs[0];
+				this.cartInfo[0].name = currentCustomer.displayValue[0];
 			}
 		}
 		
@@ -708,7 +710,7 @@ var app = angular
 			+				'<tbody>'
 			+					'<tr class="cursor-pointer" data-ng-click="$ctrl.rowClickAction(row)" data-ng-repeat="row in $ctrl.results" data-ng-class="row.id === $ctrl.idSelected ?' + "'selected' : ''" + '">'
 			+						'<td>{{$index+1}}</td>'				
-			+						'<td data-ng-repeat="str in ::row.strs">{{::str}}</td>'
+			+						'<td data-ng-repeat="str in ::row.displayValue">{{::str}}</td>'
 			+					'</tr>'
 			+				'</tbody>'
 			+			'</table>'

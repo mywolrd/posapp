@@ -273,7 +273,6 @@ function newMenuService(APP_CONFIG, $http, urlService, cartService) {
 	};
 }
 
-
 function menuService(APP_CONFIG, $http, urlService, cartService) {
 
 	var _data = {};
@@ -520,6 +519,19 @@ function searchCustomerCtrl(customerService, navigationService) {
 	};
 }
 
+/**
+ * Navigation Controller 
+**/
+function navigationCtrl(navigationService) {
+	var ctrl = this;
+	
+	ctrl.$onInit = function() {
+		if (!navigationService.getNavigation())
+			navigationService.buildNavigation();
+
+		ctrl.navigations = navigationService.getNavigation();
+	}
+}
 
 var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 	.constant('APP_CONFIG', {
@@ -656,15 +668,7 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 				[ '$http', 'urlService', 'stringService', orderService ])
 
 		.component('navigation', {
-			controller : function(navigationService) {
-				var ctrl = this;
-				ctrl.$onInit = function() {
-					if (!navigationService.getNavigation())
-						navigationService.buildNavigation();
-
-					ctrl.navigations = navigationService.getNavigation();
-				}
-			},
+			controller : navigationCtrl,
 			templateUrl : 'navigation.html'
 		})
 		.component('keyboardInput', {

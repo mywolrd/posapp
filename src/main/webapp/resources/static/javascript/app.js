@@ -533,6 +533,8 @@ function navigationCtrl(navigationService) {
 	}
 }
 
+
+
 var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 	.constant('APP_CONFIG', {
 			NAVIGATION : [ {
@@ -789,116 +791,106 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 		.component('neworder', {
 			templateUrl : 'neworder.html'
 		})
-		.run(
-				function($templateCache) {
-					$templateCache
-							.put(
-									'navigation.html',
-									'<nav class="navbar navbar-inverse" role="navigation">'
-											+ '<div class="navbar-header">'
-											+ '<a class="navbar-brand" data-ui-sref="app">POS App</a>'
-											+ '</div>'
-											+ '<ul class="nav navbar-nav">'
-											+ '<li class="dropdown" data-ng-repeat="navigation in $ctrl.navigations">'
-											+ '<a class="dropdown-toggle" data-toggle="dropdown" href="">{{navigation.name}}'
-											+ '<span class="caret"></span>'
-											+ '</a>'
-											+ '<ul class="dropdown-menu">'
-											+ '<li data-ng-repeat="route in navigation.menu">'
-											+ '<a ui-sref="{{route.link}}">{{route.name}}</a>'
-											+ '</li>' + '</ul>' + '</li>'
-											+ '</ul>' + '</nav>');
+.run(
+	function($templateCache) {
+		$templateCache.put('navigation.html',
+				'<nav class="navbar navbar-inverse" role="navigation">'
+			+		'<div class="navbar-header">'
+			+ 			'<a class="navbar-brand" data-ui-sref="app">POS App</a>'
+			+ 		'</div>'
+			+ 		'<ul class="nav navbar-nav">'
+			+ 			'<li class="dropdown" data-ng-repeat="navigation in $ctrl.navigations">'
+			+ 				'<a class="dropdown-toggle" data-toggle="dropdown" href="">{{navigation.name}}'
+			+ 					'<span class="caret"></span>'
+			+ 				'</a>'
+			+ 				'<ul class="dropdown-menu">'
+			+ 					'<li data-ng-repeat="route in navigation.menu">'
+			+ 						'<a ui-sref="{{route.link}}">{{route.name}}</a>'
+			+ 					'</li>'
+			+ 				'</ul>'
+			+ 			'</li>'
+			+ 		'</ul>' 
+			+	'</nav>');
 
-					$templateCache
-							.put(
-									'keyboardInputComponent.html',
-									'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
-											+ '<div class="form-group form-group-lg">'
-											+ '<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>'
-											+ '<div class="col-xs-8">'
-											+ '<input class="form-control" ng-required="inputObj.required" data-ng-virtual-keyboard="{kt:'
-											+ "'POS Keyboard'"
-											+ ', relative: false, size: 5}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.placeholder}}">'
-											+ '</div>' + '</div>' + '</div>');
-					$templateCache
-							.put(
-									'inputs.html',
-									'<form class="input-form">'
-											+ '<div class="row">'
-											+ '<div class="col-xs-1"></div>'
-											+ '<div class="col-xs-4">'
-											+ '<h1>{{title}}</h1><br/>'
-											+ '<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input>'
-											+ '<br/>'
-											+ '<div class="row">'
-											+ '<button class="btn btn-primary btn-lg btn-block" data-ng-click="$ctrl.action()">{{$ctrl.actionName}}</button>'
-											+ '</div>'
-											+ '</div>'
-											+ '<div class="col-xs-6">'
-											+ '<br/><br/>'
-											+ '<table class="table">'
-											+ '<tbody>'
-											+ '<tr class="cursor-pointer" data-ng-click="$ctrl.rowClickAction(row)" data-ng-repeat="row in $ctrl.results" data-ng-class="row.id === $ctrl.idSelected ?'
-											+ "'selected' : ''"
-											+ '">'
-											+ '<td>{{$index+1}}</td>'
-											+ '<td data-ng-repeat="str in ::row.displayValue">{{::str}}</td>'
-											+ '</tr>' + '</tbody>' + '</table>'
-											+ '</div>'
-											+ '<div class="col-xs-1"></div>'
-											+ '</div>' + '</form>');
+		$templateCache.put('keyboardInputComponent.html',					
+				'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
+			+ 		'<div class="form-group form-group-lg">'
+			+ 			'<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>'
+			+ 			'<div class="col-xs-8">'
+			+ 				'<input class="form-control" ng-required="inputObj.required" data-ng-virtual-keyboard="{kt:' + "'POS Keyboard'" + ', relative: false, size: 5}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.placeholder}}">'
+			+ 			'</div>' 
+			+ 		'</div>'
+			+ 	'</div>');
+		
+		$templateCache.put('inputs.html',
+				'<form class="input-form">'
+			+		'<div class="row">'
+			+ 			'<div class="col-xs-1"></div>'
+			+ 			'<div class="col-xs-4">'
+			+ 				'<h1>{{title}}</h1><br/>'
+			+ 				'<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input><br/>'
+			+ 				'<div class="row">'
+			+ 					'<button class="btn btn-primary btn-lg btn-block" data-ng-click="$ctrl.action()">{{$ctrl.actionName}}</button>'
+			+ 				'</div>'
+			+ 			'</div>'
+			+ 			'<div class="col-xs-6">'
+			+ 				'<br/><br/>'
+			+ 				'<table class="table">'
+			+ 					'<tbody>'
+			+ 						'<tr class="cursor-pointer" data-ng-click="$ctrl.rowClickAction(row)" data-ng-repeat="row in $ctrl.results" data-ng-class="row.id === $ctrl.idSelected ?' + "'selected' : ''" + '">'
+			+ 							'<td>{{$index+1}}</td>'
+			+ 							'<td data-ng-repeat="str in ::row.displayValue">{{::str}}</td>'
+			+ 						'</tr>'
+			+ 					'</tbody>' 
+			+ 				'</table>'
+			+ 			'</div>'
+			+ 			'<div class="col-xs-1"></div>'
+			+ 		'</div>'
+			+	'</form>');
 
-					$templateCache
-							.put(
-									'menu.html',
-									'<table class="table borderless">'
-											+ '<tbody>'
-											+ '<tr data-ng-repeat="menuItems in $ctrl.items">'
-											+ '<td class="col-xs-2" data-ng-repeat="menuItem in menuItems">'
-											+ '<button class="btn-block" data-ng-click="menuItem.action(menuItem)">{{menuItem.item.itemName}}</button>'
-											+ '</td>' + '</tr>' + '</tbody>'
-											+ '</table>'
-											+ '<addonitemview></addonitemview>'
-											+ '<menunumpad></menunumpad>');
+		$templateCache.put('menu.html',
+				'<table class="table borderless">'
+			+ 		'<tbody>'
+			+ 			'<tr data-ng-repeat="menuItems in $ctrl.items">'
+			+ 				'<td class="col-xs-2" data-ng-repeat="menuItem in menuItems">'
+			+ 					'<button class="btn-block" data-ng-click="menuItem.action(menuItem)">{{menuItem.item.itemName}}</button>'
+			+ 				'</td>' 
+			+ 			'</tr>' 
+			+ 		'</tbody>'
+			+ 	'</table>'
+			+ 	'<addonitemview></addonitemview>'
+			+ 	'<menunumpad></menunumpad>');
 
-					$templateCache.put('neworder.html', '<div class="row">'
-							+ '<div class="col-xs-1"></div>'
-							+ '<div class="col-xs-4">'
-							+ '<cartview></cartview>' + '</div>'
-							+ '<div class="col-xs-6">'
-							+ '<menuview></menuview>' + '</div>'
-							+ '<div class="col-xs-1"></div>' + '</div>'
+		$templateCache.put('neworder.html',
+				'<div class="row">'
+			+ 		'<div class="col-xs-1"></div>'
+			+ 		'<div class="col-xs-4">'
+			+ 			'<cartview></cartview>' 
+			+ 		'</div>'
+			+ 		'<div class="col-xs-6">'
+			+ 			'<menuview></menuview>'
+			+ 		'</div>'
+			+ 		'<div class="col-xs-1"></div>' 
+			+ 	'</div>');
 
-					);
-
-					$templateCache.put(
-									'cartview.html',
-									'<table id="cart-info-table" class="table">'
-											+ '<tbody>'
-											+ '<tr data-ng-repeat="info in $ctrl.cartInfo">'
-											+ '<td data-ng-if="info.enabled">'
-											+ '<button class="btn btn-block" data-ng-click="info.action()">{{info.name}}</button>'
-											+ '</td>'
-											+ '<td data-ng-if="!info.enabled"><label>{{info.name}}</label></td>'
-											+ '</tr>'
-											+ '</tbody>'
-											+ '</table>'
-											+ '<div id="cart-items-list" class="col-xs-12">'
-											+ '<span class="col-xs-12" id="cart-item" data-ng-repeat="cartItem in $ctrl.cart">'
-											+ '{{cartItem.toString()}}'
-											+ '</span>' + '</div>'
-							// + '<table id="cart-items-table" class="table">'
-							// + '<tbody>'
-							// + '<tr data-ng-repeat="cartItem in $ctrl.cart">'
-							// + '<td>{{cartItem.toString()}}</td>'
-							// + '</tr>'
-							// + '<tr>'
-							// + '<td>Quantity</td> <td>Price</td>'
-							// + '</tr>'
-							// + '</tbody>'
-							// + '</table>'
-							);
-				}).run([ 'menuService', function(menuService) {
+		$templateCache.put('cartview.html',
+				'<table id="cart-info-table" class="table">'
+			+ 		'<tbody>'
+			+ 			'<tr data-ng-repeat="info in $ctrl.cartInfo">'
+			+ 				'<td data-ng-if="info.enabled">'
+			+ 					'<button class="btn btn-block" data-ng-click="info.action()">{{info.name}}</button>'
+			+ 				'</td>'
+			+ 				'<td data-ng-if="!info.enabled"><label>{{info.name}}</label></td>'
+			+ 			'</tr>'
+			+ 		'</tbody>'
+			+ 	'</table>'
+			+ 	'<div id="cart-items-list" class="col-xs-12">'
+			+ 		'<span class="col-xs-12" id="cart-item" data-ng-repeat="cartItem in $ctrl.cart">'
+			+ 			'{{cartItem.toString()}}'
+			+ 		'</span>'
+			+ 	'</div>'
+})
+.run([ 'menuService', function(menuService) {
 			menuService.ajaxGetMenuItem(function(res) {
 				menuService.buildMainMenu(res.data);
 			}, function(res) {

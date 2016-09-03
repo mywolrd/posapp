@@ -45,3 +45,14 @@ td .btn {
 	line-height: 1.5;
 	background-color: aliceblue;
 }
+
+#cart-items-list {
+	height: 400px;
+}
+
+#cart-item {
+	height: 40px;
+	font-size: 19px;
+	font-weight: bold;
+	border: none;
+}

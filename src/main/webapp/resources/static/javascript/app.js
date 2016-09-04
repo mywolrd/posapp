@@ -1,5 +1,109 @@
+//
+//	Templates
+//
+function templates(angularTemplateCache) {
+		angularTemplateCache.put('navigation.html',
+				'<nav class="navbar navbar-inverse" role="navigation">'
+			+		'<div class="navbar-header">'
+			+ 			'<a class="navbar-brand" data-ui-sref="app">POS App</a>'
+			+ 		'</div>'
+			+ 		'<ul class="nav navbar-nav">'
+			+ 			'<li class="dropdown" data-ng-repeat="navigation in $ctrl.navigations">'
+			+ 				'<a class="dropdown-toggle" data-toggle="dropdown" href="">{{navigation.name}}'
+			+ 					'<span class="caret"></span>'
+			+ 				'</a>'
+			+ 				'<ul class="dropdown-menu">'
+			+ 					'<li data-ng-repeat="route in navigation.menu">'
+			+ 						'<a ui-sref="{{route.link}}">{{route.name}}</a>'
+			+ 					'</li>'
+			+ 				'</ul>'
+			+ 			'</li>'
+			+ 		'</ul>' 
+			+	'</nav>');
+
+		angularTemplateCache.put('keyboardInputComponent.html',					
+				'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
+			+ 		'<div class="form-group form-group-lg">'
+			+ 			'<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>'
+			+ 			'<div class="col-xs-8">'
+			+ 				'<input class="form-control" ng-required="inputObj.required" data-ng-virtual-keyboard="{kt:' + "'POS Keyboard'" + ', relative: false, size: 5}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.placeholder}}">'
+			+ 			'</div>' 
+			+ 		'</div>'
+			+ 	'</div>');
+		
+		angularTemplateCache.put('inputs.html',
+				'<form class="input-form">'
+			+		'<div class="row">'
+			+ 			'<div class="col-xs-1"></div>'
+			+ 			'<div class="col-xs-4">'
+			+ 				'<h1>{{title}}</h1><br/>'
+			+ 				'<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input><br/>'
+			+ 				'<div class="row">'
+			+ 					'<button class="btn btn-primary btn-lg btn-block" data-ng-click="$ctrl.action()">{{$ctrl.actionName}}</button>'
+			+ 				'</div>'
+			+ 			'</div>'
+			+ 			'<div class="col-xs-6">'
+			+ 				'<br/><br/>'
+			+ 				'<table class="table">'
+			+ 					'<tbody>'
+			+ 						'<tr class="cursor-pointer" data-ng-click="$ctrl.rowClickAction(row)" data-ng-repeat="row in $ctrl.results" data-ng-class="row.id === $ctrl.idSelected ?' + "'selected' : ''" + '">'
+			+ 							'<td>{{$index+1}}</td>'
+			+ 							'<td data-ng-repeat="str in ::row.displayValue">{{::str}}</td>'
+			+ 						'</tr>'
+			+ 					'</tbody>' 
+			+ 				'</table>'
+			+ 			'</div>'
+			+ 			'<div class="col-xs-1"></div>'
+			+ 		'</div>'
+			+	'</form>');
+
+		angularTemplateCache.put('menu.html',
+				'<table class="table borderless">'
+			+ 		'<tbody>'
+			+ 			'<tr data-ng-repeat="menuItems in $ctrl.items">'
+			+ 				'<td class="col-xs-2" data-ng-repeat="menuItem in menuItems">'
+			+ 					'<button class="btn-block" data-ng-click="menuItem.action(menuItem)">{{menuItem.item.itemName}}</button>'
+			+ 				'</td>' 
+			+ 			'</tr>' 
+			+ 		'</tbody>'
+			+ 	'</table>'
+			+ 	'<addonitemview></addonitemview>'
+			+ 	'<menunumpad></menunumpad>');
+
+		angularTemplateCache.put('neworder.html',
+				'<div class="row">'
+			+ 		'<div class="col-xs-1"></div>'
+			+ 		'<div class="col-xs-4">'
+			+ 			'<cartview></cartview>' 
+			+ 		'</div>'
+			+ 		'<div class="col-xs-6">'
+			+ 			'<menuview></menuview>'
+			+ 		'</div>'
+			+ 		'<div class="col-xs-1"></div>' 
+			+ 	'</div>');
+
+		angularTemplateCache.put('cartview.html',
+				'<table id="cart-info-table" class="table">'
+			+ 		'<tbody>'
+			+ 			'<tr data-ng-repeat="info in $ctrl.cartInfo">'
+			+ 				'<td data-ng-if="info.enabled">'
+			+ 					'<button class="btn btn-block" data-ng-click="info.action()">{{info.name}}</button>'
+			+ 				'</td>'
+			+ 				'<td data-ng-if="!info.enabled"><label>{{info.name}}</label></td>'
+			+ 			'</tr>'
+			+ 		'</tbody>'
+			+ 	'</table>'
+			+ 	'<div id="cart-items-list" class="col-xs-12">'
+			+ 		'<span class="col-xs-12" id="cart-item" data-ng-repeat="cartItem in $ctrl.cart">'
+			+ 			'{{cartItem.toString()}}'
+			+ 		'</span>'
+			+ 	'</div>');
+}
+
+//
 //	Services
 //	States and data are shared in services.
+//
 
 /**
  * String Service
@@ -246,31 +350,166 @@ function orderService() {
 }
 
 /**
- * TODO maybe too big, doing too much Menu Service
+ * Item Service
  */
-function newMenuService(APP_CONFIG, $http, urlService, cartService) {
+function itemService(APP_CONFIG, $http, urlService) {
 	var _data = {};
 	
-	function _getItems() {
-		if (!_data.menu)
-			$http.get(urlService.menu + '/list').then(success, fail);
+	function _ajaxGetItems() {
+		$http.get(urlService.item + '/list')
+				.then(
+					function (res) {
+						_data.items = res.data;
+					},
+					function (res) {
+						console.log(res);
+					});
 	}
 	
-	function _getAddOnItems() {
-		if (!_data.addonitems && APP_CONFIG.SHOW_ADD_ON_ITEMS)
-			$http.get(urlService.menu + '/addonitem/list').then(success,
-					fail);
+	function _ajaxGetAddOnItems() {
+		if (APP_CONFIG.SHOW_ADD_ON_ITEMS)
+			$http.get(urlService.item + '/addonitem/list')
+					.then(
+						function (res) {
+							_data.addonitems = res.data;
+						},
+						function (res) {
+							console.log(res);
+						});
 	}
 	
 	return {
-		getItemMenu: function() {
-			
+		initItemData: function() {
+			_ajaxGetItems();
+			_ajaxGetAddOnItems();
 		},
-		getAddOnItemMenu: function() {
-			
+		getItems: function() {
+			if (!_data.items) {
+				return null;
+			}			
+			return _data.items;
+		},
+		getAddOnItems: function() {
+			if (!_data.addonitems) {
+				return null;
+			}			
+			return _data.addonitems;
 		}
 		
 	};
+}
+
+function messageService(APP_CONFIG) {
+	var _data = {};
+	
+	return {
+		setMessage: function(message) {
+			_data.message = message;
+		},
+		getMessage: function() {
+			if (!angular.isDefined(_data.message))
+				return null;
+			
+			return _data.message;
+		},
+		clearMessage: function() {
+			_data.message = null;
+		}
+	};
+}
+
+/**
+ * Menu Service
+ * 
+ * @param APP_CONFIG
+ * @param urlService
+ * @param cartService
+ * @returns {___anonymous7955_9207}
+**/
+function newMenuService() {
+	var _data = {};
+	
+	function _buildMenu(menuItems, numberOfItems) {
+		var menu = [];
+		var row = [];
+		var i, len;
+		var menuItem;
+
+		for (i = 0, len = menuItems.length; i < len; i++) {
+			menuItem = menuItems[i];
+			if (menuItem) {
+				if (menuItem.submenu) {
+					var submenu = _buildMenu(menuItem.submenu, numberOfItems);
+					menuItem.submenu = submenu;
+
+					menuItem.action = function(item) {
+						_setCurrentMenu(item.submenu);
+					}
+				} else {
+					menuItem.action = function(item) {
+						cartService.addItem(item);
+						_showPreviousMenu();
+					}
+				}
+				row.push(menuItem);
+
+				if (((i + 1) % numberOfItems) == 0 || i == (len - 1)) {
+					menu.push(row);
+					row = [];
+				}
+			}
+		}
+		return menu;
+	}
+	
+	return {
+		getMainMenu : function() {
+			if (_data.main)
+				return _data.main;
+
+			return [];
+		},
+		getCurrentMenu : function() {
+			if (_data.current)
+				return _data.current;
+
+			return [];
+		},
+		setCurrentMenu : function(menu) {
+			_setCurrentMenu(menu);
+		},
+		getAddOnItems : function() {
+			if (_data.addOnItems) {
+				_resetAddOnItems();
+				return _data.addOn_current;
+			}
+
+			return [];
+		},
+		getCurrentAddOnItems : function() {
+			if (_data.addOn_current)
+				return _data.addOn_current;
+
+			return [];
+		},
+		moveLeftAddOnItems : function() {
+			_addOn_move_left();
+		},
+		moveRightAddOnItems : function() {
+			_addOn_move_right();
+		},
+		buildAddOnMenu : function(addOnItems) {
+			_buildAddOnItemsMenu(addOnItems);
+		},
+		buildMainMenu : function(menuItems) {
+			if (!_data.main) {
+				var main = _buildMenu(menuItems,
+						APP_CONFIG.NUMBER_OF_BUTTONS_MENU);
+				_data.main = main;
+				_data.current = main;
+			}
+		}
+	}
 }
 
 function menuService(APP_CONFIG, $http, urlService, cartService) {
@@ -341,38 +580,7 @@ function menuService(APP_CONFIG, $http, urlService, cartService) {
 		}
 	}
 
-	function _buildMenu(menuItems, numberOfItems) {
-		var menu = [];
-		var row = [];
-		var i, len;
-		var menuItem;
 
-		for (i = 0, len = menuItems.length; i < len; i++) {
-			menuItem = menuItems[i];
-			if (menuItem) {
-				if (menuItem.submenu) {
-					var submenu = _buildMenu(menuItem.submenu, numberOfItems);
-					menuItem.submenu = submenu;
-
-					menuItem.action = function(item) {
-						_setCurrentMenu(item.submenu);
-					}
-				} else {
-					menuItem.action = function(item) {
-						cartService.addItem(item);
-						_showPreviousMenu();
-					}
-				}
-				row.push(menuItem);
-
-				if (((i + 1) % numberOfItems) == 0 || i == (len - 1)) {
-					menu.push(row);
-					row = [];
-				}
-			}
-		}
-		return menu;
-	}
 
 	return {
 		ajaxGetAddOnItem : function(success, fail) {
@@ -533,8 +741,6 @@ function navigationCtrl(navigationService) {
 	}
 }
 
-
-
 var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 	.constant('APP_CONFIG', {
 			NAVIGATION : [ {
@@ -656,19 +862,11 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 		.factory('stringService', stringService)
 		.factory('urlService', urlService)
 		.factory('cartService', [ 'APP_CONFIG', 'stringService', cartService ])
-		.factory(
-				'menuService',
-				[ 'APP_CONFIG', '$http', 'urlService', 'cartService',
-						menuService ])
-		.factory(
-				'customerService',
-				[ 'APP_CONFIG', '$http', 'urlService', 'stringService',
-						customerService ])
-		.factory('navigationService',
-				[ 'APP_CONFIG', '$state', navigationService ])
-		.factory('orderService',
-				[ '$http', 'urlService', 'stringService', orderService ])
-
+		.factory('menuService', [ 'APP_CONFIG', '$http', 'urlService', 'cartService', menuService ])
+		.factory('customerService', [ 'APP_CONFIG', '$http', 'urlService', 'stringService', customerService ])
+		.factory('navigationService', [ 'APP_CONFIG', '$state', navigationService ])
+		.factory('orderService', [ '$http', 'urlService', 'stringService', orderService ])
+		.factory('itemService', [ 'APP_CONFIG', '$http', 'urlService', itemService])
 		.component('navigation', {
 			controller : navigationCtrl,
 			templateUrl : 'navigation.html'
@@ -791,116 +989,16 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 		.component('neworder', {
 			templateUrl : 'neworder.html'
 		})
-.run(
-	function($templateCache) {
-		$templateCache.put('navigation.html',
-				'<nav class="navbar navbar-inverse" role="navigation">'
-			+		'<div class="navbar-header">'
-			+ 			'<a class="navbar-brand" data-ui-sref="app">POS App</a>'
-			+ 		'</div>'
-			+ 		'<ul class="nav navbar-nav">'
-			+ 			'<li class="dropdown" data-ng-repeat="navigation in $ctrl.navigations">'
-			+ 				'<a class="dropdown-toggle" data-toggle="dropdown" href="">{{navigation.name}}'
-			+ 					'<span class="caret"></span>'
-			+ 				'</a>'
-			+ 				'<ul class="dropdown-menu">'
-			+ 					'<li data-ng-repeat="route in navigation.menu">'
-			+ 						'<a ui-sref="{{route.link}}">{{route.name}}</a>'
-			+ 					'</li>'
-			+ 				'</ul>'
-			+ 			'</li>'
-			+ 		'</ul>' 
-			+	'</nav>');
-
-		$templateCache.put('keyboardInputComponent.html',					
-				'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
-			+ 		'<div class="form-group form-group-lg">'
-			+ 			'<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>'
-			+ 			'<div class="col-xs-8">'
-			+ 				'<input class="form-control" ng-required="inputObj.required" data-ng-virtual-keyboard="{kt:' + "'POS Keyboard'" + ', relative: false, size: 5}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.placeholder}}">'
-			+ 			'</div>' 
-			+ 		'</div>'
-			+ 	'</div>');
-		
-		$templateCache.put('inputs.html',
-				'<form class="input-form">'
-			+		'<div class="row">'
-			+ 			'<div class="col-xs-1"></div>'
-			+ 			'<div class="col-xs-4">'
-			+ 				'<h1>{{title}}</h1><br/>'
-			+ 				'<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input><br/>'
-			+ 				'<div class="row">'
-			+ 					'<button class="btn btn-primary btn-lg btn-block" data-ng-click="$ctrl.action()">{{$ctrl.actionName}}</button>'
-			+ 				'</div>'
-			+ 			'</div>'
-			+ 			'<div class="col-xs-6">'
-			+ 				'<br/><br/>'
-			+ 				'<table class="table">'
-			+ 					'<tbody>'
-			+ 						'<tr class="cursor-pointer" data-ng-click="$ctrl.rowClickAction(row)" data-ng-repeat="row in $ctrl.results" data-ng-class="row.id === $ctrl.idSelected ?' + "'selected' : ''" + '">'
-			+ 							'<td>{{$index+1}}</td>'
-			+ 							'<td data-ng-repeat="str in ::row.displayValue">{{::str}}</td>'
-			+ 						'</tr>'
-			+ 					'</tbody>' 
-			+ 				'</table>'
-			+ 			'</div>'
-			+ 			'<div class="col-xs-1"></div>'
-			+ 		'</div>'
-			+	'</form>');
-
-		$templateCache.put('menu.html',
-				'<table class="table borderless">'
-			+ 		'<tbody>'
-			+ 			'<tr data-ng-repeat="menuItems in $ctrl.items">'
-			+ 				'<td class="col-xs-2" data-ng-repeat="menuItem in menuItems">'
-			+ 					'<button class="btn-block" data-ng-click="menuItem.action(menuItem)">{{menuItem.item.itemName}}</button>'
-			+ 				'</td>' 
-			+ 			'</tr>' 
-			+ 		'</tbody>'
-			+ 	'</table>'
-			+ 	'<addonitemview></addonitemview>'
-			+ 	'<menunumpad></menunumpad>');
-
-		$templateCache.put('neworder.html',
-				'<div class="row">'
-			+ 		'<div class="col-xs-1"></div>'
-			+ 		'<div class="col-xs-4">'
-			+ 			'<cartview></cartview>' 
-			+ 		'</div>'
-			+ 		'<div class="col-xs-6">'
-			+ 			'<menuview></menuview>'
-			+ 		'</div>'
-			+ 		'<div class="col-xs-1"></div>' 
-			+ 	'</div>');
-
-		$templateCache.put('cartview.html',
-				'<table id="cart-info-table" class="table">'
-			+ 		'<tbody>'
-			+ 			'<tr data-ng-repeat="info in $ctrl.cartInfo">'
-			+ 				'<td data-ng-if="info.enabled">'
-			+ 					'<button class="btn btn-block" data-ng-click="info.action()">{{info.name}}</button>'
-			+ 				'</td>'
-			+ 				'<td data-ng-if="!info.enabled"><label>{{info.name}}</label></td>'
-			+ 			'</tr>'
-			+ 		'</tbody>'
-			+ 	'</table>'
-			+ 	'<div id="cart-items-list" class="col-xs-12">'
-			+ 		'<span class="col-xs-12" id="cart-item" data-ng-repeat="cartItem in $ctrl.cart">'
-			+ 			'{{cartItem.toString()}}'
-			+ 		'</span>'
-			+ 	'</div>'
-})
-.run([ 'menuService', function(menuService) {
-			menuService.ajaxGetMenuItem(function(res) {
-				menuService.buildMainMenu(res.data);
-			}, function(res) {
-			});
-			var addOnItems = [ {
-				name : 'Button1',
-				price : {
-					dollar : 5,
-					cent : 0
-				}
+.run(['$templateCache', 'itemService', 'menuService', function($templateCache, itemService, menuService) {
+	templates($templateCache);
+	itemService.initItemData();
+	
+	var addOnItems = [ {
+			name : 'Button1',
+			price : {
+				dollar : 5,
+				cent : 0
+			}
 			}, {
 				name : 'Button2',
 				price : {

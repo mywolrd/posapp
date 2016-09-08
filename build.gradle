@@ -1,3 +1,16 @@
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "gradle.plugin.com.craigburke.gradle:karma-gradle:1.4.3"
+  }
+}
+
+apply plugin: "com.craigburke.karma"
+
 apply plugin: 'java'
 apply plugin: 'war'
 apply plugin: 'eclipse-wtp'

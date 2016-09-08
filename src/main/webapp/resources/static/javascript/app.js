@@ -60,9 +60,9 @@ function templates(angularTemplateCache) {
 		angularTemplateCache.put('menu.html',
 				'<table class="table borderless">'
 			+ 		'<tbody>'
-			+ 			'<tr data-ng-repeat="menuItems in $ctrl.items">'
-			+ 				'<td class="col-xs-2" data-ng-repeat="menuItem in menuItems">'
-			+ 					'<button class="btn-block" data-ng-click="menuItem.action(menuItem)">{{menuItem.item.itemName}}</button>'
+			+ 			'<tr data-ng-repeat="items in $ctrl.itemMenu">'
+			+ 				'<td class="col-xs-2" data-ng-repeat="item in items">'
+			+ 					'<button class="btn-block" data-ng-click="item.action(item)">{{item.name}}</button>'
 			+ 				'</td>' 
 			+ 			'</tr>' 
 			+ 		'</tbody>'
@@ -355,11 +355,32 @@ function orderService() {
 function itemService(APP_CONFIG, $http, urlService) {
 	var _data = {};
 	
+	function _groupItemsByType(items) {
+		var groupedItems = {};
+		var i, len;
+		
+		for (i=0, len=items.length; i < len; i++) {
+			var item = angular.copy(items[i]);
+			if (item.itemType) {
+				var itemType = item.itemType.name;
+				var groupedByType = groupedItems[itemType];
+				
+				if (!groupedByType) {
+					groupedByType = [];
+				}
+				
+				groupedByType.push(item);
+				groupedItems[itemType] = groupedByType;
+			}
+		}
+		return groupedItems;
+	}
+	
 	function _ajaxGetItems() {
 		$http.get(urlService.item + '/list')
 				.then(
 					function (res) {
-						_data.items = res.data;
+						_data.items = _groupItemsByType(res.data);
 					},
 					function (res) {
 						console.log(res);
@@ -418,120 +439,8 @@ function messageService(APP_CONFIG) {
 	};
 }
 
-/**
- * Menu Service
- * 
- * @param APP_CONFIG
- * @param urlService
- * @param cartService
- * @returns {___anonymous7955_9207}
-**/
-function newMenuService() {
-	var _data = {};
-	
-	function _buildMenu(menuItems, numberOfItems) {
-		var menu = [];
-		var row = [];
-		var i, len;
-		var menuItem;
-
-		for (i = 0, len = menuItems.length; i < len; i++) {
-			menuItem = menuItems[i];
-			if (menuItem) {
-				if (menuItem.submenu) {
-					var submenu = _buildMenu(menuItem.submenu, numberOfItems);
-					menuItem.submenu = submenu;
-
-					menuItem.action = function(item) {
-						_setCurrentMenu(item.submenu);
-					}
-				} else {
-					menuItem.action = function(item) {
-						cartService.addItem(item);
-						_showPreviousMenu();
-					}
-				}
-				row.push(menuItem);
-
-				if (((i + 1) % numberOfItems) == 0 || i == (len - 1)) {
-					menu.push(row);
-					row = [];
-				}
-			}
-		}
-		return menu;
-	}
-	
-	return {
-		getMainMenu : function() {
-			if (_data.main)
-				return _data.main;
-
-			return [];
-		},
-		getCurrentMenu : function() {
-			if (_data.current)
-				return _data.current;
-
-			return [];
-		},
-		setCurrentMenu : function(menu) {
-			_setCurrentMenu(menu);
-		},
-		getAddOnItems : function() {
-			if (_data.addOnItems) {
-				_resetAddOnItems();
-				return _data.addOn_current;
-			}
-
-			return [];
-		},
-		getCurrentAddOnItems : function() {
-			if (_data.addOn_current)
-				return _data.addOn_current;
-
-			return [];
-		},
-		moveLeftAddOnItems : function() {
-			_addOn_move_left();
-		},
-		moveRightAddOnItems : function() {
-			_addOn_move_right();
-		},
-		buildAddOnMenu : function(addOnItems) {
-			_buildAddOnItemsMenu(addOnItems);
-		},
-		buildMainMenu : function(menuItems) {
-			if (!_data.main) {
-				var main = _buildMenu(menuItems,
-						APP_CONFIG.NUMBER_OF_BUTTONS_MENU);
-				_data.main = main;
-				_data.current = main;
-			}
-		}
-	}
-}
-
 function menuService(APP_CONFIG, $http, urlService, cartService) {
-
 	var _data = {};
-
-	function _setCurrentMenu(menu) {
-		if (menu) {
-			if (_data.current)
-				_data.previous = _data.current;
-			_data.current = menu;
-		}
-	}
-
-	function _showPreviousMenu() {
-		if (_data.previous) {
-			var _currentMenu = _data.current;
-			_data.current = _data.previous;
-			if (_currentMenu)
-				_data.previous = _currentMenu;
-		}
-	}
 
 	function _buildAddOnItemsMenu(addOnItems) {
 		if (!_data.addOnItems) {
@@ -580,8 +489,6 @@ function menuService(APP_CONFIG, $http, urlService, cartService) {
 		}
 	}
 
-
-
 	return {
 		ajaxGetAddOnItem : function(success, fail) {
 			if (!_data.addonitems && APP_CONFIG.SHOW_ADD_ON_ITEMS)
@@ -591,21 +498,6 @@ function menuService(APP_CONFIG, $http, urlService, cartService) {
 		ajaxGetMenuItem : function(success, fail) {
 			if (!_data.menu)
 				$http.get(urlService.menu + '/list').then(success, fail);
-		},
-		getMainMenu : function() {
-			if (_data.main)
-				return _data.main;
-
-			return [];
-		},
-		getCurrentMenu : function() {
-			if (_data.current)
-				return _data.current;
-
-			return [];
-		},
-		setCurrentMenu : function(menu) {
-			_setCurrentMenu(menu);
 		},
 		getAddOnItems : function() {
 			if (_data.addOnItems) {
@@ -629,14 +521,6 @@ function menuService(APP_CONFIG, $http, urlService, cartService) {
 		},
 		buildAddOnMenu : function(addOnItems) {
 			_buildAddOnItemsMenu(addOnItems);
-		},
-		buildMainMenu : function(menuItems) {
-			if (!_data.main) {
-				var main = _buildMenu(menuItems,
-						APP_CONFIG.NUMBER_OF_BUTTONS_MENU);
-				_data.main = main;
-				_data.current = main;
-			}
 		}
 	}
 }
@@ -738,6 +622,73 @@ function navigationCtrl(navigationService) {
 			navigationService.buildNavigation();
 
 		ctrl.navigations = navigationService.getNavigation();
+	}
+}
+
+
+/**
+ *  Menu Controller
+**/
+function itemMenuCtrl(itemService, cartService) {
+	var ctrl = this;
+	
+	ctrl.items = null;
+	
+	// TODO maybe use onInit?
+	ctrl.$doCheck = function() {
+		if (!ctrl.items) {
+			var items = itemService.getItems();
+			if (items) {
+				ctrl.items = items;
+				_buildItemMenu();
+			}
+		}
+	}
+	
+	function _buildItemMenu() {
+		var itemMenu = [];
+		var items = ctrl.items;
+		
+		for (var itemType in items) {
+			var submenu = items[itemType];
+			
+			submenu.map(function(item) {
+				item.action = function(item) {
+					cartService.addItem(item);
+					showMainItemMenu();
+				}
+			});
+			
+			var item = {name: itemType, submenu: _buildItemMenuGrid(submenu, 5)};
+			item.action = function(item) {
+				ctrl.itemMenu = item.submenu;
+			}
+			itemMenu.push(item);
+		}
+		
+		ctrl.mainItemMenu = _buildItemMenuGrid(itemMenu, 5);
+		ctrl.itemMenu = ctrl.mainItemMenu;
+	}
+	
+	function showMainItemMenu() {
+		ctrl.itemMenu = ctrl.mainItemMenu;
+	}
+	
+	function _buildItemMenuGrid(items, numberOfItems) {
+		var itemMenu = [];
+		var row = [];
+		var i, len;
+		
+		for (i=0, len=items.length; i < len; i++) {
+			var item = items[i];
+			row.push(item);
+
+			if (((i + 1) % numberOfItems) == 0 || i == (len - 1)) {
+				itemMenu.push(row);
+				row = [];
+			}			
+		}
+		return itemMenu;
 	}
 }
 
@@ -886,14 +837,7 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 			templateUrl : 'inputs.html'
 		})
 		.component('menuview', {
-			controller : function(menuService) {
-				this.$doCheck = function() {
-					var menu = menuService.getCurrentMenu();
-					if (menu) {
-						this.items = menu;
-					}
-				}
-			},
+			controller : itemMenuCtrl,
 			templateUrl : 'menu.html'
 		})
 		.component(
@@ -991,6 +935,9 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 		})
 .run(['$templateCache', 'itemService', 'menuService', function($templateCache, itemService, menuService) {
 	templates($templateCache);
+	
+	//TODO
+	// Nonblocking "AJAX call and creating a menu object and feeding it into controller"? how?
 	itemService.initItemData();
 	
 	var addOnItems = [ {

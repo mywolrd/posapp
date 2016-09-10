@@ -1,4 +1,12 @@
 //
+// polyfill
+//
+
+String.prototype.repeat = String.prototype.repeat || function(n){ 
+    return n<=1 ? this : (this + this.repeat(n-1)); 
+}
+
+//
 //	Templates
 //
 function templates(angularTemplateCache) {
@@ -94,7 +102,7 @@ function templates(angularTemplateCache) {
 			+ 		'</tbody>'
 			+ 	'</table>'
 			+ 	'<div id="cart-items-list" class="col-xs-12">'
-			+ 		'<span class="col-xs-12" id="cart-item" data-ng-repeat="cartItem in $ctrl.cart">'
+			+ 		'<span class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart">'
 			+ 			'{{cartItem.toString()}}'
 			+ 		'</span>'
 			+ 	'</div>');
@@ -111,6 +119,12 @@ function templates(angularTemplateCache) {
 function stringService() {
 	var _NBSP = '\xa0';
 
+	function _repeatChar(str, len, char) {
+		var pad = angular.isDefined(char) ? char : _NBSP;
+		var padlen = len - str.length;
+		return pad.repeat(padlen);
+	}
+	
 	return {
 		isLetterOnly : function(str) {
 			if (str.search(/[^A-Za-z\s]/) != -1)
@@ -124,17 +138,19 @@ function stringService() {
 
 			return true;
 		},
+		getEmptyString : function(len) {
+			var char = _NBSP;
+			return char.repeat(len);
+		},
 		lpad : function(s, len, char) {
 			var str = s.toString();
-			var pad = angular.isDefined(char) ? char : _NBSP;
-			while (str.length < len) {
-				str = pad + str;
-			}
-			return str;
+
+			return _repeatChar(str, len, char) + str;
 		},
-		rpad : function(str, len, char) {
-			// TODO
-			// Do I need this?
+		rpad : function(s, len, char) {
+			var str = s.toString();
+
+			return str + _repeatChar(str, len, char);
 		}
 	};
 }
@@ -180,13 +196,25 @@ function cartService(APP_CONFIG, stringService) {
 			return newprice;
 		}
 
+		this.setNewPrice = function(dollar, cent) {
+			newprice = {dollar: dollar, cent: cent}
+		}
+		
 		this.toString = function() {
 			var str = '';
+			var pricePtr = item.price;
+			
 			str += stringService.lpad(quantity, 5);
-			str += stringService.lpad(item.itemName, 30);
-			str += stringService.lpad(item.price.dollar, 10);
+			str += stringService.getEmptyString(3);
+			str += stringService.rpad(item.itemName, 25);
+			
+			if (newprice) {
+				pricePtr = newprice;
+			}
+			str += stringService.lpad(pricePtr.dollar, 10);
 			str += '.';
-			str += item.price.cent;
+			str += stringService.lpad(pricePtr.cent, 2, '0');
+			
 			return str;
 		}
 	}
@@ -198,8 +226,8 @@ function cartService(APP_CONFIG, stringService) {
 		clearCart : function() {
 			_data.cart = [];
 		},
-		addItem : function(menuItem) {
-			var itemCopy = angular.copy(menuItem.item);
+		addItem : function(item) {
+			var itemCopy = angular.copy(item);
 			var cartItem = new _CartItem(itemCopy, 1, null);
 			_data.cart.push(cartItem);
 		},
@@ -355,6 +383,8 @@ function orderService() {
 function itemService(APP_CONFIG, $http, urlService) {
 	var _data = {};
 	
+	//TODO
+	//Add weight to item object. Java...
 	function _groupItemsByType(items) {
 		var groupedItems = {};
 		var i, len;
@@ -896,7 +926,8 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 					controller : function(cartService, customerService,
 							navigationService) {
 						var ctrl = this;
-
+						var selectedId;
+						
 						this.$doCheck = function() {
 							var cart = cartService.getCart();
 							if (cart) {

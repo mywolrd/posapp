@@ -50,9 +50,10 @@ td .btn {
 	height: 400px;
 }
 
-#cart-item {
+.cart-item {
 	height: 40px;
 	font-size: 19px;
 	font-weight: bold;
 	border: none;
+	cursor: pointer;
 }

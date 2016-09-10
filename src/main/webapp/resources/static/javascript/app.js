@@ -102,7 +102,7 @@ function templates(angularTemplateCache) {
 			+ 		'</tbody>'
 			+ 	'</table>'
 			+ 	'<div id="cart-items-list" class="col-xs-12">'
-			+ 		'<span class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart">'
+			+ 		'<span class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart" data-ng-click="$ctrl.select($index)" data-ng-class="$index === $ctrl.selectedId ?' + "'selected' : ''" + '">'
 			+ 			'{{cartItem.toString()}}'
 			+ 		'</span>'
 			+ 	'</div>');
@@ -911,13 +911,29 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 					// This number pad should always display.
 					controller : function(cartService) {
 						var ctrl = this;
-						ctrl.labels = [ [ '1', '2', '3', '4', '5', 'Delete' ],
-								[ '6', '7', '8', '9', '0', 'Save' ] ]
+						var inputQueue = [];
+						
+						ctrl.mode_newprice = false;
+						
+						ctrl.button_labels = [ [ '1', '2', '3', '4', '5', 'Delete' ],
+								[ '6', '7', '8', '9', '0', 'Save' ] ];
+						
+						ctrl.newpriceMode = function() {
+							ctrl.mode_newprice = true;
+						}
+						
+						ctrl.action = function(number) {
+							var test = new Number(number);
+							if (!isNaN(test)) {
+							}
+						}
+						
+						
 					},
 					template : '<table class="table borderless">'
-							+ '<tr data-ng-repeat="row in $ctrl.labels">'
+							+ '<tr data-ng-repeat="row in $ctrl.button_labels">'
 							+ '<td class="col-xs-2" data-ng-repeat="label in row">'
-							+ '<button data-ng-if="label" class="btn-block">{{label}}</button>'
+							+ '<button data-ng-if="label" class="btn-block" data-ng-click="$ctrl.action(label)">{{label}}</button>'
 							+ '</td>' + '</tr>' + '</table>'
 				})
 		.component(
@@ -926,7 +942,7 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 					controller : function(cartService, customerService,
 							navigationService) {
 						var ctrl = this;
-						var selectedId;
+						this.selectedId = null;
 						
 						this.$doCheck = function() {
 							var cart = cartService.getCart();
@@ -939,7 +955,11 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 								this.cartInfo[0].name = currentCustomer.displayValue[0];
 							}
 						}
-
+						
+						this.select = function(index) {
+							this.selectedId = index;
+						}
+						
 						this.cartInfo = [ {
 							name : "Customer",
 							enabled : true,

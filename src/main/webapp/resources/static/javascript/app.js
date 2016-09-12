@@ -78,6 +78,21 @@ function templates(angularTemplateCache) {
 			+ 	'<addonitemview></addonitemview>'
 			+ 	'<menunumpad></menunumpad>');
 
+		angularTemplateCache.put('addonmenu.html',
+				'<table class="table borderless">'
+			+		'<tbody>'
+			+ 			'<tr>'
+			+ 				'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveLeft()"><</button></td>'
+			+ 				'<td class="col-xs-1"></td>'
+			+ 				'<td class="col-xs-2" data-ng-repeat="addonItem in $ctrl.addonItemsCurrent">'
+			+ 					'<button class="btn-block" data-ng-click="addonItem.action(addonItem)">{{addonItem.itemName}}</button>'
+			+ 				'</td>'
+			+ 				'<td class="col-xs-1"></td>'
+			+ 				'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveRight()">></button></td>'
+			+ 			'<tr>'
+			+		'</tbody>'
+			+ 	'</table>');
+		
 		angularTemplateCache.put('neworder.html',
 				'<div class="row">'
 			+ 		'<div class="col-xs-1"></div>'
@@ -514,73 +529,6 @@ function messageService(APP_CONFIG) {
 	};
 }
 
-function menuService(APP_CONFIG, $http, urlService, cartService) {
-	var _data = {};
-
-	function _buildAddOnItemsMenu(addOnItems) {
-		if (!_data.addOnItems) {
-			_data.addOnItems = addOnItems;
-
-			_data.addOn_num_of_buttons = APP_CONFIG.NUMBER_OF_ADD_ON_ITEM_BUTTONS;
-			_data.addOn_begin = 0;
-
-			_setAddOnCurrent();
-		}
-	}
-
-	function _resetAddOnItems() {
-		if (_data.addOnItems) {
-			_data.addOn_begin = 0;
-
-			_setAddOnCurrent();
-		}
-	}
-
-	function _setAddOnCurrent() {
-		if (_data.addOn_begin >= 0) {
-			_data.addOn_end = _data.addOn_begin + _data.addOn_num_of_buttons;
-			_data.addOn_current = _data.addOnItems.slice(_data.addOn_begin,
-					_data.addOn_end);
-		}
-	}
-
-
-	return {
-		ajaxGetAddOnItem : function(success, fail) {
-			if (!_data.addonitems && APP_CONFIG.SHOW_ADD_ON_ITEMS)
-				$http.get(urlService.menu + '/addonitem/list').then(success,
-						fail);
-		},
-		ajaxGetMenuItem : function(success, fail) {
-			if (!_data.menu)
-				$http.get(urlService.menu + '/list').then(success, fail);
-		},
-		getAddOnItems : function() {
-			if (_data.addOnItems) {
-				_resetAddOnItems();
-				return _data.addOn_current;
-			}
-
-			return [];
-		},
-		getCurrentAddOnItems : function() {
-			if (_data.addOn_current)
-				return _data.addOn_current;
-
-			return [];
-		},
-		moveLeftAddOnItems : function() {
-			_addOn_move_left();
-		},
-		moveRightAddOnItems : function() {
-			_addOn_move_right();
-		},
-		buildAddOnMenu : function(addOnItems) {
-			_buildAddOnItemsMenu(addOnItems);
-		}
-	}
-}
-
 
 //
 //  Component controllers
@@ -800,47 +748,56 @@ function addonItemMenuCtrl(itemService, cartService) {
 	
 }
 
-var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
-	.constant('APP_CONFIG', {
-			NAVIGATION : [ {
-				name : "POS App"
-			}, {
-				name : "Order",
-				menu : [ {
-					name : "New",
-					link : "neworder"
-				}, {
-					name : "PickUp",
-					link : "pickuporder"
-				} ],
-				customer : false
-			}, {
-				name : "Customer",
-				menu : [ {
-					name : "New",
-					link : "newcustomer"
-				}, {
-					name : "Search",
-					link : "searchcustomer"
-				} ],
-				customer : true
-			} ],
-			NEW_CUSTOMER_INPUT : [ {
-				'label' : 'Last Name',
-				'placeholder' : 'Last Name',
-				'value' : null,
-				required : true
-			}, {
-				'label' : 'First Name',
-				'placeholder' : 'First Name',
-				'value' : null,
-				required : false
-			}, {
-				'label' : 'Phone Number',
-				'placeholder' : 'Phone Number',
-				'value' : null,
-				required : false
-			} ],
+var app = 
+	angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
+		.constant('APP_CONFIG', {
+			NAVIGATION: [{
+			              	name: "POS App"
+			              }, 
+			              {
+			            	name: "Order",
+							menu: [{
+										name: "New",
+										link: "neworder"
+									}, 
+									{
+										name: "PickUp",
+										link: "pickuporder"
+									}],
+									customer : false
+			              }, 
+			              {
+			            	  name: "Customer",
+			            	  menu:	[{
+										name: "New",
+										link: "newcustomer"
+									}, 
+									{
+										name: "Search",
+										link: "searchcustomer"
+									}],
+									customer : true
+			              }],
+			
+		    NEW_CUSTOMER_INPUT:	[{
+									'label' : 'Last Name',
+									'placeholder' : 'Last Name',
+									'value' : null,
+									required : true
+								}, 
+								{
+									'label' : 'First Name',
+									'placeholder' : 'First Name',
+									'value' : null,
+									required : false
+								}, 
+								{
+									'label' : 'Phone Number',
+									'placeholder' : 'Phone Number',
+									'value' : null,
+									required : false
+								}],
+			
 			SEARCH_CUSTOMER_INPUT : [ {
 				label : 'Customer',
 				placeholder : 'Last Name',
@@ -921,7 +878,6 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 		.factory('stringService', stringService)
 		.factory('urlService', urlService)
 		.factory('cartService', [ 'APP_CONFIG', 'stringService', cartService ])
-		.factory('menuService', [ 'APP_CONFIG', '$http', 'urlService', 'cartService', menuService ])
 		.factory('customerService', [ 'APP_CONFIG', '$http', 'urlService', 'stringService', customerService ])
 		.factory('navigationService', [ 'APP_CONFIG', '$state', navigationService ])
 		.factory('orderService', [ '$http', 'urlService', 'stringService', orderService ])
@@ -948,24 +904,11 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 			controller : itemMenuCtrl,
 			templateUrl : 'menu.html'
 		})
-		.component(
-				'addonitemview',
-				{
+		.component('addonitemview', {
 					controller : addonItemMenuCtrl,
-					template : '<table class="table borderless">'
-							+ '<tr>'
-							+ '<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveLeft()"><</button></td>'
-							+ '<td class="col-xs-1"></td>'
-							+ '<td class="col-xs-2" data-ng-repeat="addonItem in $ctrl.addonItemsCurrent">'
-							+ '<button class="btn-block" data-ng-click="addonItem.action(addonItem)">{{addonItem.itemName}}</button>'
-							+ '</td>'
-							+ '<td class="col-xs-1"></td>'
-							+ '<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveRight()">></button></td>'
-							+ '<tr>' + '</table>'
-				})
-		.component(
-				'menunumpad',
-				{
+					templateUrl : 'addonmenu.html'
+		})
+		.component('menunumpad', {
 					// Angular-virtual-keyboard requires an input field and a
 					// keyboard shows
 					// only when the input field is focused.
@@ -1062,14 +1005,11 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 		.component('neworder', {
 			templateUrl : 'neworder.html'
 		})
-.run(['$templateCache', 'itemService', 'menuService', function($templateCache, itemService, menuService) {
+.run(['$templateCache', 'itemService', function($templateCache, itemService) {
 	templates($templateCache);
 	
 	//TODO
 	// Nonblocking "AJAX call and creating a menu object and feeding it into controller"? how?
 	itemService.initItemData();
-	
-	//var addOnItems = 
-	//		menuService.buildAddOnMenu(addOnItems);
-	//	
+		
 	} ]);

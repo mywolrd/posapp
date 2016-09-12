@@ -176,6 +176,9 @@ function urlService() {
  * Cart Service
  */
 function cartService(APP_CONFIG, stringService) {
+	var _DASH = '-';
+	var _CHAR_ZERO = '0';
+	var _ZERO = 0;
 	var _data = {};
 	_data.cart = [];
 
@@ -202,18 +205,16 @@ function cartService(APP_CONFIG, stringService) {
 		
 		this.toString = function() {
 			var str = '';
-			var pricePtr = item.price;
-			
-			str += stringService.lpad(quantity, 5);
+			var pricePtr = newprice ? newprice : item.price;
+			var quantityPtr = quantity == 0 ? _DASH : quantity;
+
+			str += stringService.lpad(quantityPtr, 5);
 			str += stringService.getEmptyString(3);
 			str += stringService.rpad(item.itemName, 25);
 			
-			if (newprice) {
-				pricePtr = newprice;
-			}
 			str += stringService.lpad(pricePtr.dollar, 10);
 			str += '.';
-			str += stringService.lpad(pricePtr.cent, 2, '0');
+			str += stringService.lpad(pricePtr.cent, 2, _CHAR_ZERO);
 			
 			return str;
 		}
@@ -228,7 +229,7 @@ function cartService(APP_CONFIG, stringService) {
 		},
 		addItem : function(item) {
 			var itemCopy = angular.copy(item);
-			var cartItem = new _CartItem(itemCopy, 1, null);
+			var cartItem = itemCopy.itemType ? new _CartItem(itemCopy, 1, null) : new _CartItem(itemCopy, 0, null);
 			_data.cart.push(cartItem);
 		},
 		getCartInfo : function() {
@@ -432,7 +433,51 @@ function itemService(APP_CONFIG, $http, urlService) {
 	return {
 		initItemData: function() {
 			_ajaxGetItems();
-			_ajaxGetAddOnItems();
+			//_ajaxGetAddOnItems();
+		
+			_data.addonitems = [ {
+				itemName : 'Button1',
+				price : {
+					dollar : 5,
+					cent : 0
+				}
+				}, {
+					itemName : 'Button2',
+					price : {
+						dollar : 5,
+						cent : 0
+					}
+				}, {
+					itemName : 'Button3',
+					price : {
+						dollar : 5,
+						cent : 0
+					}
+				}, {
+					itemName : 'Button4',
+					price : {
+						dollar : 5,
+						cent : 0
+					}
+				}, {
+					itemName : 'Button5',
+					price : {
+						dollar : 5,
+						cent : 0
+					}
+				}, {
+					itemName : 'Button6',
+					price : {
+						dollar : 5,
+						cent : 0
+					}
+				}, {
+					itemName : 'Button7',
+					price : {
+						dollar : 5,
+						cent : 0
+					}
+				} ];
 		},
 		getItems: function() {
 			if (!_data.items) {
@@ -499,25 +544,6 @@ function menuService(APP_CONFIG, $http, urlService, cartService) {
 		}
 	}
 
-	function _addOn_move_left() {
-		if (angular.isDefined(_data.addOn_begin)) {
-			if (_data.addOn_begin > 0) {
-				_data.addOn_begin = _data.addOn_begin - 1;
-
-				_setAddOnCurrent();
-			}
-		}
-	}
-
-	function _addOn_move_right() {
-		if (angular.isDefined(_data.addOn_end)) {
-			if (_data.addOn_end < _data.addOnItems.length) {
-				_data.addOn_begin = _data.addOn_begin + 1;
-
-				_setAddOnCurrent();
-			}
-		}
-	}
 
 	return {
 		ajaxGetAddOnItem : function(success, fail) {
@@ -663,9 +689,9 @@ function itemMenuCtrl(itemService, cartService) {
 	var ctrl = this;
 	
 	ctrl.items = null;
+	ctrl.mainItemName = null;
 	
-	// TODO maybe use onInit?
-	ctrl.$doCheck = function() {
+	ctrl.$onInit = function() {
 		if (!ctrl.items) {
 			var items = itemService.getItems();
 			if (items) {
@@ -686,11 +712,13 @@ function itemMenuCtrl(itemService, cartService) {
 				item.action = function(item) {
 					cartService.addItem(item);
 					showMainItemMenu();
+					ctrl.mainItemName = null;
 				}
 			});
 			
 			var item = {name: itemType, submenu: _buildItemMenuGrid(submenu, 5)};
 			item.action = function(item) {
+				ctrl.mainItemName = item.name;
 				ctrl.itemMenu = item.submenu;
 			}
 			itemMenu.push(item);
@@ -720,6 +748,56 @@ function itemMenuCtrl(itemService, cartService) {
 		}
 		return itemMenu;
 	}
+}
+
+/**
+ * AddonItemMenuController
+**/
+function addonItemMenuCtrl(itemService, cartService) {
+	var ctrl = this;
+	
+	ctrl.addonItems = null;
+	ctrl.numberOfButtons = 4;
+	ctrl.begin = 0;
+	
+	ctrl.$onInit = function() {
+		if (!ctrl.items) {
+			var addonItems = itemService.getAddOnItems();
+			if (addonItems) {
+				addonItems.map(function(addonItem) {
+					addonItem.action = function() {
+						cartService.addItem(addonItem);
+					}
+				});
+				
+				ctrl.addonItems = addonItems;					
+				setCurrentAddonItems();
+			}
+		}
+	}
+	
+
+	ctrl.moveLeft = function() {
+		if (ctrl.begin > 0) {
+			ctrl.begin -= 1;
+
+			setCurrentAddonItems();
+		}
+	}
+
+	ctrl.moveRight = function() {
+		var end = ctrl.begin + ctrl.numberOfButtons;
+		if (end < ctrl.addonItems.length) {
+			ctrl.begin += 1;
+
+			setCurrentAddonItems();
+		}
+	}
+	
+	function setCurrentAddonItems() {
+		ctrl.addonItemsCurrent = ctrl.addonItems.slice(ctrl.begin, ctrl.begin + ctrl.numberOfButtons);
+	}
+	
 }
 
 var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
@@ -873,33 +951,16 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 		.component(
 				'addonitemview',
 				{
-					controller : function(menuService) {
-						var ctrl = this;
-
-						ctrl.$doCheck = function() {
-							var addOnMenu = menuService.getCurrentAddOnItems();
-							ctrl.addOnItems = addOnMenu;
-						}
-
-						ctrl.toLeft = function() {
-							menuService.moveRightAddOnItems();
-						}
-
-						ctrl.toRight = function() {
-							menuService.moveLeftAddOnItems();
-						}
-
-						ctrl.addOnItems = [];
-					},
+					controller : addonItemMenuCtrl,
 					template : '<table class="table borderless">'
 							+ '<tr>'
-							+ '<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.toLeft()"><</button></td>'
+							+ '<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveLeft()"><</button></td>'
 							+ '<td class="col-xs-1"></td>'
-							+ '<td class="col-xs-2" data-ng-repeat="addOnItem in $ctrl.addOnItems">'
-							+ '<button class="btn-block">{{addOnItem.name}}</button>'
+							+ '<td class="col-xs-2" data-ng-repeat="addonItem in $ctrl.addonItemsCurrent">'
+							+ '<button class="btn-block" data-ng-click="addonItem.action(addonItem)">{{addonItem.itemName}}</button>'
 							+ '</td>'
 							+ '<td class="col-xs-1"></td>'
-							+ '<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.toRight()">></button></td>'
+							+ '<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveRight()">></button></td>'
 							+ '<tr>' + '</table>'
 				})
 		.component(
@@ -910,6 +971,12 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 					// only when the input field is focused.
 					// This number pad should always display.
 					controller : function(cartService) {
+						
+						function _MenuNumberpadButton(label, action) {
+							this.label = label;
+							this.action = action;
+						}
+						
 						var ctrl = this;
 						var inputQueue = [];
 						
@@ -920,11 +987,22 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 						
 						ctrl.newpriceMode = function() {
 							ctrl.mode_newprice = true;
+							ctrl.mode_quantity = false;
+						}
+						
+						ctrl.defaultMode = function() {
+							ctrl.mode_quantity = true;
+							ctrl.mode_newprice = false;
 						}
 						
 						ctrl.action = function(number) {
+							
 							var test = new Number(number);
 							if (!isNaN(test)) {
+								
+							
+							} else {
+								
 							}
 						}
 						
@@ -991,48 +1069,7 @@ var app = angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 	// Nonblocking "AJAX call and creating a menu object and feeding it into controller"? how?
 	itemService.initItemData();
 	
-	var addOnItems = [ {
-			name : 'Button1',
-			price : {
-				dollar : 5,
-				cent : 0
-			}
-			}, {
-				name : 'Button2',
-				price : {
-					dollar : 5,
-					cent : 0
-				}
-			}, {
-				name : 'Button3',
-				price : {
-					dollar : 5,
-					cent : 0
-				}
-			}, {
-				name : 'Button4',
-				price : {
-					dollar : 5,
-					cent : 0
-				}
-			}, {
-				name : 'Button5',
-				price : {
-					dollar : 5,
-					cent : 0
-				}
-			}, {
-				name : 'Button6',
-				price : {
-					dollar : 5,
-					cent : 0
-				}
-			}, {
-				name : 'Button7',
-				price : {
-					dollar : 5,
-					cent : 0
-				}
-			} ];
-			menuService.buildAddOnMenu(addOnItems);
-		} ]);
+	//var addOnItems = 
+	//		menuService.buildAddOnMenu(addOnItems);
+	//	
+	} ]);

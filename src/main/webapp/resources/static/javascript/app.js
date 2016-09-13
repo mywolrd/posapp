@@ -93,6 +93,17 @@ function templates(angularTemplateCache) {
 			+		'</tbody>'
 			+ 	'</table>');
 		
+		angularTemplateCache.put('menunumberpad.html',
+					'<table class="table borderless">'
+				+		'<tbody>'
+				+ 			'<tr data-ng-repeat="buttons in $ctrl.buttons">'
+				+ 				'<td class="col-xs-2" data-ng-repeat="button in buttons">'
+				+ 					'<button class="btn-block" data-ng-click="button.action()">{{button.label}}</button>'
+				+ 				'</td>'
+				+			'</tr>'
+				+		'</tbody>'
+				+ 	'</table>')
+		
 		angularTemplateCache.put('neworder.html',
 				'<div class="row">'
 			+ 		'<div class="col-xs-1"></div>'
@@ -383,6 +394,15 @@ function navigationService(APP_CONFIG, $state) {
 	};
 }
 
+function menuService(APP_CONFIG) {
+	
+	return {
+		isPriceLocked: function() {
+			return APP_CONFIG.IS_PRICE_LOCKED;
+		}
+	};
+}
+
 /** TODO
  * Order Service 
 **/
@@ -429,7 +449,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 						_data.items = _groupItemsByType(res.data);
 					},
 					function (res) {
-						console.log(res);
+
 					});
 	}
 	
@@ -441,7 +461,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 							_data.addonitems = res.data;
 						},
 						function (res) {
-							console.log(res);
+
 						});
 	}
 	
@@ -723,7 +743,6 @@ function addonItemMenuCtrl(itemService, cartService) {
 			}
 		}
 	}
-	
 
 	ctrl.moveLeft = function() {
 		if (ctrl.begin > 0) {
@@ -745,8 +764,86 @@ function addonItemMenuCtrl(itemService, cartService) {
 	function setCurrentAddonItems() {
 		ctrl.addonItemsCurrent = ctrl.addonItems.slice(ctrl.begin, ctrl.begin + ctrl.numberOfButtons);
 	}
-	
 }
+
+
+/**
+ *  MenuNumberpadController
+**/
+function menuNumberpadCtrl(cartService, menuService) {
+	var ctrl = this;
+
+	function _MenuNumberpadButton(label, action) {
+		this.label = label;
+		this.action = action;
+	}
+	
+	var inputQueue = [];
+	var DEFAULT_MODE_EXTRA = [ 'New Price' ];
+	var NEWPRICE_MODE_EXTRA = [ '0.25', '0.50', '1.00', '5.00' ];
+	
+	ctrl.mode_newprice = false;
+	
+	ctrl.button_labels = [ [ '1', '2', '3', '4', '5', 'Delete' ],
+			[ '6', '7', '8', '9', '0', 'Save' ]
+			];
+	
+	// Building this every time controller gets called?
+	// TODO  Create an initialization block for menu objects.
+	ctrl.$onInit = function() {
+		ctrl.buttons = [];
+		ctrl.button_labels.forEach(function(buttonlabelsRow) {
+			if (angular.isArray(buttonlabelsRow)) {
+				var buttonsrow = [];
+				buttonlabelsRow.forEach(function(buttonlabel) {
+					var button = new _MenuNumberpadButton(buttonlabel, _createAction(buttonlabel));
+					buttonsrow.push(button);
+				})
+				ctrl.buttons.push(buttonsrow);
+			}
+		});
+	}
+	
+	ctrl.newpriceMode = function() {
+		ctrl.mode_newprice = true;
+		ctrl.mode_quantity = false;
+		_changeButtons(_NEWPRICE_BUTTONS);
+	}
+	
+	ctrl.defaultMode = function() {
+		ctrl.mode_quantity = true;
+		ctrl.mode_newprice = false;
+		_changeButtons(_DEFAULT_BUTTONS);
+	}
+	
+	ctrl.clearInputQueue = function() {
+		inputQueue = [];
+	}
+	
+	function _createAction(number) {
+		
+		var test = new Number(number);
+		if (!isNaN(test)) {
+			return _numberAction(number);
+		} else {
+			return function() {
+				
+			}
+		}
+	}
+	
+	function _numberAction(number) {
+		return function() {
+			inputQueue.push(number);
+		}
+	}
+	
+	function _changeButtons(button) {
+		ctrl.buttons.splice(ctrl.length - 1, 1);
+		ctrl.buttons.push(button);
+	}
+}
+
 
 var app = 
 	angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
@@ -808,10 +905,13 @@ var app =
 			// false: does not
 			CUSTOMER_MODE : true,
 
+			// menu configs
 			SHOW_ADD_ON_ITEMS : true,
 			NUMBER_OF_ADD_ON_ITEM_BUTTONS : 4,
 			NUMBER_OF_BUTTONS_MENU : 5,
-
+			
+			IS_PRICE_LOCKED: true,
+			
 			// false : requires a ready date/time to complete an order
 			// true : does not
 			FIRST_COME_FIRST_SERVE : false,
@@ -882,6 +982,8 @@ var app =
 		.factory('navigationService', [ 'APP_CONFIG', '$state', navigationService ])
 		.factory('orderService', [ '$http', 'urlService', 'stringService', orderService ])
 		.factory('itemService', [ 'APP_CONFIG', '$http', 'urlService', itemService])
+		.factory('menuService', ['APP_CONFIG', menuService])
+		
 		.component('navigation', {
 			controller : navigationCtrl,
 			templateUrl : 'navigation.html'
@@ -913,49 +1015,8 @@ var app =
 					// keyboard shows
 					// only when the input field is focused.
 					// This number pad should always display.
-					controller : function(cartService) {
-						
-						function _MenuNumberpadButton(label, action) {
-							this.label = label;
-							this.action = action;
-						}
-						
-						var ctrl = this;
-						var inputQueue = [];
-						
-						ctrl.mode_newprice = false;
-						
-						ctrl.button_labels = [ [ '1', '2', '3', '4', '5', 'Delete' ],
-								[ '6', '7', '8', '9', '0', 'Save' ] ];
-						
-						ctrl.newpriceMode = function() {
-							ctrl.mode_newprice = true;
-							ctrl.mode_quantity = false;
-						}
-						
-						ctrl.defaultMode = function() {
-							ctrl.mode_quantity = true;
-							ctrl.mode_newprice = false;
-						}
-						
-						ctrl.action = function(number) {
-							
-							var test = new Number(number);
-							if (!isNaN(test)) {
-								
-							
-							} else {
-								
-							}
-						}
-						
-						
-					},
-					template : '<table class="table borderless">'
-							+ '<tr data-ng-repeat="row in $ctrl.button_labels">'
-							+ '<td class="col-xs-2" data-ng-repeat="label in row">'
-							+ '<button data-ng-if="label" class="btn-block" data-ng-click="$ctrl.action(label)">{{label}}</button>'
-							+ '</td>' + '</tr>' + '</table>'
+					controller : menuNumberpadCtrl,
+					templateUrl : 'menunumberpad.html' 
 				})
 		.component(
 				'cartview',

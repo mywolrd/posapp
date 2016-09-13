@@ -669,6 +669,8 @@ function itemMenuCtrl(itemService, cartService) {
 		}
 	}
 	
+	// TODO
+	// Create a initialization block and call this.
 	function _buildItemMenu() {
 		var itemMenu = [];
 		var items = ctrl.items;

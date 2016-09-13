@@ -205,6 +205,8 @@ function cartService(APP_CONFIG, stringService) {
 	var _DASH = '-';
 	var _CHAR_ZERO = '0';
 	var _ZERO = 0;
+	var _SELECTED = null;
+	
 	var _data = {};
 	_data.cart = [];
 
@@ -227,6 +229,10 @@ function cartService(APP_CONFIG, stringService) {
 
 		this.setNewPrice = function(dollar, cent) {
 			newprice = {dollar: dollar, cent: cent}
+		}
+		
+		this.setNewQuantity = function(newQuantity) {
+			quantity = newQuantity;
 		}
 		
 		this.toString = function() {
@@ -272,6 +278,17 @@ function cartService(APP_CONFIG, stringService) {
 			return total;
 		},
 		getTotalPrice: function() {
+			
+		},
+		selectItem: function(index) {
+			_SELECTED = index;
+		},
+		newQuantity: function(quantity) {
+			console.log(quantity);
+			_data.cart[_SELECTED].setNewQuantity(quantity);
+			console.log(_data.cart[_SELECTED].getQuantity());
+		},
+		newPrice: function() {
 			
 		}
 	};
@@ -837,6 +854,9 @@ function menuNumberpadCtrl(cartService, menuService) {
 	function _numberAction(number) {
 		return function() {
 			inputQueue.push(number);
+			var s = inputQueue.join('');
+			var n = new Number(s);
+			cartService.newQuantity(n);
 		}
 	}
 	
@@ -1019,7 +1039,7 @@ var app =
 					// This number pad should always display.
 					controller : menuNumberpadCtrl,
 					templateUrl : 'menunumberpad.html' 
-				})
+		})
 		.component(
 				'cartview',
 				{
@@ -1031,6 +1051,7 @@ var app =
 						this.$doCheck = function() {
 							var cart = cartService.getCart();
 							if (cart) {
+								console.log(cart);
 								this.cart = cart;
 							}
 							var currentCustomer = customerService
@@ -1041,7 +1062,12 @@ var app =
 						}
 						
 						this.select = function(index) {
-							this.selectedId = index;
+							if (ctrl.selectedId == index) {
+								ctrl.selectedId = null;
+							} else {
+								ctrl.selectedId = index;
+							}
+							cartService.selectItem(ctrl.selectedId);
 						}
 						
 						this.cartInfo = [ {

@@ -77,7 +77,7 @@ function templates(angularTemplateCache) {
 			+ 		'<tbody>'
 			+ 			'<tr data-ng-repeat="items in $ctrl.itemMenu">'
 			+ 				'<td class="col-xs-2" data-ng-repeat="item in items">'
-			+ 					'<button class="btn-block" data-ng-click="$ctrl.buttonaction(item)">{{item.name}}</button>'
+			+ 					'<button class="btn-block" data-ng-click="$ctrl.itembuttonAction(item)">{{item.name}}</button>'
 			+ 				'</td>' 
 			+ 			'</tr>' 
 			+ 		'</tbody>'
@@ -92,7 +92,7 @@ function templates(angularTemplateCache) {
 			+ 				'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveLeft()"><</button></td>'
 			+ 				'<td class="col-xs-1"></td>'
 			+ 				'<td class="col-xs-2" data-ng-repeat="addonItem in $ctrl.addonItemsCurrent">'
-			+ 					'<button class="btn-block" data-ng-click="addonItem.action(addonItem)">{{addonItem.itemName}}</button>'
+			+ 					'<button class="btn-block" data-ng-click="$ctrl.itembuttonAction(addonItem)">{{addonItem.itemName}}</button>'
 			+ 				'</td>'
 			+ 				'<td class="col-xs-1"></td>'
 			+ 				'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveRight()">></button></td>'
@@ -620,55 +620,6 @@ function itemService(APP_CONFIG, $http, urlService) {
 			
 			return promises;
 		},
-		
-		initItemData: function() {
-			_ajaxGetItems();
-			//_ajaxGetAddOnItems();
-		
-			_data.addonitems = [ {
-				itemName : 'Button1',
-				price : {
-					dollar : 5,
-					cent : 0
-				}
-				}, {
-					itemName : 'Button2',
-					price : {
-						dollar : 5,
-						cent : 0
-					}
-				}, {
-					itemName : 'Button3',
-					price : {
-						dollar : 5,
-						cent : 0
-					}
-				}, {
-					itemName : 'Button4',
-					price : {
-						dollar : 5,
-						cent : 0
-					}
-				}, {
-					itemName : 'Button5',
-					price : {
-						dollar : 5,
-						cent : 0
-					}
-				}, {
-					itemName : 'Button6',
-					price : {
-						dollar : 5,
-						cent : 0
-					}
-				}, {
-					itemName : 'Button7',
-					price : {
-						dollar : 5,
-						cent : 0
-					}
-				} ];
-		},
 		getItems: function() {
 			if (!_data.items) {
 				return null;
@@ -681,7 +632,6 @@ function itemService(APP_CONFIG, $http, urlService) {
 			}			
 			return _data.addonitems;
 		}
-		
 	};
 }
 
@@ -828,7 +778,7 @@ function itemMenuCtrl(menuService, cartService) {
 		ctrl.itemMenu = ctrl.mainItemMenu;
 	}
 	
-	ctrl.buttonaction = function(item) {
+	ctrl.itembuttonAction = function(item) {
 		if (item.submenu) {
 			ctrl.mainItemName = item.name;
 			ctrl.itemMenu = item.submenu;
@@ -857,21 +807,12 @@ function addonItemMenuCtrl(itemService, cartService, menuService) {
 	ctrl.$onInit = function() {
 		ctrl.addonItems = menuService.getAddonItemMenu();					
 		setCurrentAddonItems();
-		/*
-		if (!ctrl.items) {
-			var addonItems = itemService.getAddOnItems();
-			if (addonItems) {
-				addonItems.map(function(addonItem) {
-					addonItem.action = function() {
-						cartService.addItem(addonItem);
-					}
-				});
-				
-
-			}
-		}*/
 	}
 
+	ctrl.itembuttonAction = function(addonItem) {
+		cartService.addItem(addonItem);
+	}
+	
 	ctrl.moveLeft = function() {
 		if (ctrl.begin > 0) {
 			ctrl.begin -= 1;
@@ -1205,9 +1146,6 @@ var app =
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	templates($templateCache);
 	menuService.initMenu();
-	//TODO
-	// Nonblocking "AJAX call and creating a menu object and feeding it into controller"? how?
-	//itemService.initItemData();
 		
 	} 
 ]);

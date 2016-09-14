@@ -1,17 +1,24 @@
 //
-// polyfill
 //
-
+//
+// Polyfill
+//
+//
+//
 String.prototype.repeat = String.prototype.repeat || function(n){ 
     return n<=1 ? this : (this + this.repeat(n-1)); 
 }
 
 //
+//
+//
 //	Templates
+//
+//
 //
 function templates(angularTemplateCache) {
 		angularTemplateCache.put('navigation.html',
-				'<nav class="navbar navbar-inverse" role="navigation">'
+				'<nav class="navbar navbar-inverse" role="navigation" data-ng-show="$ctrl.ready">'
 			+		'<div class="navbar-header">'
 			+ 			'<a class="navbar-brand" data-ui-sref="app">POS App</a>'
 			+ 		'</div>'
@@ -70,7 +77,7 @@ function templates(angularTemplateCache) {
 			+ 		'<tbody>'
 			+ 			'<tr data-ng-repeat="items in $ctrl.itemMenu">'
 			+ 				'<td class="col-xs-2" data-ng-repeat="item in items">'
-			+ 					'<button class="btn-block" data-ng-click="item.action(item)">{{item.name}}</button>'
+			+ 					'<button class="btn-block" data-ng-click="$ctrl.buttonaction(item)">{{item.name}}</button>'
 			+ 				'</td>' 
 			+ 			'</tr>' 
 			+ 		'</tbody>'
@@ -135,10 +142,12 @@ function templates(angularTemplateCache) {
 }
 
 //
-//	Services
-//	States and data are shared in services.
 //
-
+//
+//	Services
+//
+//
+//
 /**
  * String Service
  */
@@ -284,9 +293,8 @@ function cartService(APP_CONFIG, stringService) {
 			_SELECTED = index;
 		},
 		newQuantity: function(quantity) {
-			console.log(quantity);
+			//TODO how to get off big quantity string? No support for this now.
 			_data.cart[_SELECTED].setNewQuantity(quantity);
-			console.log(_data.cart[_SELECTED].getQuantity());
 		},
 		newPrice: function() {
 			
@@ -351,7 +359,8 @@ function customerService(APP_CONFIG, $http, urlService, stringService) {
  */
 function navigationService(APP_CONFIG, $state) {
 	var _data = {};
-
+	_data.IS_READY = false;
+	
 	function _buildNavigation() {
 		var navigationObj = APP_CONFIG.NAVIGATION;
 		var customerMode = APP_CONFIG.CUSTOMER_MODE;
@@ -407,15 +416,139 @@ function navigationService(APP_CONFIG, $state) {
 			if (!_data.root && !_data.navigations) {
 				_buildNavigation();
 			}
+		},
+		isReady: function() {
+			return _data.IS_READY;
+		},
+		setReady: function(ready) {
+			_data.IS_READY = ready;
 		}
 	};
 }
 
-function menuService(APP_CONFIG) {
+function menuService(APP_CONFIG, $q, navigationService, itemService) {
 	
+	var _data = {};
+	var refreshMenu = false;
+	var IS_MENU_READY = false;
+	
+	function _initMenu() {
+		var promises = itemService.getAJAXItemPromises();
+		
+		$q.all(promises).then(
+			function(res) {
+				var itemsRes = res[0];
+				var items = itemsRes.data;
+				var groupedByType = itemService.groupItemsByType(items);
+				_buildItemMenu(groupedByType);
+			
+				_data.addonitems = [ {
+					itemName : 'Button1',
+					price : {
+						dollar : 5,
+						cent : 0
+					}
+					}, {
+						itemName : 'Button2',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					}, {
+						itemName : 'Button3',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					}, {
+						itemName : 'Button4',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					}, {
+						itemName : 'Button5',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					}, {
+						itemName : 'Button6',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					}, {
+						itemName : 'Button7',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					} ];
+				
+				navigationService.setReady(true);
+			}, function(res) {
+				//GET request failed
+			});
+	}
+	
+	function _buildItemMenuGrid(items, numberOfItems) {
+		var itemMenu = [];
+		var row = [];
+		var i, len;
+		
+		for (i=0, len=items.length; i < len; i++) {
+			var item = items[i];
+			row.push(item);
+
+			if (((i + 1) % numberOfItems) == 0 || i == (len - 1)) {
+				itemMenu.push(row);
+				row = [];
+			}			
+		}
+		return itemMenu;
+	}
+	
+	function _buildItemMenu(items) {
+		var itemMenu = [];
+		
+		for (var itemType in items) {
+			var submenu = items[itemType];
+			var item = {name: itemType, submenu: _buildItemMenuGrid(submenu, 5)};
+			
+			itemMenu.push(item);
+		}
+		
+		var mainItemMenu = _buildItemMenuGrid(itemMenu, 5);
+		_data.mainItemMenu = mainItemMenu;
+	}
+		
 	return {
 		isPriceLocked: function() {
 			return APP_CONFIG.IS_PRICE_LOCKED;
+		},
+		getNumberOfAddonItemButtons: function() {
+			return APP_CONFIG.NUMBER_OF_ADDON_ITEM_BUTTONS;
+		},
+		initMenu: function() {
+			if (!IS_MENU_READY) {
+				_initMenu();
+			}
+		},
+		isMenuReady: function() {
+			return IS_MENU_READY;
+		},
+		getMainItemMenu: function() {
+			if (_data.mainItemMenu)
+				return _data.mainItemMenu;
+			
+			return null;
+		},
+		getAddonItemMenu: function() {
+			if (_data.addonitems)
+				return _data.addonitems;
+			
+			return null;
 		}
 	};
 }
@@ -460,29 +593,34 @@ function itemService(APP_CONFIG, $http, urlService) {
 	}
 	
 	function _ajaxGetItems() {
-		$http.get(urlService.item + '/list')
-				.then(
-					function (res) {
-						_data.items = _groupItemsByType(res.data);
-					},
-					function (res) {
-
-					});
+		return $http.get(urlService.item + '/list');
 	}
 	
 	function _ajaxGetAddOnItems() {
-		if (APP_CONFIG.SHOW_ADD_ON_ITEMS)
-			$http.get(urlService.item + '/addonitem/list')
-					.then(
-						function (res) {
-							_data.addonitems = res.data;
-						},
-						function (res) {
-
-						});
+		if (APP_CONFIG.SHOW_ADD_ON_ITEMS) {
+			return $http.get(urlService.item + '/addonitem/list');
+		}
+		return null;
 	}
 	
 	return {
+		groupItemsByType: function(items) {
+			return _groupItemsByType(items);
+		},
+		getAJAXItemPromises: function() {
+			var promises = [];
+			
+			var items = _ajaxGetItems();
+			if (items)
+				promises.push(items);
+			
+			//var addonitems = _ajaxGetAddOnItems();
+			//if (addonitems)
+				//promises.push(addonitems);
+			
+			return promises;
+		},
+		
 		initItemData: function() {
 			_ajaxGetItems();
 			//_ajaxGetAddOnItems();
@@ -566,12 +704,13 @@ function messageService(APP_CONFIG) {
 	};
 }
 
-
+//
+//
 //
 //  Component controllers
-//  Feeds data from services to UI. Stores UI states.
 //
-
+//
+//
 /**
  * New Customer Controller 
 **/
@@ -659,88 +798,56 @@ function navigationCtrl(navigationService) {
 	var ctrl = this;
 	
 	ctrl.$onInit = function() {
+		ctrl.ready = false;
 		if (!navigationService.getNavigation())
 			navigationService.buildNavigation();
 
 		ctrl.navigations = navigationService.getNavigation();
 	}
+
+	ctrl.$doCheck = function() {
+		var isReady = navigationService.isReady();
+		if (isReady) {
+			ctrl.ready = isReady;
+		}
+	}	
 }
 
 
 /**
  *  Menu Controller
 **/
-function itemMenuCtrl(itemService, cartService) {
+function itemMenuCtrl(menuService, cartService) {
 	var ctrl = this;
 	
 	ctrl.items = null;
 	ctrl.mainItemName = null;
 	
 	ctrl.$onInit = function() {
-		if (!ctrl.items) {
-			var items = itemService.getItems();
-			if (items) {
-				ctrl.items = items;
-				_buildItemMenu();
-			}
-		}
+		ctrl.mainItemMenu = menuService.getMainItemMenu();
+		ctrl.itemMenu = ctrl.mainItemMenu;
 	}
 	
-	// TODO
-	// Create a initialization block and call this.
-	function _buildItemMenu() {
-		var itemMenu = [];
-		var items = ctrl.items;
-		
-		for (var itemType in items) {
-			var submenu = items[itemType];
-			
-			submenu.map(function(item) {
-				item.action = function(item) {
-					cartService.addItem(item);
-					showMainItemMenu();
-					ctrl.mainItemName = null;
-				}
-			});
-			
-			var item = {name: itemType, submenu: _buildItemMenuGrid(submenu, 5)};
-			item.action = function(item) {
-				ctrl.mainItemName = item.name;
-				ctrl.itemMenu = item.submenu;
-			}
-			itemMenu.push(item);
+	ctrl.buttonaction = function(item) {
+		if (item.submenu) {
+			ctrl.mainItemName = item.name;
+			ctrl.itemMenu = item.submenu;
+		} else {
+			cartService.addItem(item);
+			showMainItemMenu();
+			ctrl.mainItemName = null;
 		}
-		
-		ctrl.mainItemMenu = _buildItemMenuGrid(itemMenu, 5);
-		ctrl.itemMenu = ctrl.mainItemMenu;
 	}
 	
 	function showMainItemMenu() {
 		ctrl.itemMenu = ctrl.mainItemMenu;
-	}
-	
-	function _buildItemMenuGrid(items, numberOfItems) {
-		var itemMenu = [];
-		var row = [];
-		var i, len;
-		
-		for (i=0, len=items.length; i < len; i++) {
-			var item = items[i];
-			row.push(item);
-
-			if (((i + 1) % numberOfItems) == 0 || i == (len - 1)) {
-				itemMenu.push(row);
-				row = [];
-			}			
-		}
-		return itemMenu;
 	}
 }
 
 /**
  * AddonItemMenuController
 **/
-function addonItemMenuCtrl(itemService, cartService) {
+function addonItemMenuCtrl(itemService, cartService, menuService) {
 	var ctrl = this;
 	
 	ctrl.addonItems = null;
@@ -748,6 +855,9 @@ function addonItemMenuCtrl(itemService, cartService) {
 	ctrl.begin = 0;
 	
 	ctrl.$onInit = function() {
+		ctrl.addonItems = menuService.getAddonItemMenu();					
+		setCurrentAddonItems();
+		/*
 		if (!ctrl.items) {
 			var addonItems = itemService.getAddOnItems();
 			if (addonItems) {
@@ -757,10 +867,9 @@ function addonItemMenuCtrl(itemService, cartService) {
 					}
 				});
 				
-				ctrl.addonItems = addonItems;					
-				setCurrentAddonItems();
+
 			}
-		}
+		}*/
 	}
 
 	ctrl.moveLeft = function() {
@@ -929,7 +1038,7 @@ var app =
 
 			// menu configs
 			SHOW_ADD_ON_ITEMS : true,
-			NUMBER_OF_ADD_ON_ITEM_BUTTONS : 4,
+			NUMBER_OF_ADDON_ITEM_BUTTONS : 4,
 			NUMBER_OF_BUTTONS_MENU : 5,
 			
 			IS_PRICE_LOCKED: true,
@@ -981,7 +1090,7 @@ var app =
 							$urlRouterProvider.otherwise('/app');
 							$stateProvider.state('app', {
 								url : '/app',
-								template : "<neworder></neworder>"
+								template : "Home Page"
 							}).state('newcustomer', {
 								url : '/app/newcustomer',
 								template : '<newcustomer></newcustomer>'
@@ -1004,7 +1113,7 @@ var app =
 		.factory('navigationService', [ 'APP_CONFIG', '$state', navigationService ])
 		.factory('orderService', [ '$http', 'urlService', 'stringService', orderService ])
 		.factory('itemService', [ 'APP_CONFIG', '$http', 'urlService', itemService])
-		.factory('menuService', ['APP_CONFIG', menuService])
+		.factory('menuService', ['APP_CONFIG', '$q', 'navigationService', 'itemService', menuService])
 		
 		.component('navigation', {
 			controller : navigationCtrl,
@@ -1051,7 +1160,6 @@ var app =
 						this.$doCheck = function() {
 							var cart = cartService.getCart();
 							if (cart) {
-								console.log(cart);
 								this.cart = cart;
 							}
 							var currentCustomer = customerService
@@ -1094,11 +1202,12 @@ var app =
 		.component('neworder', {
 			templateUrl : 'neworder.html'
 		})
-.run(['$templateCache', 'itemService', function($templateCache, itemService) {
+.run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	templates($templateCache);
-	
+	menuService.initMenu();
 	//TODO
 	// Nonblocking "AJAX call and creating a menu object and feeding it into controller"? how?
-	itemService.initItemData();
+	//itemService.initItemData();
 		
-	} ]);
+	} 
+]);

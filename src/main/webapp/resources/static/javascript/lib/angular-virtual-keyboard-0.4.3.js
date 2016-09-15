@@ -215,7 +215,7 @@ var VKI = function(customConfig, layout, deadKeys, keyInputCallback) {
     } else {
       elem.onfocus = function() {
         if (self.VKI_target != this) {
-          if (self.VKI_target) self.VKI_close(false);
+          if (self.VKI_target)  self.VKI_close(false);
           self.VKI_show(this);
         }
       };
@@ -231,6 +231,7 @@ var VKI = function(customConfig, layout, deadKeys, keyInputCallback) {
       };
     }
     VKI_addListener(elem, 'click', function(e) {
+      elem.focus();  	
       if (self.VKI_target == this) {
         e = e || event;
         if (e.stopPropagation) { e.stopPropagation(); } else e.cancelBubble = true;
@@ -423,7 +424,7 @@ var VKI = function(customConfig, layout, deadKeys, keyInputCallback) {
         var strong = document.createElement('strong');
             strong.appendChild(document.createTextNode('X'));
             strong.title = this.VKI_i18n['06'];
-          VKI_addListener(strong, 'click', function() { self.VKI_close(true); }, false);
+          VKI_addListener(strong, 'click', function() { self.VKI_close(false); }, false);
           VKI_mouseEvents(strong);
           th.appendChild(strong);
 

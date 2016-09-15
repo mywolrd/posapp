@@ -113,8 +113,8 @@ function templates(angularTemplateCache) {
 		
 		angularTemplateCache.put('neworder.html',
 				'<div class="row">'
-			+ 		'<div class="col-xs-1"></div>'
-			+ 		'<div class="col-xs-4">'
+			//+ 		'<div class="col-xs-1"></div>'
+			+ 		'<div class="col-xs-5">'
 			+ 			'<cartview></cartview>' 
 			+ 		'</div>'
 			+ 		'<div class="col-xs-6">'
@@ -135,9 +135,12 @@ function templates(angularTemplateCache) {
 			+ 		'</tbody>'
 			+ 	'</table>'
 			+ 	'<div id="cart-items-list" class="col-xs-12">'
-			+ 		'<span class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart" data-ng-click="$ctrl.select($index)" data-ng-class="$index === $ctrl.selectedId ?' + "'selected' : ''" + '">'
-			+ 			'{{cartItem.toString()}}'
-			+ 		'</span>'
+			+ 		'<div class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart" data-ng-click="$ctrl.select($index)" data-ng-class="$index === $ctrl.selectedId ?' + "'selected' : ''" + '">'
+			+			'<span class="col-xs-2"><button class="btn btn-block cart-item-button">{{cartItem.getQuantity()}}</button></span>'
+			+ 			'<span class="col-xs-6">Item</span>'
+			+			'<span class="col-xs-2"><button class="btn btn-block cart-item-button">{{cartItem.getDollarPrice()}}</button></span>'
+			+			'<span class="col-xs-2"><button class="btn btn-block cart-item-button">{{cartItem.getCentPrice()}}</button></span>'
+			+ 		'</div>'
 			+ 	'</div>');
 }
 
@@ -219,19 +222,35 @@ function cartService(APP_CONFIG, stringService) {
 	var _data = {};
 	_data.cart = [];
 
-	function _CartItem(item, quantity, newprice) {
+	function _CartItem(item, quantity, newprice, hasQuantity) {
 		var item = item;
 		var quantity = quantity;
 		var newprice = newprice;
-
+		var hasQuantity = hasQuantity;
+		
 		this.getItem = function() {
 			return item;
 		}
 
 		this.getQuantity = function() {
-			return quantity;
+			var _quantity = quantity == 0 ? _DASH : quantity;
+			return _quantity;
 		}
 
+		this.getDollarPrice = function(){
+			var _price = newprice ? newprice : item.price;
+			return _price.dollar;
+		}
+		
+		this.getCentPrice = function(){
+			var _price = newprice ? newprice : item.price;
+			return _price.cent;
+		}
+		
+		this.getDisplayName = function() {
+			return item.itemName;
+		}
+		
 		this.getNewprice = function() {
 			return newprice;
 		}
@@ -241,13 +260,14 @@ function cartService(APP_CONFIG, stringService) {
 		}
 		
 		this.setNewQuantity = function(newQuantity) {
-			quantity = newQuantity;
+			if (hasQuantity) {
+				if (newQuantity != _ZERO)
+					quantity = newQuantity;
+			}
 		}
 		
 		this.toString = function() {
 			var str = '';
-			var pricePtr = newprice ? newprice : item.price;
-			var quantityPtr = quantity == 0 ? _DASH : quantity;
 
 			str += stringService.lpad(quantityPtr, 5);
 			str += stringService.getEmptyString(3);
@@ -270,7 +290,7 @@ function cartService(APP_CONFIG, stringService) {
 		},
 		addItem : function(item) {
 			var itemCopy = angular.copy(item);
-			var cartItem = itemCopy.itemType ? new _CartItem(itemCopy, 1, null) : new _CartItem(itemCopy, 0, null);
+			var cartItem = itemCopy.itemType ? new _CartItem(itemCopy, 1, null, true) : new _CartItem(itemCopy, 0, null, false);
 			_data.cart.push(cartItem);
 		},
 		getCartInfo : function() {
@@ -289,12 +309,23 @@ function cartService(APP_CONFIG, stringService) {
 		getTotalPrice: function() {
 			
 		},
+		getNumberOfCartItems: function() {
+			return _data.cart.length;
+		},
 		selectItem: function(index) {
 			_SELECTED = index;
 		},
+		isEmpty: function() {
+			return _data.cart.length == 0;
+		},
 		newQuantity: function(quantity) {
-			//TODO how to get off big quantity string? No support for this now.
-			_data.cart[_SELECTED].setNewQuantity(quantity);
+			var index = _SELECTED;
+			if (null == index) {
+				if (_data.cart.length > _ZERO) {
+					index = _data.cart.length - 1;
+				}
+			}
+			_data.cart[index].setNewQuantity(quantity);
 		},
 		newPrice: function() {
 			
@@ -522,7 +553,11 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 		var mainItemMenu = _buildItemMenuGrid(itemMenu, 5);
 		_data.mainItemMenu = mainItemMenu;
 	}
+	
+	function _buildMenuNumberpad() {
 		
+	}
+	
 	return {
 		isPriceLocked: function() {
 			return APP_CONFIG.IS_PRICE_LOCKED;
@@ -550,6 +585,19 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 			
 			return null;
 		}
+	};
+}
+
+
+/**
+ *	MenuNumberPadInputService 
+**/
+function menuNumberPadInputService() {
+	var _data = {};
+	_data.queue = [];
+	
+	return {
+		
 	};
 }
 
@@ -810,7 +858,9 @@ function addonItemMenuCtrl(itemService, cartService, menuService) {
 	}
 
 	ctrl.itembuttonAction = function(addonItem) {
-		cartService.addItem(addonItem);
+		if (!cartService.isEmpty()) {
+			cartService.addItem(addonItem);
+		}
 	}
 	
 	ctrl.moveLeft = function() {
@@ -848,6 +898,7 @@ function menuNumberpadCtrl(cartService, menuService) {
 	}
 	
 	var inputQueue = [];
+	
 	var DEFAULT_MODE_EXTRA = [ 'New Price' ];
 	var NEWPRICE_MODE_EXTRA = [ '0.25', '0.50', '1.00', '5.00' ];
 	
@@ -904,10 +955,22 @@ function menuNumberpadCtrl(cartService, menuService) {
 	function _numberAction(number) {
 		return function() {
 			inputQueue.push(number);
+			//TODO remove this
+			//hard coded quantity character number limit
+			var len = inputQueue.length - 5;
+			if (len > 0) {
+				inputQueue.splice(0, len);
+			}
 			var s = inputQueue.join('');
 			var n = new Number(s);
 			cartService.newQuantity(n);
 		}
+	}
+	
+	function _hasCartChanged() {
+		var status = false;
+		
+		return status;
 	}
 	
 	function _changeButtons(button) {
@@ -999,22 +1062,21 @@ var app =
 							VKI_CONFIG.layout['POS Keyboard'] = {
 								'name' : "POS Application Keyboard",
 								'keys' : [
-										[ [ "0" ], [ "1" ], [ "2" ], [ "3" ],
-												[ "4" ], [ "5" ], [ "6" ],
-												[ "7" ], [ "8" ], [ "9" ] ],
-										[ [ "A" ], [ "B" ], [ "C" ], [ "D" ],
-												[ "E" ], [ "F" ], [ "G" ],
-												[ "H" ], [ "I" ], [ "J" ] ],
-										[ [ "K" ], [ "L" ], [ "M" ], [ "N" ],
-												[ "O" ], [ "P" ], [ "Q" ],
-												[ "R" ], [ "S" ], [ "T" ] ],
-										[ [ "U" ], [ "V" ], [ "W" ], [ "X" ],
-												[ "Y" ], [ "Z" ], [ "", "" ],
-												[ "", "" ], [ "", "" ],
-												[ "", "" ] ],
-										[ [ " ", " " ], [ "Bksp", "Bksp" ],
-												[ "Enter", "Enter" ] ] ],
+										[ [ "0" ], [ "1" ], [ "2" ], [ "3" ], [ "4" ], [ "5" ], [ "6" ], [ "7" ], [ "8" ], [ "9" ] ],
+										[ [ "A" ], [ "B" ], [ "C" ], [ "D" ], [ "E" ], [ "F" ], [ "G" ], [ "H" ], [ "I" ], [ "J" ] ],
+										[ [ "K" ], [ "L" ], [ "M" ], [ "N" ], [ "O" ], [ "P" ], [ "Q" ], [ "R" ], [ "S" ], [ "T" ] ],
+										[ [ "U" ], [ "V" ], [ "W" ], [ "X" ], [ "Y" ], [ "Z" ], [ "", "" ], [ "", "" ], [ "", "" ], [ "", "" ] ],
+										[ [ " ", " " ], [ "Bksp", "Bksp" ], [ "Enter", "Enter" ] ] ],
 								'lang' : [ "en-US" ]
+							};
+							
+							VKI_CONFIG.layout['Number Pad'] = {
+								'name' : 'Number Only Pad',
+								'keys' : [
+								          	[ [ "0" ], [ "1" ], [ "2" ], [ "3" ], [ "4" ], [ "5" ], [ "6" ], [ "7" ], [ "8" ], [ "9" ] ],
+								          	[ ["", ""], ["", ""], [ " ", " " ], [ "Bksp", "Bksp" ], [ "Enter", "Enter" ] ] 
+								          ],
+								 'lang': ["en-US"]
 							};
 						} ])
 		.config(

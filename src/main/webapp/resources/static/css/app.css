@@ -57,3 +57,7 @@ td .btn {
 	border: none;
 	cursor: pointer;
 }
+
+.cart-item-button {
+	display: table-cell;
+}

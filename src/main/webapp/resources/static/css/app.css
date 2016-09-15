@@ -60,7 +60,11 @@ td .btn {
 }
 
 .cart-item-button {
-	display: table-cell;
+	/*display: table-cell;*/
 	font-size: 19px;
 	font-weight: bold;
+}
+
+.cart-item-button:focus {
+	background-color : lightgray;
 }

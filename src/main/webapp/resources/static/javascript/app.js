@@ -123,7 +123,7 @@ function templates(angularTemplateCache) {
 			+ 		'</tbody>'
 			+ 	'</table>'
 			+ 	'<div id="cart-items-list" class="col-xs-12">'
-			+ 		'<div class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart" data-ng-click="$ctrl.select($index)" data-ng-class="$index === $ctrl.selectedId ?' + "'selected' : ''" + '">'
+			+ 		'<div class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart" data-ng-click="$ctrl.select($index)">'
 			+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.quantity" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
 			+ 			'<span class="col-xs-6">{{cartItem.itemName}}</span>'
 			+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.price.dollar" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
@@ -205,14 +205,16 @@ function urlService() {
 class _CartItem {
 	constructor(item, quantity, hasQuantity) {
 		this.item = item;
-		this.price = item.price;
+		this.price = angular.copy(item.price);
+		this.newprice = {};
+		this.oldprice = {};
 		this.quantity = quantity;
 		this.hasQuantity = hasQuantity;
 	}
 	
 	get itemName () {
 		return this.item.itemName;
-	}
+	}	
 }
 
 function cartService(APP_CONFIG, stringService) {
@@ -245,7 +247,7 @@ function cartService(APP_CONFIG, stringService) {
 			var total = 0;
 			var cart = _data.cart;
 			for(i=0, len=cart.length; i < len; i++) {
-				total = total + cart[i].getQuantity();
+				total = total + cart[i].quantity;
 			}
 			return total;
 		},
@@ -260,18 +262,6 @@ function cartService(APP_CONFIG, stringService) {
 		},
 		isEmpty: function() {
 			return _data.cart.length == 0;
-		},
-		newQuantity: function(quantity) {
-			var index = _SELECTED;
-			if (null == index) {
-				if (_data.cart.length > _ZERO) {
-					index = _data.cart.length - 1;
-				}
-			}
-			_data.cart[index].setNewQuantity(quantity);
-		},
-		newPrice: function() {
-			
 		}
 	};
 }

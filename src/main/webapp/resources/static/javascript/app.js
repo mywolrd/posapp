@@ -123,7 +123,7 @@ function templates(angularTemplateCache) {
 			+ 		'</tbody>'
 			+ 	'</table>'
 			+ 	'<div id="cart-items-list" class="col-xs-12">'
-			+ 		'<div class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart" data-ng-click="$ctrl.select($index)">'
+			+ 		'<div class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart">'
 			+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.quantity" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
 			+ 			'<span class="col-xs-6">{{cartItem.itemName}}</span>'
 			+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.price.dollar" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
@@ -254,17 +254,12 @@ function cartService(APP_CONFIG, stringService) {
 		getTotalPrice: function() {
 			
 		},
-		getNumberOfCartItems: function() {
-			return _data.cart.length;
-		},
-		selectItem: function(index) {
-			_SELECTED = index;
-		},
 		isEmpty: function() {
 			return _data.cart.length == 0;
 		}
 	};
 }
+
 
 /**
  * Customer Service
@@ -722,9 +717,7 @@ function navigationCtrl(navigationService) {
 
 	ctrl.$doCheck = function() {
 		var isReady = navigationService.isReady();
-		if (isReady) {
-			ctrl.ready = isReady;
-		}
+		if (isReady)	ctrl.ready = isReady;
 	}	
 }
 
@@ -985,15 +978,6 @@ var app =
 							if (currentCustomer) {
 								this.cartInfo[0].name = currentCustomer.displayValue[0];
 							}
-						}
-						
-						this.select = function(index) {
-							if (ctrl.selectedId == index) {
-								ctrl.selectedId = null;
-							} else {
-								ctrl.selectedId = index;
-							}
-							cartService.selectItem(ctrl.selectedId);
 						}
 						
 						this.cartInfo = [ {

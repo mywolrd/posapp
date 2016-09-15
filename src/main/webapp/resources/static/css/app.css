@@ -56,8 +56,11 @@ td .btn {
 	font-weight: bold;
 	border: none;
 	cursor: pointer;
+	margin: 5px;
 }
 
 .cart-item-button {
 	display: table-cell;
+	font-size: 19px;
+	font-weight: bold;
 }

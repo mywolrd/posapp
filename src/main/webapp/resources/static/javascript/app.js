@@ -41,7 +41,7 @@ function templates(angularTemplateCache) {
 			+ 		'<div class="form-group form-group-lg">'
 			+ 			'<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>'
 			+ 			'<div class="col-xs-8">'
-			+ 				'<input class="form-control" ng-required="inputObj.required" data-ng-virtual-keyboard="{kt:' + "'POS Keyboard'" + ', relative: false, size: 5}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.placeholder}}">'
+			+ 				'<input class="form-control" ng-required="inputObj.required" data-ng-virtual-keyboard="{kt:' + "'POS_Keyboard'" + ', relative: false, size: 5}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.placeholder}}">'
 			+ 			'</div>' 
 			+ 		'</div>'
 			+ 	'</div>');
@@ -82,8 +82,7 @@ function templates(angularTemplateCache) {
 			+ 			'</tr>' 
 			+ 		'</tbody>'
 			+ 	'</table>'
-			+ 	'<addonitemview></addonitemview>'
-			+ 	'<menunumpad></menunumpad>');
+			+ 	'<addonitemview></addonitemview>');
 
 		angularTemplateCache.put('addonmenu.html',
 				'<table class="table borderless">'
@@ -99,18 +98,7 @@ function templates(angularTemplateCache) {
 			+ 			'<tr>'
 			+		'</tbody>'
 			+ 	'</table>');
-		
-		angularTemplateCache.put('menunumberpad.html',
-					'<table class="table borderless">'
-				+		'<tbody>'
-				+ 			'<tr data-ng-repeat="buttons in $ctrl.buttons">'
-				+ 				'<td class="col-xs-2" data-ng-repeat="button in buttons">'
-				+ 					'<button class="btn-block" data-ng-click="button.action()">{{button.label}}</button>'
-				+ 				'</td>'
-				+			'</tr>'
-				+		'</tbody>'
-				+ 	'</table>')
-		
+
 		angularTemplateCache.put('neworder.html',
 				'<div class="row">'
 			//+ 		'<div class="col-xs-1"></div>'
@@ -136,10 +124,10 @@ function templates(angularTemplateCache) {
 			+ 	'</table>'
 			+ 	'<div id="cart-items-list" class="col-xs-12">'
 			+ 		'<div class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart" data-ng-click="$ctrl.select($index)" data-ng-class="$index === $ctrl.selectedId ?' + "'selected' : ''" + '">'
-			+			'<span class="col-xs-2"><button class="btn btn-block cart-item-button">{{cartItem.getQuantity()}}</button></span>'
-			+ 			'<span class="col-xs-6">Item</span>'
-			+			'<span class="col-xs-2"><button class="btn btn-block cart-item-button">{{cartItem.getDollarPrice()}}</button></span>'
-			+			'<span class="col-xs-2"><button class="btn btn-block cart-item-button">{{cartItem.getCentPrice()}}</button></span>'
+			+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.quantity" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
+			+ 			'<span class="col-xs-6">{{cartItem.itemName}}</span>'
+			+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.price.dollar" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
+			+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.price.cent" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
 			+ 		'</div>'
 			+ 	'</div>');
 }
@@ -213,6 +201,20 @@ function urlService() {
 /**
  * Cart Service
  */
+
+class _CartItem {
+	constructor(item, quantity, hasQuantity) {
+		this.item = item;
+		this.price = item.price;
+		this.quantity = quantity;
+		this.hasQuantity = hasQuantity;
+	}
+	
+	get itemName () {
+		return this.item.itemName;
+	}
+}
+
 function cartService(APP_CONFIG, stringService) {
 	var _DASH = '-';
 	var _CHAR_ZERO = '0';
@@ -221,65 +223,6 @@ function cartService(APP_CONFIG, stringService) {
 	
 	var _data = {};
 	_data.cart = [];
-
-	function _CartItem(item, quantity, newprice, hasQuantity) {
-		var item = item;
-		var quantity = quantity;
-		var newprice = newprice;
-		var hasQuantity = hasQuantity;
-		
-		this.getItem = function() {
-			return item;
-		}
-
-		this.getQuantity = function() {
-			var _quantity = quantity == 0 ? _DASH : quantity;
-			return _quantity;
-		}
-
-		this.getDollarPrice = function(){
-			var _price = newprice ? newprice : item.price;
-			return _price.dollar;
-		}
-		
-		this.getCentPrice = function(){
-			var _price = newprice ? newprice : item.price;
-			return _price.cent;
-		}
-		
-		this.getDisplayName = function() {
-			return item.itemName;
-		}
-		
-		this.getNewprice = function() {
-			return newprice;
-		}
-
-		this.setNewPrice = function(dollar, cent) {
-			newprice = {dollar: dollar, cent: cent}
-		}
-		
-		this.setNewQuantity = function(newQuantity) {
-			if (hasQuantity) {
-				if (newQuantity != _ZERO)
-					quantity = newQuantity;
-			}
-		}
-		
-		this.toString = function() {
-			var str = '';
-
-			str += stringService.lpad(quantityPtr, 5);
-			str += stringService.getEmptyString(3);
-			str += stringService.rpad(item.itemName, 25);
-			
-			str += stringService.lpad(pricePtr.dollar, 10);
-			str += '.';
-			str += stringService.lpad(pricePtr.cent, 2, _CHAR_ZERO);
-			
-			return str;
-		}
-	}
 
 	return {
 		getCart : function() {
@@ -290,7 +233,7 @@ function cartService(APP_CONFIG, stringService) {
 		},
 		addItem : function(item) {
 			var itemCopy = angular.copy(item);
-			var cartItem = itemCopy.itemType ? new _CartItem(itemCopy, 1, null, true) : new _CartItem(itemCopy, 0, null, false);
+			var cartItem = itemCopy.itemType ? new _CartItem(itemCopy, 1, true) : new _CartItem(itemCopy, 0, false);
 			_data.cart.push(cartItem);
 		},
 		getCartInfo : function() {
@@ -554,10 +497,6 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 		_data.mainItemMenu = mainItemMenu;
 	}
 	
-	function _buildMenuNumberpad() {
-		
-	}
-	
 	return {
 		isPriceLocked: function() {
 			return APP_CONFIG.IS_PRICE_LOCKED;
@@ -588,18 +527,6 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 	};
 }
 
-
-/**
- *	MenuNumberPadInputService 
-**/
-function menuNumberPadInputService() {
-	var _data = {};
-	_data.queue = [];
-	
-	return {
-		
-	};
-}
 
 /** TODO
  * Order Service 
@@ -885,101 +812,6 @@ function addonItemMenuCtrl(itemService, cartService, menuService) {
 	}
 }
 
-
-/**
- *  MenuNumberpadController
-**/
-function menuNumberpadCtrl(cartService, menuService) {
-	var ctrl = this;
-
-	function _MenuNumberpadButton(label, action) {
-		this.label = label;
-		this.action = action;
-	}
-	
-	var inputQueue = [];
-	
-	var DEFAULT_MODE_EXTRA = [ 'New Price' ];
-	var NEWPRICE_MODE_EXTRA = [ '0.25', '0.50', '1.00', '5.00' ];
-	
-	ctrl.mode_newprice = false;
-	
-	ctrl.button_labels = [ [ '1', '2', '3', '4', '5', 'Delete' ],
-			[ '6', '7', '8', '9', '0', 'Save' ]
-			];
-	
-	// Building this every time controller gets called?
-	// TODO  Create an initialization block for menu objects.
-	ctrl.$onInit = function() {
-		ctrl.buttons = [];
-		ctrl.button_labels.forEach(function(buttonlabelsRow) {
-			if (angular.isArray(buttonlabelsRow)) {
-				var buttonsrow = [];
-				buttonlabelsRow.forEach(function(buttonlabel) {
-					var button = new _MenuNumberpadButton(buttonlabel, _createAction(buttonlabel));
-					buttonsrow.push(button);
-				})
-				ctrl.buttons.push(buttonsrow);
-			}
-		});
-	}
-	
-	ctrl.newpriceMode = function() {
-		ctrl.mode_newprice = true;
-		ctrl.mode_quantity = false;
-		_changeButtons(_NEWPRICE_BUTTONS);
-	}
-	
-	ctrl.defaultMode = function() {
-		ctrl.mode_quantity = true;
-		ctrl.mode_newprice = false;
-		_changeButtons(_DEFAULT_BUTTONS);
-	}
-	
-	ctrl.clearInputQueue = function() {
-		inputQueue = [];
-	}
-	
-	function _createAction(number) {
-		
-		var test = new Number(number);
-		if (!isNaN(test)) {
-			return _numberAction(number);
-		} else {
-			return function() {
-				
-			}
-		}
-	}
-	
-	function _numberAction(number) {
-		return function() {
-			inputQueue.push(number);
-			//TODO remove this
-			//hard coded quantity character number limit
-			var len = inputQueue.length - 5;
-			if (len > 0) {
-				inputQueue.splice(0, len);
-			}
-			var s = inputQueue.join('');
-			var n = new Number(s);
-			cartService.newQuantity(n);
-		}
-	}
-	
-	function _hasCartChanged() {
-		var status = false;
-		
-		return status;
-	}
-	
-	function _changeButtons(button) {
-		ctrl.buttons.splice(ctrl.length - 1, 1);
-		ctrl.buttons.push(button);
-	}
-}
-
-
 var app = 
 	angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 		.constant('APP_CONFIG', {
@@ -1059,7 +891,7 @@ var app =
 				[
 						'VKI_CONFIG',
 						function(VKI_CONFIG) {
-							VKI_CONFIG.layout['POS Keyboard'] = {
+							VKI_CONFIG.layout['POS_Keyboard'] = {
 								'name' : "POS Application Keyboard",
 								'keys' : [
 										[ [ "0" ], [ "1" ], [ "2" ], [ "3" ], [ "4" ], [ "5" ], [ "6" ], [ "7" ], [ "8" ], [ "9" ] ],
@@ -1070,11 +902,12 @@ var app =
 								'lang' : [ "en-US" ]
 							};
 							
-							VKI_CONFIG.layout['Number Pad'] = {
+							VKI_CONFIG.layout['Number_Pad'] = {
 								'name' : 'Number Only Pad',
 								'keys' : [
-								          	[ [ "0" ], [ "1" ], [ "2" ], [ "3" ], [ "4" ], [ "5" ], [ "6" ], [ "7" ], [ "8" ], [ "9" ] ],
-								          	[ ["", ""], ["", ""], [ " ", " " ], [ "Bksp", "Bksp" ], [ "Enter", "Enter" ] ] 
+								          	[ [ "0" ], [ "1" ], [ "2" ], [ "3" ], [ "4" ] ],
+								          	[ [ "5" ], [ "6" ], [ "7" ], [ "8" ], [ "9" ] ],
+								          	[ [ " ", " " ], [ "Bksp", "Bksp" ], [ "Enter", "Enter" ] ] 
 								          ],
 								 'lang': ["en-US"]
 							};
@@ -1143,14 +976,6 @@ var app =
 		.component('addonitemview', {
 					controller : addonItemMenuCtrl,
 					templateUrl : 'addonmenu.html'
-		})
-		.component('menunumpad', {
-					// Angular-virtual-keyboard requires an input field and a
-					// keyboard shows
-					// only when the input field is focused.
-					// This number pad should always display.
-					controller : menuNumberpadCtrl,
-					templateUrl : 'menunumberpad.html' 
 		})
 		.component(
 				'cartview',

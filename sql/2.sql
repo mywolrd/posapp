@@ -1,4 +1,4 @@
-create table if not exist pos.item_types (alter
+create table if not exists pos.item_types (
 	id		  serial		primary key,
 	name	  varchar(50)	not null,
 	active	  boolean		default true,
@@ -9,7 +9,7 @@ create table if not exist pos.item_types (alter
     updatedBy smallint
 );
 
-create table if not exist pos.items (
+create table if not exists pos.items (
     id 	      serial     	primary key,
     name      varchar(50)   null,
     type      integer 		references pos.item_types(id),
@@ -23,7 +23,7 @@ create table if not exist pos.items (
     updatedBy smallint
 );
 
-create table if not exist pos.addon_items (
+create table if not exists pos.addon_items (
     id         serial       primary key,
     name       varchar(50)  not null,
     dollar     smallint,

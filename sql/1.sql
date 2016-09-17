@@ -1,4 +1,4 @@
-create table pos.customers (
+create table if not exist  pos.customers (
 	id        serial        primary key,
 	lastName  varchar(30)   not null,
 	firstName varchar(30)   null,

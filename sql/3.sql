@@ -1,4 +1,4 @@
-create table pos.orders (
+create table if not exist pos.orders (
 	id         	serial 		primary key,
 	customerId 	integer,
 	completed  	boolean		default false,
@@ -12,16 +12,16 @@ create table pos.orders (
     updatedBy  	smallint
 );
 
-create table pos.order_details (
+create table if not exist pos.order_details (
 	id        serial    primary key,
     orderId   integer   references pos.orders(id),
-    itemId    integer   references pos.item(id),
+    itemId    integer   references pos.items(id),
     quantity  smallint,
     newdollar smallint,
     newcent   smallint
 );
 
-create table pos.order_details_addon_items (
+create table if not exist pos.order_details_addon_items (
 	id				serial	primary key,
 	addOnItemId     integer references pos.addon_items(id),
 	orderDetailsId 	integer references pos.order_details(id),

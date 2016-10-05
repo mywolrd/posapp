@@ -37,8 +37,3 @@ grant select, usage on sequence pos.order_details_id_seq to pos;
 
 grant select, insert, delete, update on pos.orders to pos;
 grant select, usage on sequence pos.orders_id_seq to pos;
-
-
-
-
-

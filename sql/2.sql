@@ -36,8 +36,11 @@ create table if not exists pos.addon_items (
     updatedBy  smallint
 );
 
+grant select, insert, delete, update on pos.item_types to pos;
+grant usage, select on sequence pos.item_types_id_seq to pos;
+
 grant select, insert, delete, update on pos.items to pos;
 grant usage, select on sequence pos.items_id_seq to pos;
 
-grant select, insert, delete, update on pos.addOnItems to pos;
-grant usage, select on sequence pos.addOnItems_id_seq to pos;
+grant select, insert, delete, update on pos.addon_items to pos;
+grant usage, select on sequence pos.addon_items_id_seq to pos;

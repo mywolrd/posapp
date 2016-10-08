@@ -16,26 +16,28 @@ import com.pos.model.application.Item;
 @Repository
 public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
 
-    private final static String uniqueByNameAndType = "SELECT * from ITEM where ITEM.name = :name and ITEM.type = :type";
+    private final static String uniqueByNameAndType = "SELECT * from ITEMS where ITEMS.name = :name and ITEMS.type = :type";
 
-    private final static String listByType = "SELECT * from ITEM where ITEM.type = :type";
+    private final static String listByType = "SELECT * from ITEMS where ITEMS.type = :type";
 
-    private final static String listAll = "SELECT * from ITEM";
+    private final static String listAll = "SELECT * from ITEMS";
 
-    private final static String insertItem = "insert into ITEM (name, type, dollar, cent, active) values (:name, :type, :dollar, :cent, :active)";
+    private final static String insertItem = "insert into ITEMS (name, type, dollar, cent, active) values (:name, :type, :dollar, :cent, :active)";
 
-    private final static String updateItem = "update ITEM set name = :name, type = :type, dollar = :dollar, cent = :cent where ITEM.id = :id ";
+    private final static String updateItem = "update ITEMS set name = :name, type = :type, dollar = :dollar, cent = :cent where ITEMS.id = :id ";
 
-    private final static String updateActive = "update ITEM set active = :active where ITEM.id = :id";
+    private final static String updateActive = "update ITEMS set active = :active where ITEMS.id = :id";
 
     @Autowired
     private ItemRowMapper rowMapper;
 
     @Override
     public Item uniqueByNameAndType(String name, String type) {
-        SqlParameterSource parameter = new MapSqlParameterSource().addValue(DBNames.NAME, name).addValue(DBNames.TYPE, type);
+        SqlParameterSource parameter = new MapSqlParameterSource()
+                .addValue(DBNames.NAME, name).addValue(DBNames.TYPE, type);
         try {
-            return this.namedParameterJdbcTemplate.queryForObject(uniqueByNameAndType, parameter, rowMapper);
+            return this.namedParameterJdbcTemplate
+                    .queryForObject(uniqueByNameAndType, parameter, rowMapper);
         } catch (DataAccessException e) {
             return null;
         }
@@ -52,9 +54,11 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
 
     @Override
     public List<Item> listItemsByType(String type) {
-        SqlParameterSource parameter = new MapSqlParameterSource().addValue(DBNames.TYPE, type);
+        SqlParameterSource parameter = new MapSqlParameterSource()
+                .addValue(DBNames.TYPE, type);
         try {
-            return this.namedParameterJdbcTemplate.query(listByType, parameter, rowMapper);
+            return this.namedParameterJdbcTemplate.query(listByType, parameter,
+                    rowMapper);
         } catch (DataAccessException e) {
             return new LinkedList<>();
         }
@@ -62,8 +66,12 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
 
     @Override
     public void save(Item item) {
-        SqlParameterSource parameter = new MapSqlParameterSource().addValue(DBNames.TYPE, item.getItemType().getName()).addValue(DBNames.NAME, item.getName())
-                .addValue(DBNames.DOLLAR, item.getPrice().getDollar()).addValue(DBNames.CENT, item.getPrice().getCent()).addValue(DBNames.ACTIVE, Boolean.TRUE);
+        SqlParameterSource parameter = new MapSqlParameterSource()
+                .addValue(DBNames.TYPE, item.getItemTypeId())
+                .addValue(DBNames.NAME, item.getName())
+                .addValue(DBNames.DOLLAR, item.getPrice().getDollar())
+                .addValue(DBNames.CENT, item.getPrice().getCent())
+                .addValue(DBNames.ACTIVE, Boolean.TRUE);
         try {
             this.namedParameterJdbcTemplate.update(insertItem, parameter);
         } catch (DataAccessException e) {
@@ -73,8 +81,12 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
 
     @Override
     public void update(Item item) {
-        SqlParameterSource parameter = new MapSqlParameterSource().addValue(DBNames.TYPE, item.getItemType().getName()).addValue(DBNames.NAME, item.getName())
-                .addValue(DBNames.DOLLAR, item.getPrice().getDollar()).addValue(DBNames.CENT, item.getPrice().getCent()).addValue(DBNames.ACTIVE, item.isActive())
+        SqlParameterSource parameter = new MapSqlParameterSource()
+                .addValue(DBNames.TYPE, item.getItemTypeId())
+                .addValue(DBNames.NAME, item.getName())
+                .addValue(DBNames.DOLLAR, item.getPrice().getDollar())
+                .addValue(DBNames.CENT, item.getPrice().getCent())
+                .addValue(DBNames.ACTIVE, item.isActive())
                 .addValue(DBNames.ID, item.getId());
         try {
             this.namedParameterJdbcTemplate.update(updateItem, parameter);
@@ -85,7 +97,9 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
 
     @Override
     public void deactivateById(long id) {
-        SqlParameterSource parameter = new MapSqlParameterSource().addValue(DBNames.ACTIVE, Boolean.FALSE).addValue(DBNames.ID, id);
+        SqlParameterSource parameter = new MapSqlParameterSource()
+                .addValue(DBNames.ACTIVE, Boolean.FALSE)
+                .addValue(DBNames.ID, id);
         try {
             this.namedParameterJdbcTemplate.update(updateActive, parameter);
         } catch (DataAccessException e) {

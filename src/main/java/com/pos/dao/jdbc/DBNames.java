@@ -8,6 +8,7 @@ public class DBNames {
     public static final String CENT = "cent";
     public static final String ACTIVE = "active";
     public static final String ID = "id";
+    public static final String WEIGHT = "weight";
 
     public static final String NEWDOLLAR = "newdollar";
     public static final String NEWCENT = "newcent";

@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import com.pos.dao.jdbc.DBNames;
 import com.pos.model.application.Item;
-import com.pos.model.application.ItemType;
 import com.pos.model.application.Price;
 
 @Component
@@ -16,10 +15,14 @@ public class ItemRowMapper implements RowMapper<Item> {
 
     @Override
     public Item mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Price itemPrice = new Price.PriceBuilder().dollar(rs.getInt(DBNames.DOLLAR)).cent(rs.getInt(DBNames.CENT)).build();
+        Price itemPrice = new Price.PriceBuilder()
+                .dollar(rs.getInt(DBNames.DOLLAR)).cent(rs.getInt(DBNames.CENT))
+                .build();
 
-        Item item = new Item.ItemBuilder(new ItemType(rs.getString(DBNames.TYPE)), itemPrice).id(rs.getLong(DBNames.ID)).name(rs.getString(DBNames.NAME))
-                .active(rs.getBoolean(DBNames.ACTIVE)).build();
+        Item item = new Item.ItemBuilder(rs.getLong(DBNames.TYPE), itemPrice)
+                .id(rs.getLong(DBNames.ID)).name(rs.getString(DBNames.NAME))
+                .active(rs.getBoolean(DBNames.ACTIVE))
+                .weight(rs.getInt(DBNames.WEIGHT)).build();
         return item;
     }
 

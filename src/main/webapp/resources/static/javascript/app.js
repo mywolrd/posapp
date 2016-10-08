@@ -17,24 +17,48 @@ String.prototype.repeat = String.prototype.repeat || function(n){
 //
 //
 function templates(angularTemplateCache) {
-		angularTemplateCache.put('navigation.html',
-				'<nav class="navbar navbar-inverse" role="navigation" data-ng-show="$ctrl.ready">'
-			+		'<div class="navbar-header">'
-			+ 			'<a class="navbar-brand" data-ui-sref="app">POS App</a>'
-			+ 		'</div>'
-			+ 		'<ul class="nav navbar-nav">'
-			+ 			'<li class="dropdown" data-ng-repeat="navigation in $ctrl.navigations">'
-			+ 				'<a class="dropdown-toggle" data-toggle="dropdown" href="">{{navigation.name}}'
-			+ 					'<span class="caret"></span>'
-			+ 				'</a>'
-			+ 				'<ul class="dropdown-menu">'
-			+ 					'<li data-ng-repeat="route in navigation.menu">'
-			+ 						'<a ui-sref="{{route.link}}">{{route.name}}</a>'
-			+ 					'</li>'
-			+ 				'</ul>'
-			+ 			'</li>'
-			+ 		'</ul>' 
-			+	'</nav>');
+	angularTemplateCache.put('manage_menu.html', 
+			'<div class="col-xs-1">Manage Menu</div>'
+		+	'<div class="form-group col-xs-3">'
+		+		'<table class="table borderless">'
+		+		'</table>'
+		+		'<table class="table borderless">'
+		+			'<tbody>'
+		+				'<tr data-ng-repeat="item in $ctrl.items">'
+		+					'<td>{{item.type.name}}</td>'
+		+				'</tr>'
+		+			'</tbody>'
+		+		'</table>'
+		+	'</div>'
+		+	'<div class="form-group col-xs-7">'
+		+		'<table class="table borderless" id="itemTypeTable">'
+		+			'<tbody>'
+		+				'<tr data-ng-repeat="item in $ctrl.items">'
+		+					'<td>{{item.name}}</td>'
+		+				'</tr>'
+		+			'</tbody>'
+		+		'</table>'	
+		+	'</div>'
+		+	'<div class="col-xs-1"></div>');
+
+	angularTemplateCache.put('navigation.html',
+			'<nav class="navbar navbar-inverse" role="navigation" data-ng-show="$ctrl.ready">'
+		+		'<div class="navbar-header">'
+		+ 			'<a class="navbar-brand" data-ui-sref="app">POS App</a>'
+		+ 		'</div>'
+		+ 		'<ul class="nav navbar-nav">'
+		+ 			'<li class="dropdown" data-ng-repeat="navigation in $ctrl.navigations">'
+		+ 				'<a class="dropdown-toggle" data-toggle="dropdown" href="">{{navigation.name}}'
+		+ 					'<span class="caret"></span>'
+		+ 				'</a>'
+		+ 				'<ul class="dropdown-menu">'
+		+ 					'<li data-ng-repeat="route in navigation.menu">'
+		+ 						'<a ui-sref="{{route.link}}">{{route.name}}</a>'
+		+ 					'</li>'
+		+ 				'</ul>'
+		+ 			'</li>'
+		+ 		'</ul>' 
+		+	'</nav>');
 
 		angularTemplateCache.put('keyboardInputComponent.html',					
 				'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
@@ -217,12 +241,8 @@ class _CartItem {
 	}	
 }
 
+
 function cartService(APP_CONFIG, stringService) {
-	var _DASH = '-';
-	var _CHAR_ZERO = '0';
-	var _ZERO = 0;
-	var _SELECTED = null;
-	
 	var _data = {};
 	_data.cart = [];
 
@@ -470,10 +490,11 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 	
 	function _buildItemMenu(items) {
 		var itemMenu = [];
-		
-		for (var itemType in items) {
-			var submenu = items[itemType];
-			var item = {name: itemType, submenu: _buildItemMenuGrid(submenu, 5)};
+		var i, len;
+		for (i=0, len=items.length; i < len; i++) {
+
+			var submenu = items[i].items;
+			var item = {name: items[i].type, submenu: _buildItemMenuGrid(submenu, 5)};
 			
 			itemMenu.push(item);
 		}
@@ -508,6 +529,12 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 				return _data.addonitems;
 			
 			return null;
+		},
+		getManageMenuDefaultSizes: function() {
+			return {
+				types: APP_CONFIG.MANAGE_MENU_DEFAULT_NUMBER_OF_TYPES,
+				items: APP_CONFIG.MANAGE_MENU_DEFAULT_NUMBER_OF_ITEMS
+			};
 		}
 	};
 }
@@ -531,7 +558,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 	
 	//TODO
 	//Add weight to item object. Java...
-	function _groupItemsByType(items) {
+	function _groupItemsByType(items) {	
 		var groupedItems = {};
 		var i, len;
 		
@@ -544,12 +571,54 @@ function itemService(APP_CONFIG, $http, urlService) {
 				if (!groupedByType) {
 					groupedByType = [];
 				}
-				
-				groupedByType.push(item);
+				var itemCopy = angular.copy(item);
+				groupedByType.push(itemCopy);
 				groupedItems[itemType] = groupedByType;
 			}
 		}
-		return groupedItems;
+		
+		var listItems = [];
+		
+		for (key in groupedItems) {
+			var groupedByType = groupedItems[key];
+			groupedByType.sort(sortByWeight);
+			
+			var itemType = null;
+			if (groupedByType.length > 0) {
+				itemType = groupedByType[0].itemType;
+			}
+			
+			var obj = {
+				type: itemType,
+				items: groupedByType
+			};
+			listItems.push(obj);
+		}
+		
+		listItems.sort(function(a, b) {
+			return sortByWeight(a.type, b.type);
+		});
+		
+		_data.items = listItems;
+		return listItems;
+	}
+	
+	function sortByWeight(a, b) {
+		if (!angular.isDefined(a.weight) && !angular.isDefined(b.weight))
+			return 0;
+		
+		var weight_a = new Number(a.weight);
+		var weight_b = new Number(b.weight);
+		
+		if (a.weight < b.weight) {
+			return -1;
+		}
+		
+		if (a.weight > b.weight) {
+			return 1;
+		}
+		
+		return 0;
 	}
 	
 	function _ajaxGetItems() {
@@ -721,6 +790,39 @@ function navigationCtrl(navigationService) {
 	}	
 }
 
+/**
+ * Cart View Controller 
+*/
+function cartViewCtrl(cartService, customerService) {
+	var ctrl = this;
+	this.selectedId = null;
+	
+	this.$doCheck = function() {
+		var cart = cartService.getCart();
+		if (cart)	this.cart = cart;
+		var currentCustomer = customerService.getCurrentCustomer();
+		if (currentCustomer)	this.cartInfo[0].name = currentCustomer.displayValue[0];
+	}
+	
+	this.cartInfo = [ {
+		name : "Customer",
+		enabled : true,
+		action : function() {
+			navigationService.setRoute('searchcustomer');
+			navigationService.go();
+		}
+	}, {
+		name : "today's date",
+		enabled : true,
+		action : function() {
+		}
+	}, {
+		name : "ready date",
+		enabled : true,
+		action : function() {
+		}
+	} ];
+}
 
 /**
  *  Menu Controller
@@ -795,6 +897,23 @@ function addonItemMenuCtrl(itemService, cartService, menuService) {
 	}
 }
 
+function manageMenuCtrl(itemService, menuService) {
+	var ctrl = this;
+	
+	ctrl.$onInit = function() {
+		ctrl.items = itemService.getItems();
+		
+		var defaultSizes = menuService.getManageMenuDefaultSizes();
+		ctrl.numberOfTypes = defaultSizes.types;
+		ctrl.numberOfItems = defaultSizes.items;
+	}
+
+	this.save = function() {
+		
+	}
+}
+
+
 var app = 
 	angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 		.constant('APP_CONFIG', {
@@ -824,7 +943,17 @@ var app =
 										link: "searchcustomer"
 									}],
 									customer : true
-			              }],
+			              },
+			              {
+			            	  name: "Manage",
+			            	  menu:	[{
+										name: "Menu",
+										link: "managemenu"
+									}],
+									customer : false
+			              }
+			              
+			              ],
 			
 		    NEW_CUSTOMER_INPUT:	[{
 									'label' : 'Last Name',
@@ -855,6 +984,10 @@ var app =
 			// false: does not
 			CUSTOMER_MODE : true,
 
+			// manage menu configs
+			MANAGE_MENU_DEFAULT_NUMBER_OF_TYPES : 10,
+			MANAGE_MENU_DEFAULT_NUMBER_OF_ITEMS : 10,
+			
 			// menu configs
 			SHOW_ADD_ON_ITEMS : true,
 			NUMBER_OF_ADDON_ITEM_BUTTONS : 4,
@@ -922,6 +1055,9 @@ var app =
 							}).state('pickuporder', {
 								url : '/app/pickuporder',
 								tempate : '<h2>Pick Up Order</h2>'
+							}).state('managemenu', {
+								url: '/app/manage_menu',
+								template: '<managemenu></managemenu>'
 							});
 
 						} ])
@@ -960,53 +1096,18 @@ var app =
 					controller : addonItemMenuCtrl,
 					templateUrl : 'addonmenu.html'
 		})
-		.component(
-				'cartview',
-				{
-					controller : function(cartService, customerService,
-							navigationService) {
-						var ctrl = this;
-						this.selectedId = null;
-						
-						this.$doCheck = function() {
-							var cart = cartService.getCart();
-							if (cart) {
-								this.cart = cart;
-							}
-							var currentCustomer = customerService
-									.getCurrentCustomer();
-							if (currentCustomer) {
-								this.cartInfo[0].name = currentCustomer.displayValue[0];
-							}
-						}
-						
-						this.cartInfo = [ {
-							name : "Customer",
-							enabled : true,
-							action : function() {
-								navigationService.setRoute('searchcustomer');
-								navigationService.go();
-							}
-						}, {
-							name : "today's date",
-							enabled : true,
-							action : function() {
-							}
-						}, {
-							name : "ready date",
-							enabled : true,
-							action : function() {
-							}
-						} ];
-					},
+		.component('cartview', {
+					controller : cartViewCtrl,
 					templateUrl : 'cartview.html'
-				})
+		})
 		.component('neworder', {
 			templateUrl : 'neworder.html'
 		})
+		.component('managemenu', {
+					controller: manageMenuCtrl,
+					templateUrl: 'manage_menu.html'
+		})		
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	templates($templateCache);
 	menuService.initMenu();
-		
-	} 
-]);
+}]);

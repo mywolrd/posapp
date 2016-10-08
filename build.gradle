@@ -1,15 +1,7 @@
-buildscript {
-  repositories {
-    maven {
-      url "https://plugins.gradle.org/m2/"
-    }
-  }
-  dependencies {
-    classpath "gradle.plugin.com.craigburke.gradle:karma-gradle:1.4.3"
-  }
+plugins {
+    id 'com.craigburke.karma' version '1.4.3'
+  	id "com.eriwen.gradle.js" version "2.14.1"
 }
-
-apply plugin: "com.craigburke.karma"
 
 apply plugin: 'java'
 apply plugin: 'war'
@@ -50,3 +42,18 @@ eclipse {
   }
 }
 
+javascript.source {
+    dev {
+        js {
+            srcDir 'src/main/webapp/resources/static/javascript/angular'
+            include '*.js'
+            include '*/*.js'
+        }
+    }
+}
+
+combineJs {
+    encoding = "UTF-8"
+    source = javascript.source.dev.js.files
+    dest = file("src/main/webapp/resources/static/javascript/app.js")
+}

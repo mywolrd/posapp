@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.pos.model.application.Item;
+import com.pos.model.application.ItemType;
 import com.pos.service.ItemService;
 
 @Controller
@@ -23,8 +24,21 @@ public class ItemController {
     @RequestMapping(value = "/list", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<List<Item>> listItems() {
-        return new ResponseEntity<>(itemService.listActiveItems(),
-                HttpStatus.OK);
+        List<Item> items = itemService.listActiveItems();
+        if (items.isEmpty())
+            return new ResponseEntity<>(items, HttpStatus.NO_CONTENT);
+
+        return new ResponseEntity<>(items, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/type/list", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<ItemType>> listItemTypes() {
+        List<ItemType> itemTypes = itemService.listItemTtypes();
+        if (itemTypes.isEmpty())
+            return new ResponseEntity<>(itemTypes, HttpStatus.NO_CONTENT);
+
+        return new ResponseEntity<>(itemTypes, HttpStatus.OK);
     }
 
 }

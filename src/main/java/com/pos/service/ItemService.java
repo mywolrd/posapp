@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pos.dao.ItemDao;
+import com.pos.dao.ItemTypeDao;
 import com.pos.model.application.Item;
+import com.pos.model.application.ItemType;
 
 @Service
 public class ItemService {
@@ -16,9 +18,16 @@ public class ItemService {
     @Autowired
     private ItemDao itemDao;
 
+    @Autowired
+    private ItemTypeDao itemTypeDao;
+
     @Transactional(readOnly = true)
     public List<Item> listItems() {
         return itemDao.listItems();
+    }
+
+    public List<ItemType> listItemTtypes() {
+        return itemTypeDao.listItemTypes();
     }
 
     public List<Item> listActiveItems() {

@@ -47,7 +47,7 @@ public class ItemType {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.name);
+        return Objects.hashCode(this.name, this.id, this.weight, this.active);
     }
 
     @Override
@@ -59,6 +59,9 @@ public class ItemType {
         if (getClass() != obj.getClass())
             return false;
         ItemType other = (ItemType) obj;
-        return Objects.equal(this.name, other.name);
+        return Objects.equal(this.name, other.name)
+                && Objects.equal(this.id, other.id)
+                && Objects.equal(this.weight, other.weight)
+                && Objects.equal(this.active, other.active);
     }
 }

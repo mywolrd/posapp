@@ -12,6 +12,8 @@ public class OrderDetailsTest {
 
     @Test
     public void testNewPrice1() {
+        long itemTypeId = 1L;
+
         int dollar_7 = 7;
         int cent_10 = 10;
 
@@ -20,7 +22,7 @@ public class OrderDetailsTest {
 
         Price before = TestUtils.createPrice(dollar_7, cent_10);
         Price after = TestUtils.createPrice(dollar_10, cent_7);
-        Item car = TestUtils.createCar(before);
+        Item car = TestUtils.createCar(itemTypeId, before);
         int quantity = 1;
 
         OrderDetails orderDetails = TestUtils.createOrderDetails(car, quantity,
@@ -34,12 +36,14 @@ public class OrderDetailsTest {
 
     @Test
     public void testNewPrice2() {
+        long itemTypeId = 1L;
+
         int dollar_7 = 7;
         int cent_10 = 10;
 
         Price before = TestUtils.createPrice(dollar_7, cent_10);
         Price after = null;
-        Item car = TestUtils.createCar(before);
+        Item car = TestUtils.createCar(itemTypeId, before);
         int quantity = 1;
 
         OrderDetails orderDetails = TestUtils.createOrderDetails(car, quantity,
@@ -51,11 +55,13 @@ public class OrderDetailsTest {
 
     @Test
     public void testSubtotal1() {
+        long itemTypeId = 1L;
+
         int dollar_7 = 7;
         int cent_10 = 10;
 
         Price price = TestUtils.createPrice(dollar_7, cent_10);
-        Item car = TestUtils.createCar(price);
+        Item car = TestUtils.createCar(itemTypeId, price);
         int quantity = 10;
 
         OrderDetails orderDetails = TestUtils.createOrderDetails(car, quantity,

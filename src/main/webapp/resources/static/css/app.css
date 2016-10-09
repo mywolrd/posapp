@@ -68,3 +68,7 @@ td .btn {
 .cart-item-button:focus {
 	background-color : lightgray;
 }
+
+#itemTypeTable tbody {
+	display: block;
+}

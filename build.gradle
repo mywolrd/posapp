@@ -35,11 +35,12 @@ dependencies {
 }
 
 eclipse {
-  wtp {
-    component {
-      contextPath = 'app'
-    }  
-  }
+  	wtp {
+    	component {
+      		print "hi"
+      		contextPath = 'app'
+    	} 	 
+  	}
 }
 
 javascript.source {

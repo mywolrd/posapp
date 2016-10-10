@@ -1,24 +1,244 @@
-//
-//
-//
-// Polyfill
-//
-//
-//
-String.prototype.repeat = String.prototype.repeat || function(n){ 
-    return n<=1 ? this : (this + this.repeat(n-1)); 
+var menuViewComponent = {
+	controller:
+		function itemMenuCtrl(menuService, cartService) {
+			var ctrl = this;
+			
+			ctrl.items = null;
+			ctrl.mainItemName = null;
+			
+			ctrl.$onInit = function() {
+				ctrl.mainItemMenu = menuService.getMainItemMenu();
+				ctrl.itemMenu = ctrl.mainItemMenu;
+			}
+			
+			ctrl.itembuttonAction = function(item) {
+				if (item.submenu) {
+					ctrl.mainItemName = item.name;
+					ctrl.itemMenu = item.submenu;
+				} else {
+					cartService.addItem(item);
+					showMainItemMenu();
+					ctrl.mainItemName = null;
+				}
+			}
+			
+			function showMainItemMenu() {
+				ctrl.itemMenu = ctrl.mainItemMenu;
+			}
+		},
+	template:'<table class="table borderless">'
+		+ 		'<tbody>'
+		+ 			'<tr data-ng-repeat="items in $ctrl.itemMenu">'
+		+ 				'<td class="col-xs-2" data-ng-repeat="item in items">'
+		+ 					'<button class="btn-block" data-ng-click="$ctrl.itembuttonAction(item)">{{item.name}}</button>'
+		+ 				'</td>' 
+		+ 			'</tr>' 
+		+ 		'</tbody>'
+		+ 	'</table>'
+		+ 	'<addonitemview></addonitemview>'
 }
+var newCustomerComponent = {
+	controller:
+		function newCustomerCtrl(customerService) {
+			var ctrl = this;
+	
+			ctrl.title = 'New Customer';
+			ctrl.actionName = 'Save';
+			ctrl.inputObjs = customerService.getNewCustomerInput();
+	
+			ctrl.action = function() {
+				var param = {
+					'lastName' : this.inputObjs[0].value,
+					'firstName' : this.inputObjs[1].value,
+					'phoneNumber' : this.inputObjs[2].value
+				};
+				
+				customerService.save(param, function(res) {
+					customerService.setCurrentCustomer(res.data);
+					reset();
+				}, function(res) {
+				});
+			};
+	
+			function reset() {
+				ctrl.inputObjs = customerService.getNewCustomerInput();
+			};
+		},
+	template:'<form class="input-form">'
+		+		'<div class="row">'
+		+ 			'<div class="col-xs-1"></div>'
+		+ 			'<div class="col-xs-4">'
+		+ 				'<h1>{{title}}</h1><br/>'
+		+ 				'<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input><br/>'
+		+ 				'<div class="row">'
+		+ 					'<button class="btn btn-primary btn-lg btn-block" data-ng-click="$ctrl.action()">{{$ctrl.actionName}}</button>'
+		+ 				'</div>'
+		+ 			'</div>'
+		+ 			'<div class="col-xs-6">'
+		+ 				'<br/><br/>'
+		+ 				'<table class="table">'
+		+ 					'<tbody>'
+		+ 						'<tr class="cursor-pointer" data-ng-click="$ctrl.rowClickAction(row)" data-ng-repeat="row in $ctrl.results" data-ng-class="row.id === $ctrl.idSelected ?' + "'selected' : ''" + '">'
+		+ 							'<td>{{$index+1}}</td>'
+		+ 							'<td data-ng-repeat="str in ::row.displayValue">{{::str}}</td>'
+		+ 						'</tr>'
+		+ 					'</tbody>' 
+		+ 				'</table>'
+		+ 			'</div>'
+		+ 			'<div class="col-xs-1"></div>'
+		+ 		'</div>'
+		+	'</form>'
+}
+var cartViewComponent = {
+	controller:
+		function cartViewCtrl(cartService, customerService) {
+		var ctrl = this;
+		this.selectedId = null;
+		
+		this.$doCheck = function() {
+			var cart = cartService.getCart();
+			if (cart)	this.cart = cart;
+			var currentCustomer = customerService.getCurrentCustomer();
+			if (currentCustomer)	this.cartInfo[0].name = currentCustomer.displayValue[0];
+		}
+		
+		this.cartInfo = [ {
+			name : "Customer",
+			enabled : true,
+			action : function() {
+				navigationService.setRoute('searchcustomer');
+				navigationService.go();
+			}
+		}, {
+			name : "today's date",
+			enabled : true,
+			action : function() {
+			}
+		}, {
+			name : "ready date",
+			enabled : true,
+			action : function() {
+			}
+		} ];
+	},
+	template:'<table id="cart-info-table" class="table">'
+		+ 		'<tbody>'
+		+ 			'<tr data-ng-repeat="info in $ctrl.cartInfo">'
+		+ 				'<td data-ng-if="info.enabled">'
+		+ 					'<button class="btn btn-block" data-ng-click="info.action()">{{info.name}}</button>'
+		+ 				'</td>'
+		+ 				'<td data-ng-if="!info.enabled"><label>{{info.name}}</label></td>'
+		+ 			'</tr>'
+		+ 		'</tbody>'
+		+ 	'</table>'
+		+ 	'<div id="cart-items-list" class="col-xs-12">'
+		+ 		'<div class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart">'
+		+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.quantity" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
+		+ 			'<span class="col-xs-6">{{cartItem.itemName}}</span>'
+		+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.price.dollar" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
+		+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.price.cent" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
+		+ 		'</div>'
+		+ 	'</div>'
+}
+var addonItemViewComponent = {
+	controller:
+		function addonItemMenuCtrl(itemService, cartService, menuService) {
+			var ctrl = this;
+			
+			ctrl.addonItems = null;
+			ctrl.numberOfButtons = 4;
+			ctrl.begin = 0;
+			
+			ctrl.$onInit = function() {
+				ctrl.addonItems = menuService.getAddonItemMenu();					
+				setCurrentAddonItems();
+			}
+	
+			ctrl.itembuttonAction = function(addonItem) {
+				if (!cartService.isEmpty()) {
+					cartService.addItem(addonItem);
+				}
+			}
+			
+			ctrl.moveLeft = function() {
+				if (ctrl.begin > 0) {
+					ctrl.begin -= 1;
+	
+					setCurrentAddonItems();
+				}
+			}
+	
+			ctrl.moveRight = function() {
+				var end = ctrl.begin + ctrl.numberOfButtons;
+				if (end < ctrl.addonItems.length) {
+					ctrl.begin += 1;
+	
+					setCurrentAddonItems();
+				}
+			}
+			
+			function setCurrentAddonItems() {
+				ctrl.addonItemsCurrent = ctrl.addonItems.slice(ctrl.begin, ctrl.begin + ctrl.numberOfButtons);
+			}
+		},
+	template:'<table class="table borderless">'
+		+		'<tbody>'
+		+ 			'<tr>'
+		+ 				'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveLeft()"><</button></td>'
+		+ 				'<td class="col-xs-1"></td>'
+		+ 				'<td class="col-xs-2" data-ng-repeat="addonItem in $ctrl.addonItemsCurrent">'
+		+ 					'<button class="btn-block" data-ng-click="$ctrl.itembuttonAction(addonItem)">{{addonItem.itemName}}</button>'
+		+ 				'</td>'
+		+ 				'<td class="col-xs-1"></td>'
+		+ 				'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveRight()">></button></td>'
+		+ 			'<tr>'
+		+		'</tbody>'
+		+ 	'</table>'
 
-//
-//
-//
-//	Templates
-//
-//
-//
-function templates(angularTemplateCache) {
-	angularTemplateCache.put('manage_menu.html', 
-			'<div class="col-xs-1">Manage Menu</div>'
+}
+var keyboardInputComponent = {
+	bindings : {
+		inputObjs : '<'
+	},
+	template:'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
+		+ 		'<div class="form-group form-group-lg">'
+		+ 			'<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>'
+		+ 			'<div class="col-xs-8">'
+		+ 				'<input class="form-control" ng-required="inputObj.required" data-ng-virtual-keyboard="{kt:' + "'POS_Keyboard'" + ', relative: false, size: 5}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.placeholder}}">'
+		+ 			'</div>' 
+		+ 		'</div>'
+		+ 	'</div>'
+}
+var newOrderComponent = {
+	template:'<div class="row">'
+		//+ 		'<div class="col-xs-1"></div>'
+		+ 		'<div class="col-xs-5">'
+		+ 			'<cartview></cartview>' 
+		+ 		'</div>'
+		+ 		'<div class="col-xs-6">'
+		+ 			'<menuview></menuview>'
+		+ 		'</div>'
+		+ 		'<div class="col-xs-1"></div>' 
+		+ 	'</div>'
+}
+var manageMenuComponent = {
+	controller:
+		function manageMenuCtrl(itemService, menuService) {
+			var ctrl = this;
+			
+			ctrl.$onInit = function() {
+				ctrl.items = itemService.getItems();
+				
+				var defaultSizes = menuService.getManageMenuDefaultSizes();
+				ctrl.numberOfTypes = defaultSizes.types;
+				ctrl.numberOfItems = defaultSizes.items;
+			}
+
+			this.save = function() {
+				
+			}
+		},
+	template:'<div class="col-xs-1">Manage Menu</div>'
 		+	'<div class="form-group col-xs-3">'
 		+		'<table class="table borderless">'
 		+		'</table>'
@@ -39,10 +259,101 @@ function templates(angularTemplateCache) {
 		+			'</tbody>'
 		+		'</table>'	
 		+	'</div>'
-		+	'<div class="col-xs-1"></div>');
+		+	'<div class="col-xs-1"></div>'
+}
+var searchCustomerComponent = {
+	controller:
+		function searchCustomerCtrl(customerService, navigationService) {
+			var ctrl = this;
+	
+			ctrl.title = 'Search';
+			ctrl.actionName = 'Search';
+			ctrl.idSelected = 0;
+			ctrl.inputObjs = customerService.getSearchCustomerInput();
+	
+			ctrl.action = 
+				function() {
+					customerService.search( ctrl.inputObjs[0].value,
+											function(res) {
+												ctrl.results = res.data;
+												ctrl.results.map(function(customer) {
+													customer.displayValue = formatString(customer);
+												});
+									}, function(res) {
+	
+									});
+				};
+	
+			ctrl.rowClickAction = 
+				function(customer) {
+					// this.idSelected = customer.id;
+					customerService.setCurrentCustomer(customer);
+					navigationService.back();
+				};
+	
+			function formatString(customer) {
+				var displayValue = [];
+				displayValue.push(customer.lastName);
+	
+				if (customer.firstName) {
+					displayValue.push(customer.firstName);
+				}
+	
+				if (customer.number) {
+					displayValue.push(customer.number);
+				}
+	
+				return displayValue;
+			};
+	
+			function reset() {
+				ctrl.inputObjs = customerService.getSearchCustomerInput();
+			};
+		},
+	template:'<form class="input-form">'
+		+		'<div class="row">'
+		+ 			'<div class="col-xs-1"></div>'
+		+ 			'<div class="col-xs-4">'
+		+ 				'<h1>{{title}}</h1><br/>'
+		+ 				'<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input><br/>'
+		+ 				'<div class="row">'
+		+ 					'<button class="btn btn-primary btn-lg btn-block" data-ng-click="$ctrl.action()">{{$ctrl.actionName}}</button>'
+		+ 				'</div>'
+		+ 			'</div>'
+		+ 			'<div class="col-xs-6">'
+		+ 				'<br/><br/>'
+		+ 				'<table class="table">'
+		+ 					'<tbody>'
+		+ 						'<tr class="cursor-pointer" data-ng-click="$ctrl.rowClickAction(row)" data-ng-repeat="row in $ctrl.results" data-ng-class="row.id === $ctrl.idSelected ?' + "'selected' : ''" + '">'
+		+ 							'<td>{{$index+1}}</td>'
+		+ 							'<td data-ng-repeat="str in ::row.displayValue">{{::str}}</td>'
+		+ 						'</tr>'
+		+ 					'</tbody>' 
+		+ 				'</table>'
+		+ 			'</div>'
+		+ 			'<div class="col-xs-1"></div>'
+		+ 		'</div>'
+		+	'</form>'
+}
+var navigationComponent = {
+	controller: 
+		function navigationCtrl(navigationService) {
+			var ctrl = this;
+			
+			ctrl.$onInit = function() {
+				ctrl.ready = false;
+				if (!navigationService.getNavigation())
+					navigationService.buildNavigation();
 
-	angularTemplateCache.put('navigation.html',
-			'<nav class="navbar navbar-inverse" role="navigation" data-ng-show="$ctrl.ready">'
+				ctrl.navigations = navigationService.getNavigation();
+			}
+
+			ctrl.$doCheck = function() {
+				var isReady = navigationService.isReady();
+				if (isReady)	ctrl.ready = isReady;
+			}	
+		},
+	template:'<nav class="navbar navbar-inverse" role="navigation" data-ng-show="$ctrl.ready">'
 		+		'<div class="navbar-header">'
 		+ 			'<a class="navbar-brand" data-ui-sref="app">POS App</a>'
 		+ 		'</div>'
@@ -58,609 +369,19 @@ function templates(angularTemplateCache) {
 		+ 				'</ul>'
 		+ 			'</li>'
 		+ 		'</ul>' 
-		+	'</nav>');
-
-		angularTemplateCache.put('keyboardInputComponent.html',					
-				'<div class="row form-horizontal" data-ng-repeat="inputObj in $ctrl.inputObjs">'
-			+ 		'<div class="form-group form-group-lg">'
-			+ 			'<label class="col-xs-4 control-label" for="formGroupInputLarge{{$index}}">{{inputObj.label}}</label>'
-			+ 			'<div class="col-xs-8">'
-			+ 				'<input class="form-control" ng-required="inputObj.required" data-ng-virtual-keyboard="{kt:' + "'POS_Keyboard'" + ', relative: false, size: 5}" type="text" data-ng-model="inputObj.value" id="formGroupInputLarge{{$index}}" placeholder="{{inputObj.placeholder}}">'
-			+ 			'</div>' 
-			+ 		'</div>'
-			+ 	'</div>');
-		
-		angularTemplateCache.put('inputs.html',
-				'<form class="input-form">'
-			+		'<div class="row">'
-			+ 			'<div class="col-xs-1"></div>'
-			+ 			'<div class="col-xs-4">'
-			+ 				'<h1>{{title}}</h1><br/>'
-			+ 				'<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input><br/>'
-			+ 				'<div class="row">'
-			+ 					'<button class="btn btn-primary btn-lg btn-block" data-ng-click="$ctrl.action()">{{$ctrl.actionName}}</button>'
-			+ 				'</div>'
-			+ 			'</div>'
-			+ 			'<div class="col-xs-6">'
-			+ 				'<br/><br/>'
-			+ 				'<table class="table">'
-			+ 					'<tbody>'
-			+ 						'<tr class="cursor-pointer" data-ng-click="$ctrl.rowClickAction(row)" data-ng-repeat="row in $ctrl.results" data-ng-class="row.id === $ctrl.idSelected ?' + "'selected' : ''" + '">'
-			+ 							'<td>{{$index+1}}</td>'
-			+ 							'<td data-ng-repeat="str in ::row.displayValue">{{::str}}</td>'
-			+ 						'</tr>'
-			+ 					'</tbody>' 
-			+ 				'</table>'
-			+ 			'</div>'
-			+ 			'<div class="col-xs-1"></div>'
-			+ 		'</div>'
-			+	'</form>');
-
-		angularTemplateCache.put('menu.html',
-				'<table class="table borderless">'
-			+ 		'<tbody>'
-			+ 			'<tr data-ng-repeat="items in $ctrl.itemMenu">'
-			+ 				'<td class="col-xs-2" data-ng-repeat="item in items">'
-			+ 					'<button class="btn-block" data-ng-click="$ctrl.itembuttonAction(item)">{{item.name}}</button>'
-			+ 				'</td>' 
-			+ 			'</tr>' 
-			+ 		'</tbody>'
-			+ 	'</table>'
-			+ 	'<addonitemview></addonitemview>');
-
-		angularTemplateCache.put('addonmenu.html',
-				'<table class="table borderless">'
-			+		'<tbody>'
-			+ 			'<tr>'
-			+ 				'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveLeft()"><</button></td>'
-			+ 				'<td class="col-xs-1"></td>'
-			+ 				'<td class="col-xs-2" data-ng-repeat="addonItem in $ctrl.addonItemsCurrent">'
-			+ 					'<button class="btn-block" data-ng-click="$ctrl.itembuttonAction(addonItem)">{{addonItem.itemName}}</button>'
-			+ 				'</td>'
-			+ 				'<td class="col-xs-1"></td>'
-			+ 				'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveRight()">></button></td>'
-			+ 			'<tr>'
-			+		'</tbody>'
-			+ 	'</table>');
-
-		angularTemplateCache.put('neworder.html',
-				'<div class="row">'
-			//+ 		'<div class="col-xs-1"></div>'
-			+ 		'<div class="col-xs-5">'
-			+ 			'<cartview></cartview>' 
-			+ 		'</div>'
-			+ 		'<div class="col-xs-6">'
-			+ 			'<menuview></menuview>'
-			+ 		'</div>'
-			+ 		'<div class="col-xs-1"></div>' 
-			+ 	'</div>');
-
-		angularTemplateCache.put('cartview.html',
-				'<table id="cart-info-table" class="table">'
-			+ 		'<tbody>'
-			+ 			'<tr data-ng-repeat="info in $ctrl.cartInfo">'
-			+ 				'<td data-ng-if="info.enabled">'
-			+ 					'<button class="btn btn-block" data-ng-click="info.action()">{{info.name}}</button>'
-			+ 				'</td>'
-			+ 				'<td data-ng-if="!info.enabled"><label>{{info.name}}</label></td>'
-			+ 			'</tr>'
-			+ 		'</tbody>'
-			+ 	'</table>'
-			+ 	'<div id="cart-items-list" class="col-xs-12">'
-			+ 		'<div class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart">'
-			+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.quantity" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
-			+ 			'<span class="col-xs-6">{{cartItem.itemName}}</span>'
-			+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.price.dollar" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
-			+			'<span class="col-xs-2"><input type="text" class="form-control cart-item-button" data-ng-model="cartItem.price.cent" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></span>'
-			+ 		'</div>'
-			+ 	'</div>');
+		+	'</nav>'
 }
-
-//
-//
-//
-//	Services
-//
-//
-//
-/**
- * String Service
- */
-function stringService() {
-	var _NBSP = '\xa0';
-
-	function _repeatChar(str, len, char) {
-		var pad = angular.isDefined(char) ? char : _NBSP;
-		var padlen = len - str.length;
-		return pad.repeat(padlen);
-	}
-	
-	return {
-		isLetterOnly : function(str) {
-			if (str.search(/[^A-Za-z\s]/) != -1)
-				return false;
-
-			return true;
-		},
-		isNumberOnly : function(str) {
-			if (str.search(/[^0-9]/) != -1)
-				return false;
-
-			return true;
-		},
-		getEmptyString : function(len) {
-			var char = _NBSP;
-			return char.repeat(len);
-		},
-		lpad : function(s, len, char) {
-			var str = s.toString();
-
-			return _repeatChar(str, len, char) + str;
-		},
-		rpad : function(s, len, char) {
-			var str = s.toString();
-
-			return str + _repeatChar(str, len, char);
-		}
-	};
+// Polyfill
+String.prototype.repeat = String.prototype.repeat || function(n){ 
+    return n<=1 ? this : (this + this.repeat(n-1)); 
 }
-
-/**
- * Url Service
- */
-function urlService() {
-	var protocol = location.protocol;
-	var host = location.host;
-	var root = 'app';
-	var base = protocol + '//' + host + '/' + root;
-
-	return {
-		main : base + '/main',
-		item : base + '/item',
-		order : base + '/order',
-		customer : base + '/customer',
-	}
-}
-
-/**
- * Cart Service
- */
-
-class _CartItem {
-	constructor(item, quantity, hasQuantity) {
-		this.item = item;
-		this.price = angular.copy(item.price);
-		this.newprice = {};
-		this.oldprice = {};
-		this.quantity = quantity;
-		this.hasQuantity = hasQuantity;
-	}
-	
-	get itemName () {
-		return this.item.itemName;
-	}	
-}
-
-
-function cartService(APP_CONFIG, stringService) {
-	var _data = {};
-	_data.cart = [];
-
-	return {
-		getCart : function() {
-			return _data.cart;
-		},
-		clearCart : function() {
-			_data.cart = [];
-		},
-		addItem : function(item) {
-			var itemCopy = angular.copy(item);
-			var cartItem = itemCopy.itemType ? new _CartItem(itemCopy, 1, true) : new _CartItem(itemCopy, 0, false);
-			_data.cart.push(cartItem);
-		},
-		getCartInfo : function() {
-			//TODO Do I need this?
-			var cartInfo = [];
-		},
-		getTotalQuantity: function() {
-			var i, len;
-			var total = 0;
-			var cart = _data.cart;
-			for(i=0, len=cart.length; i < len; i++) {
-				total = total + cart[i].quantity;
-			}
-			return total;
-		},
-		getTotalPrice: function() {
-			
-		},
-		isEmpty: function() {
-			return _data.cart.length == 0;
-		}
-	};
-}
-
-
-/**
- * Customer Service
- */
-function customerService(APP_CONFIG, $http, urlService, stringService) {
-	var _data = {};
-	return {
-		getNewCustomerInput : function() {
-			return angular.copy(APP_CONFIG.NEW_CUSTOMER_INPUT);
-		},
-		getSearchCustomerInput : function() {
-			return angular.copy(APP_CONFIG.SEARCH_CUSTOMER_INPUT);
-		},
-		save : function(info, success, fail) {
-			$http.post(urlService.customer + '/save', info).then(success, fail);
-		},
-
-		update : function(info, success, fail) {
-			$http.post(urlService.customer + '/update', info).then(success,
-					fail);
-		},
-
-		search : function(querystr, success, fail) {
-			if (querystr)
-				$http.get(
-						urlService.customer + '/search/'
-								+ querystr.toLowerCase()).then(success, fail);
-		},
-
-		setCurrentCustomer : function(customer) {
-			if (customer) {
-				_data.previous = _data.current;
-				_data.current = customer;
-			}
-		},
-
-		getCurrentCustomer : function() {
-			if (_data.current)
-				return _data.current;
-
-			return null;
-		},
-
-		clearCurrentCustomer : function() {
-			if (_data.current)
-				_data.previous = _data.current;
-
-			_data.current = null;
-		}
-	};
-}
-
-
-/**
- * Navigation Service
- */
-function navigationService(APP_CONFIG, $state) {
-	var _data = {};
-	_data.IS_READY = false;
-	
-	function _buildNavigation() {
-		var navigationObj = APP_CONFIG.NAVIGATION;
-		var customerMode = APP_CONFIG.CUSTOMER_MODE;
-		if (navigationObj) {
-			_data.root = navigationObj.splice(0, 1);
-
-			var arr = [];
-			var i, len;
-			for (i = 0, len = navigationObj.length; i < len; i++) {
-				if (!(navigationObj[i].customer & !customerMode)) {
-					arr.push(navigationObj[i]);
-				}
-			}
-			_data.navigations = arr;
-		}
-	}
-
-	return {
-		setRoute : function(next, previous) {
-			if (next) {
-				_data.next = next;
-			}
-
-			if (!previous) {
-				_data.previous = $state.current.name;
-			} else {
-				_data.previous = previous;
-			}
-		},
-		go : function() {
-			if (_data.next) {
-				$state.go(_data.next);
-			}
-		},
-		back : function() {
-			if (_data.previous) {
-				$state.go(_data.previous);
-			}
-		},
-		getRoot : function() {
-			if (_data.root)
-				return _data.root;
-
-			return null;
-		},
-		getNavigation : function() {
-			if (_data.navigations) {
-				return _data.navigations;
-			}
-			return null;
-		},
-		buildNavigation : function() {
-			if (!_data.root && !_data.navigations) {
-				_buildNavigation();
-			}
-		},
-		isReady: function() {
-			return _data.IS_READY;
-		},
-		setReady: function(ready) {
-			_data.IS_READY = ready;
-		}
-	};
-}
-
-function menuService(APP_CONFIG, $q, navigationService, itemService) {
-	
-	var _data = {};
-	var refreshMenu = false;
-	var IS_MENU_READY = false;
-	
-	function _initMenu() {
-		var promises = itemService.getAJAXItemPromises();
-		
-		$q.all(promises).then(
-			function(res) {
-				var itemsRes = res[0];
-				var items = itemsRes.data;
-				var groupedByType = itemService.groupItemsByType(items);
-				_buildItemMenu(groupedByType);
-			
-				_data.addonitems = [ {
-					itemName : 'Button1',
-					price : {
-						dollar : 5,
-						cent : 0
-					}
-					}, {
-						itemName : 'Button2',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					}, {
-						itemName : 'Button3',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					}, {
-						itemName : 'Button4',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					}, {
-						itemName : 'Button5',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					}, {
-						itemName : 'Button6',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					}, {
-						itemName : 'Button7',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					} ];
-				
-				navigationService.setReady(true);
-			}, function(res) {
-				//GET request failed
-			});
-	}
-	
-	function _buildItemMenuGrid(items, numberOfItems) {
-		var itemMenu = [];
-		var row = [];
-		var i, len;
-		
-		for (i=0, len=items.length; i < len; i++) {
-			var item = items[i];
-			row.push(item);
-
-			if (((i + 1) % numberOfItems) == 0 || i == (len - 1)) {
-				itemMenu.push(row);
-				row = [];
-			}			
-		}
-		return itemMenu;
-	}
-	
-	function _buildItemMenu(items) {
-		var itemMenu = [];
-		var i, len;
-		for (i=0, len=items.length; i < len; i++) {
-
-			var submenu = items[i].items;
-			var item = {name: items[i].type, submenu: _buildItemMenuGrid(submenu, 5)};
-			
-			itemMenu.push(item);
-		}
-		
-		var mainItemMenu = _buildItemMenuGrid(itemMenu, 5);
-		_data.mainItemMenu = mainItemMenu;
-	}
-	
-	return {
-		isPriceLocked: function() {
-			return APP_CONFIG.IS_PRICE_LOCKED;
-		},
-		getNumberOfAddonItemButtons: function() {
-			return APP_CONFIG.NUMBER_OF_ADDON_ITEM_BUTTONS;
-		},
-		initMenu: function() {
-			if (!IS_MENU_READY) {
-				_initMenu();
-			}
-		},
-		isMenuReady: function() {
-			return IS_MENU_READY;
-		},
-		getMainItemMenu: function() {
-			if (_data.mainItemMenu)
-				return _data.mainItemMenu;
-			
-			return null;
-		},
-		getAddonItemMenu: function() {
-			if (_data.addonitems)
-				return _data.addonitems;
-			
-			return null;
-		},
-		getManageMenuDefaultSizes: function() {
-			return {
-				types: APP_CONFIG.MANAGE_MENU_DEFAULT_NUMBER_OF_TYPES,
-				items: APP_CONFIG.MANAGE_MENU_DEFAULT_NUMBER_OF_ITEMS
-			};
-		}
-	};
-}
-
 
 /** TODO
  * Order Service 
 **/
-
 function orderService() {
 	return  {
 		
-	};
-}
-
-/**
- * Item Service
- */
-function itemService(APP_CONFIG, $http, urlService) {
-	var _data = {};
-	
-	//TODO
-	//Add weight to item object. Java...
-	function _groupItemsByType(items) {	
-		var groupedItems = {};
-		var i, len;
-		
-		for (i=0, len=items.length; i < len; i++) {
-			var item = angular.copy(items[i]);
-			if (item.itemType) {
-				var itemType = item.itemType.name;
-				var groupedByType = groupedItems[itemType];
-				
-				if (!groupedByType) {
-					groupedByType = [];
-				}
-				var itemCopy = angular.copy(item);
-				groupedByType.push(itemCopy);
-				groupedItems[itemType] = groupedByType;
-			}
-		}
-		
-		var listItems = [];
-		
-		for (key in groupedItems) {
-			var groupedByType = groupedItems[key];
-			groupedByType.sort(sortByWeight);
-			
-			var itemType = null;
-			if (groupedByType.length > 0) {
-				itemType = groupedByType[0].itemType;
-			}
-			
-			var obj = {
-				type: itemType,
-				items: groupedByType
-			};
-			listItems.push(obj);
-		}
-		
-		listItems.sort(function(a, b) {
-			return sortByWeight(a.type, b.type);
-		});
-		
-		_data.items = listItems;
-		return listItems;
-	}
-	
-	function sortByWeight(a, b) {
-		if (!angular.isDefined(a.weight) && !angular.isDefined(b.weight))
-			return 0;
-		
-		var weight_a = new Number(a.weight);
-		var weight_b = new Number(b.weight);
-		
-		if (a.weight < b.weight) {
-			return -1;
-		}
-		
-		if (a.weight > b.weight) {
-			return 1;
-		}
-		
-		return 0;
-	}
-	
-	function _ajaxGetItems() {
-		return $http.get(urlService.item + '/list');
-	}
-	
-	function _ajaxGetAddOnItems() {
-		if (APP_CONFIG.SHOW_ADD_ON_ITEMS) {
-			return $http.get(urlService.item + '/addonitem/list');
-		}
-		return null;
-	}
-	
-	return {
-		groupItemsByType: function(items) {
-			return _groupItemsByType(items);
-		},
-		getAJAXItemPromises: function() {
-			var promises = [];
-			
-			var items = _ajaxGetItems();
-			if (items)
-				promises.push(items);
-			
-			//var addonitems = _ajaxGetAddOnItems();
-			//if (addonitems)
-				//promises.push(addonitems);
-			
-			return promises;
-		},
-		getItems: function() {
-			if (!_data.items) {
-				return null;
-			}			
-			return _data.items;
-		},
-		getAddOnItems: function() {
-			if (!_data.addonitems) {
-				return null;
-			}			
-			return _data.addonitems;
-		}
 	};
 }
 
@@ -682,237 +403,6 @@ function messageService(APP_CONFIG) {
 		}
 	};
 }
-
-//
-//
-//
-//  Component controllers
-//
-//
-//
-/**
- * New Customer Controller 
-**/
-function newCustomerCtrl(customerService) {
-	var ctrl = this;
-
-	ctrl.title = 'New Customer';
-	ctrl.actionName = 'Save';
-	ctrl.inputObjs = customerService.getNewCustomerInput();
-
-	ctrl.action = function() {
-		var param = {
-			'lastName' : this.inputObjs[0].value,
-			'firstName' : this.inputObjs[1].value,
-			'phoneNumber' : this.inputObjs[2].value
-		};
-		
-		customerService.save(param, function(res) {
-			customerService.setCurrentCustomer(res.data);
-			reset();
-		}, function(res) {
-		});
-	};
-
-	function reset() {
-		ctrl.inputObjs = customerService.getNewCustomerInput();
-	};
-}
-
-/**
- * Search Customer Controller 
-**/
-function searchCustomerCtrl(customerService, navigationService) {
-	var ctrl = this;
-
-	ctrl.title = 'Search';
-	ctrl.actionName = 'Search';
-	ctrl.idSelected = 0;
-	ctrl.inputObjs = customerService.getSearchCustomerInput();
-
-	ctrl.action = 
-		function() {
-			customerService.search( ctrl.inputObjs[0].value,
-									function(res) {
-										ctrl.results = res.data;
-										ctrl.results.map(function(customer) {
-											customer.displayValue = formatString(customer);
-										});
-							}, function(res) {
-
-							});
-		};
-
-	ctrl.rowClickAction = 
-		function(customer) {
-			// this.idSelected = customer.id;
-			customerService.setCurrentCustomer(customer);
-			navigationService.back();
-		};
-
-	function formatString(customer) {
-		var displayValue = [];
-		displayValue.push(customer.lastName);
-
-		if (customer.firstName) {
-			displayValue.push(customer.firstName);
-		}
-
-		if (customer.number) {
-			displayValue.push(customer.number);
-		}
-
-		return displayValue;
-	};
-
-	function reset() {
-		ctrl.inputObjs = customerService.getSearchCustomerInput();
-	};
-}
-
-/**
- * Navigation Controller 
-**/
-function navigationCtrl(navigationService) {
-	var ctrl = this;
-	
-	ctrl.$onInit = function() {
-		ctrl.ready = false;
-		if (!navigationService.getNavigation())
-			navigationService.buildNavigation();
-
-		ctrl.navigations = navigationService.getNavigation();
-	}
-
-	ctrl.$doCheck = function() {
-		var isReady = navigationService.isReady();
-		if (isReady)	ctrl.ready = isReady;
-	}	
-}
-
-/**
- * Cart View Controller 
-*/
-function cartViewCtrl(cartService, customerService) {
-	var ctrl = this;
-	this.selectedId = null;
-	
-	this.$doCheck = function() {
-		var cart = cartService.getCart();
-		if (cart)	this.cart = cart;
-		var currentCustomer = customerService.getCurrentCustomer();
-		if (currentCustomer)	this.cartInfo[0].name = currentCustomer.displayValue[0];
-	}
-	
-	this.cartInfo = [ {
-		name : "Customer",
-		enabled : true,
-		action : function() {
-			navigationService.setRoute('searchcustomer');
-			navigationService.go();
-		}
-	}, {
-		name : "today's date",
-		enabled : true,
-		action : function() {
-		}
-	}, {
-		name : "ready date",
-		enabled : true,
-		action : function() {
-		}
-	} ];
-}
-
-/**
- *  Menu Controller
-**/
-function itemMenuCtrl(menuService, cartService) {
-	var ctrl = this;
-	
-	ctrl.items = null;
-	ctrl.mainItemName = null;
-	
-	ctrl.$onInit = function() {
-		ctrl.mainItemMenu = menuService.getMainItemMenu();
-		ctrl.itemMenu = ctrl.mainItemMenu;
-	}
-	
-	ctrl.itembuttonAction = function(item) {
-		if (item.submenu) {
-			ctrl.mainItemName = item.name;
-			ctrl.itemMenu = item.submenu;
-		} else {
-			cartService.addItem(item);
-			showMainItemMenu();
-			ctrl.mainItemName = null;
-		}
-	}
-	
-	function showMainItemMenu() {
-		ctrl.itemMenu = ctrl.mainItemMenu;
-	}
-}
-
-/**
- * AddonItemMenuController
-**/
-function addonItemMenuCtrl(itemService, cartService, menuService) {
-	var ctrl = this;
-	
-	ctrl.addonItems = null;
-	ctrl.numberOfButtons = 4;
-	ctrl.begin = 0;
-	
-	ctrl.$onInit = function() {
-		ctrl.addonItems = menuService.getAddonItemMenu();					
-		setCurrentAddonItems();
-	}
-
-	ctrl.itembuttonAction = function(addonItem) {
-		if (!cartService.isEmpty()) {
-			cartService.addItem(addonItem);
-		}
-	}
-	
-	ctrl.moveLeft = function() {
-		if (ctrl.begin > 0) {
-			ctrl.begin -= 1;
-
-			setCurrentAddonItems();
-		}
-	}
-
-	ctrl.moveRight = function() {
-		var end = ctrl.begin + ctrl.numberOfButtons;
-		if (end < ctrl.addonItems.length) {
-			ctrl.begin += 1;
-
-			setCurrentAddonItems();
-		}
-	}
-	
-	function setCurrentAddonItems() {
-		ctrl.addonItemsCurrent = ctrl.addonItems.slice(ctrl.begin, ctrl.begin + ctrl.numberOfButtons);
-	}
-}
-
-function manageMenuCtrl(itemService, menuService) {
-	var ctrl = this;
-	
-	ctrl.$onInit = function() {
-		ctrl.items = itemService.getItems();
-		
-		var defaultSizes = menuService.getManageMenuDefaultSizes();
-		ctrl.numberOfTypes = defaultSizes.types;
-		ctrl.numberOfItems = defaultSizes.items;
-	}
-
-	this.save = function() {
-		
-	}
-}
-
 
 var app = 
 	angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
@@ -1070,44 +560,522 @@ var app =
 		.factory('itemService', [ 'APP_CONFIG', '$http', 'urlService', itemService])
 		.factory('menuService', ['APP_CONFIG', '$q', 'navigationService', 'itemService', menuService])
 		
-		.component('navigation', {
-			controller : navigationCtrl,
-			templateUrl : 'navigation.html'
-		})
-		.component('keyboardInput', {
-			templateUrl : 'keyboardInputComponent.html',
-			bindings : {
-				inputObjs : '<'
-			}
-		})
-		.component('newcustomer', {
-			controller : newCustomerCtrl,
-			templateUrl : 'inputs.html'
-		})
-		.component('customersearch', {
-			controller : searchCustomerCtrl,
-			templateUrl : 'inputs.html'
-		})
-		.component('menuview', {
-			controller : itemMenuCtrl,
-			templateUrl : 'menu.html'
-		})
-		.component('addonitemview', {
-					controller : addonItemMenuCtrl,
-					templateUrl : 'addonmenu.html'
-		})
-		.component('cartview', {
-					controller : cartViewCtrl,
-					templateUrl : 'cartview.html'
-		})
-		.component('neworder', {
-			templateUrl : 'neworder.html'
-		})
-		.component('managemenu', {
-					controller: manageMenuCtrl,
-					templateUrl: 'manage_menu.html'
-		})		
+		.component('navigation', navigationComponent)
+		.component('keyboardInput', keyboardInputComponent)
+		.component('newcustomer', newCustomerComponent)
+		.component('customersearch', searchCustomerComponent)
+		.component('menuview', menuViewComponent)
+		.component('addonitemview', addonItemViewComponent)
+		.component('cartview', cartViewComponent)
+		.component('neworder', newOrderComponent)
+		.component('managemenu', manageMenuComponent)		
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
-	templates($templateCache);
 	menuService.initMenu();
 }]);
+/**
+ * Url Service
+ */
+function urlService() {
+	var protocol = location.protocol;
+	var host = location.host;
+	var root = 'app';
+	var base = protocol + '//' + host + '/' + root;
+
+	return {
+		main : base + '/main',
+		item : base + '/item',
+		order : base + '/order',
+		customer : base + '/customer',
+	}
+}
+/**
+ * Navigation Service
+ */
+function navigationService(APP_CONFIG, $state) {
+	var _data = {};
+	_data.IS_READY = false;
+	
+	function _buildNavigation() {
+		var navigationObj = APP_CONFIG.NAVIGATION;
+		var customerMode = APP_CONFIG.CUSTOMER_MODE;
+		if (navigationObj) {
+			_data.root = navigationObj.splice(0, 1);
+
+			var arr = [];
+			var i, len;
+			for (i = 0, len = navigationObj.length; i < len; i++) {
+				if (!(navigationObj[i].customer & !customerMode)) {
+					arr.push(navigationObj[i]);
+				}
+			}
+			_data.navigations = arr;
+		}
+	}
+
+	return {
+		setRoute : function(next, previous) {
+			if (next) {
+				_data.next = next;
+			}
+
+			if (!previous) {
+				_data.previous = $state.current.name;
+			} else {
+				_data.previous = previous;
+			}
+		},
+		go : function() {
+			if (_data.next) {
+				$state.go(_data.next);
+			}
+		},
+		back : function() {
+			if (_data.previous) {
+				$state.go(_data.previous);
+			}
+		},
+		getRoot : function() {
+			if (_data.root)
+				return _data.root;
+
+			return null;
+		},
+		getNavigation : function() {
+			if (_data.navigations) {
+				return _data.navigations;
+			}
+			return null;
+		},
+		buildNavigation : function() {
+			if (!_data.root && !_data.navigations) {
+				_buildNavigation();
+			}
+		},
+		isReady: function() {
+			return _data.IS_READY;
+		},
+		setReady: function(ready) {
+			_data.IS_READY = ready;
+		}
+	};
+}
+/**
+ * Item Service
+ */
+function itemService(APP_CONFIG, $http, urlService) {
+	var _data = {};
+
+	function _groupItemsByType(itemTypes, items) {
+		var groupedItems = items.reduce(function(dict, currentItem) {
+			dict[currentItem['itemTypeId']] = dict[currentItem['itemTypeId']] || [];
+			dict[currentItem['itemTypeId']].push(currentItem);
+			return dict;
+		}, {});
+		
+		var i, len;
+		var groupedByType = [];
+		for (i=0, len=itemTypes.length; i < len; i++) {
+			var itemType = itemTypes[i];
+			var obj = {
+					type: itemType,
+					items: groupedItems[itemType.id]
+				};
+			groupedByType.push(obj);
+		}
+		_data.itemTypes = itemTypes;
+		_data.items = groupedByType;
+		return groupedByType;
+	}
+	/*
+	function _groupItemsByType(items) {	
+		var groupedItems = {};
+		var i, len;
+		
+		for (i=0, len=items.length; i < len; i++) {
+			var item = angular.copy(items[i]);
+			if (item.itemType) {
+				var itemType = item.itemType.name;
+				var groupedByType = groupedItems[itemType];
+				
+				if (!groupedByType) {
+					groupedByType = [];
+				}
+				var itemCopy = angular.copy(item);
+				groupedByType.push(itemCopy);
+				groupedItems[itemType] = groupedByType;
+			}
+		}
+		
+		var listItems = [];
+		
+		for (key in groupedItems) {
+			var groupedByType = groupedItems[key];
+			groupedByType.sort(sortByWeight);
+			
+			var itemType = null;
+			if (groupedByType.length > 0) {
+				itemType = groupedByType[0].itemType;
+			}
+			
+			var obj = {
+				type: itemType,
+				items: groupedByType
+			};
+			listItems.push(obj);
+		}
+		
+		listItems.sort(function(a, b) {
+			return sortByWeight(a.type, b.type);
+		});
+		
+		_data.items = listItems;
+		return listItems;
+	}
+	*/
+	function sortByWeight(a, b) {
+		if (!angular.isDefined(a.weight) && !angular.isDefined(b.weight))
+			return 0;
+		
+		var weight_a = new Number(a.weight);
+		var weight_b = new Number(b.weight);
+		
+		if (a.weight < b.weight) {
+			return -1;
+		}
+		
+		if (a.weight > b.weight) {
+			return 1;
+		}
+		
+		return 0;
+	}
+	
+	function _ajaxGetItems() {
+		return $http.get(urlService.item + '/list');
+	}
+	
+	function _ajaxGetItemTypes() {
+		return $http.get(urlService.item + '/type/list')
+	}
+	
+	function _ajaxGetAddOnItems() {
+		if (APP_CONFIG.SHOW_ADD_ON_ITEMS) {
+			return $http.get(urlService.item + '/addonitem/list');
+		}
+		return null;
+	}
+	
+	return {
+		groupItemsByType: function(itemTypes, items) {
+			return _groupItemsByType(itemTypes, items);
+		},
+		getAJAXItemPromises: function() {
+			var promises = [];
+			
+			var itemTypes = _ajaxGetItemTypes();
+			if (itemTypes)	promises.push(itemTypes);
+			
+			var items = _ajaxGetItems();
+			if (items)	promises.push(items);
+			
+			//var addonitems = _ajaxGetAddOnItems();
+			//if (addonitems)	promises.push(addonitems);
+			
+			return promises;
+		},
+		getItems: function() {
+			if (!_data.items) {
+				return null;
+			}			
+			return _data.items;
+		},
+		getAddOnItems: function() {
+			if (!_data.addonitems) {
+				return null;
+			}			
+			return _data.addonitems;
+		}
+	};
+}
+/**
+ * Customer Service
+ */
+function customerService(APP_CONFIG, $http, urlService, stringService) {
+	var _data = {};
+	return {
+		getNewCustomerInput : function() {
+			return angular.copy(APP_CONFIG.NEW_CUSTOMER_INPUT);
+		},
+		getSearchCustomerInput : function() {
+			return angular.copy(APP_CONFIG.SEARCH_CUSTOMER_INPUT);
+		},
+		save : function(info, success, fail) {
+			$http.post(urlService.customer + '/save', info).then(success, fail);
+		},
+
+		update : function(info, success, fail) {
+			$http.post(urlService.customer + '/update', info).then(success,
+					fail);
+		},
+
+		search : function(querystr, success, fail) {
+			if (querystr)
+				$http.get(
+						urlService.customer + '/search/'
+								+ querystr.toLowerCase()).then(success, fail);
+		},
+
+		setCurrentCustomer : function(customer) {
+			if (customer) {
+				_data.previous = _data.current;
+				_data.current = customer;
+			}
+		},
+
+		getCurrentCustomer : function() {
+			if (_data.current)
+				return _data.current;
+
+			return null;
+		},
+
+		clearCurrentCustomer : function() {
+			if (_data.current)
+				_data.previous = _data.current;
+
+			_data.current = null;
+		}
+	};
+}
+/**
+ * Cart Service
+ */
+function cartService(APP_CONFIG, stringService) {
+	var _data = {};
+	_data.cart = [];
+
+	return {
+		getCart : function() {
+			return _data.cart;
+		},
+		clearCart : function() {
+			_data.cart = [];
+		},
+		addItem : function(item) {
+			var itemCopy = angular.copy(item);
+			var cartItem = itemCopy.itemType ? new _CartItem(itemCopy, 1, true) : new _CartItem(itemCopy, 0, false);
+			_data.cart.push(cartItem);
+		},
+		getCartInfo : function() {
+			//TODO Do I need this?
+			var cartInfo = [];
+		},
+		getTotalQuantity: function() {
+			var i, len;
+			var total = 0;
+			var cart = _data.cart;
+			for(i=0, len=cart.length; i < len; i++) {
+				total = total + cart[i].quantity;
+			}
+			return total;
+		},
+		getTotalPrice: function() {
+			
+		},
+		isEmpty: function() {
+			return _data.cart.length == 0;
+		}
+	};
+}
+
+class _CartItem {
+	constructor(item, quantity, hasQuantity) {
+		this.item = item;
+		this.price = angular.copy(item.price);
+		this.newprice = {};
+		this.oldprice = {};
+		this.quantity = quantity;
+		this.hasQuantity = hasQuantity;
+	}
+	
+	get itemName () {
+		return this.item.itemName;
+	}	
+}
+/**
+ * String Service
+ */
+function stringService() {
+	var _NBSP = '\xa0';
+
+	function _repeatChar(str, len, char) {
+		var pad = angular.isDefined(char) ? char : _NBSP;
+		var padlen = len - str.length;
+		return pad.repeat(padlen);
+	}
+	
+	return {
+		isLetterOnly : function(str) {
+			if (str.search(/[^A-Za-z\s]/) != -1)
+				return false;
+
+			return true;
+		},
+		isNumberOnly : function(str) {
+			if (str.search(/[^0-9]/) != -1)
+				return false;
+
+			return true;
+		},
+		getEmptyString : function(len) {
+			var char = _NBSP;
+			return char.repeat(len);
+		},
+		lpad : function(s, len, char) {
+			var str = s.toString();
+
+			return _repeatChar(str, len, char) + str;
+		},
+		rpad : function(s, len, char) {
+			var str = s.toString();
+
+			return str + _repeatChar(str, len, char);
+		}
+	};
+}
+function menuService(APP_CONFIG, $q, navigationService, itemService) {
+	
+	var _data = {};
+	var refreshMenu = false;
+	var IS_MENU_READY = false;
+	
+	function _initMenu() {
+		var promises = itemService.getAJAXItemPromises();
+		$q.all(promises).then(
+			function(res) {
+
+				var itemTypesRes = res[0]
+				var itemsRes = res[1];
+
+				var groupedByType = itemService.groupItemsByType(itemTypesRes.data, itemsRes.data);
+				_buildItemMenu(groupedByType);
+			
+				_data.addonitems = [ {
+					itemName : 'Button1',
+					price : {
+						dollar : 5,
+						cent : 0
+					}
+					}, {
+						itemName : 'Button2',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					}, {
+						itemName : 'Button3',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					}, {
+						itemName : 'Button4',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					}, {
+						itemName : 'Button5',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					}, {
+						itemName : 'Button6',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					}, {
+						itemName : 'Button7',
+						price : {
+							dollar : 5,
+							cent : 0
+						}
+					} ];
+				
+				navigationService.setReady(true);
+			}, function(res) {
+				//GET request failed
+			});
+	}
+	
+	function _buildItemMenuGrid(items, numberOfItems) {
+		var itemMenu = [];
+		var row = [];
+		var i, len;
+		
+		for (i=0, len=items.length; i < len; i++) {
+			var item = items[i];
+			row.push(item);
+
+			if (((i + 1) % numberOfItems) == 0 || i == (len - 1)) {
+				itemMenu.push(row);
+				row = [];
+			}			
+		}
+		return itemMenu;
+	}
+	
+	function _buildItemMenu(items) {
+		var itemMenu = [];
+		var i, len;
+		for (i=0, len=items.length; i < len; i++) {
+
+			var submenu = items[i].items;
+			if (submenu) {
+				var item = {name: items[i].type.name, submenu: _buildItemMenuGrid(submenu, 5)};
+				
+				itemMenu.push(item);
+			}
+		}
+		
+		var mainItemMenu = _buildItemMenuGrid(itemMenu, 5);
+		_data.mainItemMenu = mainItemMenu;
+	}
+	
+	return {
+		isPriceLocked: function() {
+			return APP_CONFIG.IS_PRICE_LOCKED;
+		},
+		getNumberOfAddonItemButtons: function() {
+			return APP_CONFIG.NUMBER_OF_ADDON_ITEM_BUTTONS;
+		},
+		initMenu: function() {
+			if (!IS_MENU_READY) {
+				_initMenu();
+			}
+		},
+		isMenuReady: function() {
+			return IS_MENU_READY;
+		},
+		getMainItemMenu: function() {
+			if (_data.mainItemMenu)
+				return _data.mainItemMenu;
+			
+			return null;
+		},
+		getAddonItemMenu: function() {
+			if (_data.addonitems)
+				return _data.addonitems;
+			
+			return null;
+		},
+		getManageMenuDefaultSizes: function() {
+			return {
+				types: APP_CONFIG.MANAGE_MENU_DEFAULT_NUMBER_OF_TYPES,
+				items: APP_CONFIG.MANAGE_MENU_DEFAULT_NUMBER_OF_ITEMS
+			};
+		}
+	};
+}

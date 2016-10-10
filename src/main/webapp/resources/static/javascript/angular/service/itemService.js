@@ -4,51 +4,28 @@
 function itemService(APP_CONFIG, $http, urlService) {
 	var _data = {};
 
-	function _groupItemsByType(items) {	
-		var groupedItems = {};
+	function _groupItemsByType(itemTypes, items) {
+		var groupedItems = items.reduce(function(dict, currentItem) {
+			dict[currentItem['itemTypeId']] = dict[currentItem['itemTypeId']] || [];
+			dict[currentItem['itemTypeId']].push(currentItem);
+			return dict;
+		}, {});
+		
 		var i, len;
-		
-		for (i=0, len=items.length; i < len; i++) {
-			var item = angular.copy(items[i]);
-			if (item.itemType) {
-				var itemType = item.itemType.name;
-				var groupedByType = groupedItems[itemType];
-				
-				if (!groupedByType) {
-					groupedByType = [];
-				}
-				var itemCopy = angular.copy(item);
-				groupedByType.push(itemCopy);
-				groupedItems[itemType] = groupedByType;
-			}
-		}
-		
-		var listItems = [];
-		
-		for (key in groupedItems) {
-			var groupedByType = groupedItems[key];
-			groupedByType.sort(sortByWeight);
-			
-			var itemType = null;
-			if (groupedByType.length > 0) {
-				itemType = groupedByType[0].itemType;
-			}
-			
+		var groupedByType = [];
+		for (i=0, len=itemTypes.length; i < len; i++) {
+			var itemType = itemTypes[i];
 			var obj = {
-				type: itemType,
-				items: groupedByType
-			};
-			listItems.push(obj);
+					type: itemType,
+					items: groupedItems[itemType.id]
+				};
+			groupedByType.push(obj);
 		}
-		
-		listItems.sort(function(a, b) {
-			return sortByWeight(a.type, b.type);
-		});
-		
-		_data.items = listItems;
-		return listItems;
+		_data.itemTypes = itemTypes;
+		_data.items = groupedByType;
+		return groupedByType;
 	}
-	
+
 	function sortByWeight(a, b) {
 		if (!angular.isDefined(a.weight) && !angular.isDefined(b.weight))
 			return 0;
@@ -71,6 +48,10 @@ function itemService(APP_CONFIG, $http, urlService) {
 		return $http.get(urlService.item + '/list');
 	}
 	
+	function _ajaxGetItemTypes() {
+		return $http.get(urlService.item + '/type/list')
+	}
+	
 	function _ajaxGetAddOnItems() {
 		if (APP_CONFIG.SHOW_ADD_ON_ITEMS) {
 			return $http.get(urlService.item + '/addonitem/list');
@@ -79,27 +60,32 @@ function itemService(APP_CONFIG, $http, urlService) {
 	}
 	
 	return {
-		groupItemsByType: function(items) {
-			return _groupItemsByType(items);
+		groupItemsByType: function(itemTypes, items) {
+			return _groupItemsByType(itemTypes, items);
 		},
 		getAJAXItemPromises: function() {
 			var promises = [];
 			
+			var itemTypes = _ajaxGetItemTypes();
+			if (itemTypes)	promises.push(itemTypes);
+			
 			var items = _ajaxGetItems();
-			if (items)
-				promises.push(items);
+			if (items)	promises.push(items);
 			
 			//var addonitems = _ajaxGetAddOnItems();
-			//if (addonitems)
-				//promises.push(addonitems);
+			//if (addonitems)	promises.push(addonitems);
 			
 			return promises;
 		},
 		getItems: function() {
-			if (!_data.items) {
-				return null;
-			}			
+			if (!_data.items)	return null;
+			
 			return _data.items;
+		},
+		getItemTypes: function() {
+			if (!_data.itemTypes)	return null;
+			
+			return _data.itemTypes;
 		},
 		getAddOnItems: function() {
 			if (!_data.addonitems) {

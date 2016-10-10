@@ -6,12 +6,13 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 	
 	function _initMenu() {
 		var promises = itemService.getAJAXItemPromises();
-		
 		$q.all(promises).then(
 			function(res) {
-				var itemsRes = res[0];
-				var items = itemsRes.data;
-				var groupedByType = itemService.groupItemsByType(items);
+
+				var itemTypesRes = res[0]
+				var itemsRes = res[1];
+
+				var groupedByType = itemService.groupItemsByType(itemTypesRes.data, itemsRes.data);
 				_buildItemMenu(groupedByType);
 			
 				_data.addonitems = [ {
@@ -87,9 +88,11 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 		for (i=0, len=items.length; i < len; i++) {
 
 			var submenu = items[i].items;
-			var item = {name: items[i].type.name, submenu: _buildItemMenuGrid(submenu, 5)};
-			
-			itemMenu.push(item);
+			if (submenu) {
+				var item = {name: items[i].type.name, submenu: _buildItemMenuGrid(submenu, 5)};
+				
+				itemMenu.push(item);
+			}
 		}
 		
 		var mainItemMenu = _buildItemMenuGrid(itemMenu, 5);

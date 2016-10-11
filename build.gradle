@@ -37,7 +37,6 @@ dependencies {
 eclipse {
   	wtp {
     	component {
-      		print "hi"
       		contextPath = 'app'
     	} 	 
   	}
@@ -47,14 +46,24 @@ javascript.source {
     dev {
         js {
             srcDir 'src/main/webapp/resources/static/javascript/angular'
+			include '*/*.js'
             include '*.js'
-            include '*/*.js'
         }
     }
 }
 
 combineJs {
     encoding = "UTF-8"
-    source = javascript.source.dev.js.files
+    source = files("src/main/webapp/resources/static/javascript/angular/component", 
+    			"src/main/webapp/resources/static/javascript/angular/service",
+    			"src/main/webapp/resources/static/javascript/angular/main.js")
+    source.each{
+    	File file ->
+    		println file.name
+    }
     dest = file("src/main/webapp/resources/static/javascript/app.js")
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
 }

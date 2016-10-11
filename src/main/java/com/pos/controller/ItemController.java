@@ -25,9 +25,6 @@ public class ItemController {
     @ResponseBody
     public ResponseEntity<List<Item>> listItems() {
         List<Item> items = itemService.listActiveItems();
-        if (items.isEmpty())
-            return new ResponseEntity<>(items, HttpStatus.NO_CONTENT);
-
         return new ResponseEntity<>(items, HttpStatus.OK);
     }
 
@@ -35,9 +32,6 @@ public class ItemController {
     @ResponseBody
     public ResponseEntity<List<ItemType>> listItemTypes() {
         List<ItemType> itemTypes = itemService.listItemTtypes();
-        if (itemTypes.isEmpty())
-            return new ResponseEntity<>(itemTypes, HttpStatus.NO_CONTENT);
-
         return new ResponseEntity<>(itemTypes, HttpStatus.OK);
     }
 

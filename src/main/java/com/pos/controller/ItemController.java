@@ -1,17 +1,20 @@
 package com.pos.controller;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.pos.model.application.Item;
 import com.pos.model.application.ItemType;
+import com.pos.model.parameter.ItemTypeParameter;
 import com.pos.service.ItemService;
 
 @Controller
@@ -34,5 +37,17 @@ public class ItemController {
         List<ItemType> itemTypes = itemService.listItemTtypes();
         return new ResponseEntity<>(itemTypes, HttpStatus.OK);
     }
-
+    
+    @RequestMapping(value = "/type", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<ItemType> addItemType(@RequestBody ItemTypeParameter itemType) {
+    	
+    	if (null == itemType.getName() || itemType.getName().isEmpty()) {
+    		return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    	}
+    	
+    	itemService.saveOrUpdateItemType(itemType);
+    	
+    	return new ResponseEntity<>(HttpStatus.CREATED);
+    }
 }

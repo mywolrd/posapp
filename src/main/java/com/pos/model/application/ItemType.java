@@ -1,6 +1,7 @@
 package com.pos.model.application;
 
 import com.google.common.base.Objects;
+import com.pos.model.parameter.ItemTypeParameter;
 
 public class ItemType {
 
@@ -24,6 +25,13 @@ public class ItemType {
 
     }
 
+    private ItemType(ItemTypeBuilder builder) {
+    	this.name = builder.name;
+    	this.id = builder.id;
+    	this.weight = builder.weight;
+    	this.active = builder.active;
+    }
+    
     public String getName() {
         return this.name;
     }
@@ -50,6 +58,50 @@ public class ItemType {
         return Objects.hashCode(this.name, this.id, this.weight, this.active);
     }
 
+    public static class ItemTypeBuilder {
+    	private long id;
+    	private final String name;
+    	private int weight;
+    	private boolean active;
+    	
+    	public ItemTypeBuilder(String name) {
+    		this.name = name;
+    	}
+    	
+    	public ItemTypeBuilder(ItemTypeParameter itemType) {
+    		this.id = itemType.getId();
+    		this.name = itemType.getName();
+    		this.weight = itemType.getWeight();
+    		this.active = itemType.isActive();
+    	}
+    	
+    	public ItemTypeBuilder(ItemType itemType) {
+    		this.id = itemType.getId();
+    		this.name = itemType.getName();
+    		this.weight = itemType.getWeight();
+    		this.active = itemType.isActive();
+    	}
+    	
+    	public ItemTypeBuilder weight(int weight) {
+    		this.weight = weight;
+    		return this;
+    	}
+    
+    	public ItemTypeBuilder active(boolean active) {
+    		this.active = active;
+    		return this;
+    	}
+    	
+    	public ItemTypeBuilder id(long id) {
+    		this.id = id;
+    		return this;
+    	}
+    	
+    	public ItemType build() {
+    		return new ItemType(this);
+    	}
+    }
+    
     @Override
     public boolean equals(Object obj) {
         if (this == obj)

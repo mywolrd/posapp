@@ -11,6 +11,7 @@ import com.pos.dao.ItemDao;
 import com.pos.dao.ItemTypeDao;
 import com.pos.model.application.Item;
 import com.pos.model.application.ItemType;
+import com.pos.model.parameter.ItemTypeParameter;
 
 @Service
 public class ItemService {
@@ -40,5 +41,24 @@ public class ItemService {
         }
         return activeItems;
     }
-
+    
+    public void saveOrUpdateItemType(ItemTypeParameter itemType) {
+    	if (0 == itemType.getId()) {
+    		saveItemType(itemType);
+    	} else {
+    		updateItemType(itemType);
+    	}
+    }
+    
+    private void saveItemType(ItemTypeParameter itemType) {
+    	int weight = this.itemTypeDao.getMaxWeight();
+    	weight++;
+    	ItemType newItemType = new ItemType.ItemTypeBuilder(itemType).weight(weight).build();
+    	itemTypeDao.save(newItemType);
+    }
+    
+    private void updateItemType(ItemTypeParameter itemType) {
+    	ItemType updatedItemType = new ItemType.ItemTypeBuilder(itemType).build();
+    	itemTypeDao.update(updatedItemType);
+    }
 }

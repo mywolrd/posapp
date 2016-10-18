@@ -49,7 +49,7 @@ class _CartItem {
 		this.hasQuantity = hasQuantity;
 	}
 	
-	get itemName () {
+	get itemName() {
 		return this.item.itemName;
 	}	
 }

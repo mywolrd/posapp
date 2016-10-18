@@ -10,18 +10,6 @@ var manageItemComponent = {
 			ctrl.updateItem = function() {
 				
 			}
-			
-			ctrl.changePageNum = function(pageNum) {
-				if (1 == pageNum) {
-					if (ctrl.pageNum !== ctrl.maxPageNum) {
-						ctrl.pageNum += 1;
-					}
-				} else if (-1 == pageNum) {
-					if (0 !== ctrl.pageNum) {
-						ctrl.pageNum--;
-					}
-				}
-			}
 		},
 	bindings: {
 		items: '<'
@@ -37,11 +25,5 @@ var manageItemComponent = {
 		+		'<input type="checkbox" "class="col-xs-1" data-ng-model="item.type.active"/>'
 		+		'<span class="col-xs-1"></span>'
 		+	'</div>'
-		+	'<div class="col-xs-12">'
-		+		'<div class="col-xs-3"></div>'
-		+		'<div class="col-xs-2 no-padding"><button type="button" class="btn btn-primary btn-block" data-ng-click="$ctrl.changePageNum(-1)"> < </button></div>'
-		+		'<div class="col-xs-2"></div>'
-		+		'<div class="col-xs-2 no-padding"><button type="button" class="btn btn-primary btn-block" data-ng-click="$ctrl.changePageNum(1)"> > </button></div>'
-		+		'<div class="col-xs-3"></div>'
-		+	'</div>'
+		+	'<prevnextbuttons update-current-page="$ctrl.chagenPageNum(curPage)" max-page="$ctrl.maxPageNum"></prevnextbuttons>'
 };

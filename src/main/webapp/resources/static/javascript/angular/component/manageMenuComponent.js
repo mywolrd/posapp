@@ -12,10 +12,6 @@ var manageMenuComponent = {
 				ctrl.numberOfItems = defaultSizes.items;
 			}
 
-			ctrl.updateItemType = function() {
-				
-			}
-			
 			ctrl.selectItemType = function(index) {
 				ctrl.items = ctrl.itemGroups[index].items;
 			}

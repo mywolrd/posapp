@@ -198,6 +198,7 @@ var app =
 		.component('managemenu', manageMenuComponent)
 		.component('manageitemtype', manageItemTypeComponent)
 		.component('manageitem', manageItemComponent)
+		.component('prevnextbuttons', prevNextButtonsComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

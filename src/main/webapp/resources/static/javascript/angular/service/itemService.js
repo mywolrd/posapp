@@ -59,6 +59,13 @@ function itemService(APP_CONFIG, $http, urlService) {
 		return null;
 	}
 	
+	function _saveOrUpdateItemType(itemType) {
+		$http.post(urlService.item + '/type', itemType)
+		.then(function success(){
+		}, function error() {
+		} );
+	}
+	
 	return {
 		groupItemsByType: function(itemTypes, items) {
 			return _groupItemsByType(itemTypes, items);
@@ -77,6 +84,14 @@ function itemService(APP_CONFIG, $http, urlService) {
 			
 			return promises;
 		},
+		/*
+		 * Takes name, weight, active, id
+		 * Weight, active, id can be undefined, but name must not be null, undefined.
+		 */
+		saveOrUpdateItemType: function(name, weight, active, id) {
+			var itemType = new _ItemTypeRequestBody(name, weight, active, id);
+			return _saveOrUpdateItemType(itemType);
+		},
 		getItems: function() {
 			if (!_data.items)	return null;
 			
@@ -94,4 +109,13 @@ function itemService(APP_CONFIG, $http, urlService) {
 			return _data.addonitems;
 		}
 	};
+}
+
+class _ItemTypeRequestBody {
+	constructor(name, weight, active, id) {
+		this.name = name;
+		this.weight = angular.isDefined(weight) ? weight:0;
+		this.active = angular.isDefined(active) ? active:true;
+		this.id = angular.isDefined(id) ? id:0;
+	}
 }

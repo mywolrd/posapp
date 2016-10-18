@@ -186,7 +186,7 @@ var app =
 		.factory('orderService', [ '$http', 'urlService', 'stringService', orderService ])
 		.factory('itemService', [ 'APP_CONFIG', '$http', 'urlService', itemService])
 		.factory('menuService', ['APP_CONFIG', '$q', 'navigationService', 'itemService', menuService])
-		
+		.factory('utilsService', utilsService)
 		.component('navigation', navigationComponent)
 		.component('keyboardInput', keyboardInputComponent)
 		.component('newcustomer', newCustomerComponent)
@@ -195,7 +195,9 @@ var app =
 		.component('addonitemview', addonItemViewComponent)
 		.component('cartview', cartViewComponent)
 		.component('neworder', newOrderComponent)
-		.component('managemenu', manageMenuComponent)		
+		.component('managemenu', manageMenuComponent)
+		.component('manageitemtype', manageItemTypeComponent)
+		.component('manageitem', manageItemComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

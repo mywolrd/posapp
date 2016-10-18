@@ -12,6 +12,10 @@ div[class^="no-padding"], div[class*=" no-padding"] {
 	padding: 0
 }
 
+div#content {
+	padding-top: 20px;	
+}
+
 .selected {
 	background-color: #B0C4DE;
 }
@@ -50,13 +54,18 @@ td .btn {
 	height: 400px;
 }
 
-.cart-item {
+.item {
 	line-height: 40px;
 	font-size: 19px;
 	font-weight: bold;
 	border: none;
 	cursor: pointer;
 	margin: 2px;
+}
+
+.font-20 {
+	font-size: 20px;
+	font-weight: bold;	
 }
 
 .cart-item-button {
@@ -71,4 +80,13 @@ td .btn {
 
 #itemTypeTable tbody {
 	display: block;
+}
+
+.no-padding {
+	padding: 0;
+}
+
+.vertical-line-right {
+	height: 400px; /* remove later */
+    border-right: thick solid #000000;
 }

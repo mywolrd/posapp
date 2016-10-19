@@ -16,8 +16,7 @@ var manageMenuComponent = {
 				ctrl.items = ctrl.itemGroups[index].items;
 			}
 		},
-	template:'<div class="col-xs-1"></div>'
-		+	'<div class="form-group col-xs-3 vertical-line-right">'
+	template:'<div class="form-group col-xs-4 vertical-line-right">'
 		+		'<manageitemtype item-groups="$ctrl.itemGroups" select-type="$ctrl.selectItemType(index)"></manageitemtype>'
 		+	'</div>'
 		+	'<div class="form-group col-xs-7">'

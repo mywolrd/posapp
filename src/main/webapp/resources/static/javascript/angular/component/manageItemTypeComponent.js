@@ -14,7 +14,7 @@ var manageItemTypeComponent = {
 			}
 			
 			ctrl.saveNewItemType = function() {
-				itemService.saveOrUpdateItemType(ctrl.newItemTypeName);
+				itemService.saveOrUpdateItemType({name: ctrl.newItemTypeName});
 			}
 			
 			ctrl.updateItemType = function() {

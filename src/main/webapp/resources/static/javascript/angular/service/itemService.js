@@ -2,20 +2,20 @@
  * Item Service
  */
 function itemService(APP_CONFIG, $http, urlService) {
-	var _data = {};
+	let _data = {};
 
 	function _groupItemsByType(itemTypes, items) {
-		var groupedItems = items.reduce(function(dict, currentItem) {
+		let groupedItems = items.reduce(function(dict, currentItem) {
 			dict[currentItem['itemTypeId']] = dict[currentItem['itemTypeId']] || [];
 			dict[currentItem['itemTypeId']].push(currentItem);
 			return dict;
 		}, {});
 		
-		var i, len;
-		var groupedByType = [];
+		let i, len;
+		let groupedByType = [];
 		for (i=0, len=itemTypes.length; i < len; i++) {
-			var itemType = itemTypes[i];
-			var obj = {
+			let itemType = itemTypes[i];
+			let obj = {
 					type: itemType,
 					items: groupedItems[itemType.id]
 				};
@@ -30,8 +30,8 @@ function itemService(APP_CONFIG, $http, urlService) {
 		if (!angular.isDefined(a.weight) && !angular.isDefined(b.weight))
 			return 0;
 		
-		var weight_a = new Number(a.weight);
-		var weight_b = new Number(b.weight);
+		let weight_a = new Number(a.weight);
+		let weight_b = new Number(b.weight);
 		
 		if (a.weight < b.weight) {
 			return -1;
@@ -66,20 +66,27 @@ function itemService(APP_CONFIG, $http, urlService) {
 		} );
 	}
 	
+	function _saveOrUpdateItem(item) {
+		$http.post(urlService.item + '/item', item)
+		.then(function success(){
+		}, function error() {
+		} );
+	}
+	
 	return {
 		groupItemsByType: function(itemTypes, items) {
 			return _groupItemsByType(itemTypes, items);
 		},
 		getAJAXItemPromises: function() {
-			var promises = [];
+			let promises = [];
 			
-			var itemTypes = _ajaxGetItemTypes();
+			let itemTypes = _ajaxGetItemTypes();
 			if (itemTypes)	promises.push(itemTypes);
 			
-			var items = _ajaxGetItems();
+			let items = _ajaxGetItems();
 			if (items)	promises.push(items);
 			
-			//var addonitems = _ajaxGetAddOnItems();
+			//let addonitems = _ajaxGetAddOnItems();
 			//if (addonitems)	promises.push(addonitems);
 			
 			return promises;
@@ -89,8 +96,15 @@ function itemService(APP_CONFIG, $http, urlService) {
 		 * Weight, active, id can be undefined, but name must not be null, undefined.
 		 */
 		saveOrUpdateItemType: function(name, weight, active, id) {
-			var itemType = new _ItemTypeRequestBody(name, weight, active, id);
+			let itemType = new _ItemTypeRequestBody(name, weight, active, id);
 			return _saveOrUpdateItemType(itemType);
+		},
+		saveOrUpdateItem: function(options) {
+			console.log(options);
+			let _item = new _ItemRequestBody(options);
+			console.log(_item);
+
+			return _saveOrUpdateItem(_item);
 		},
 		getItems: function() {
 			if (!_data.items)	return null;
@@ -109,6 +123,18 @@ function itemService(APP_CONFIG, $http, urlService) {
 			return _data.addonitems;
 		}
 	};
+}
+
+class _ItemRequestBody {
+	constructor(options) {
+		this.id = angular.isDefined(options.id) ? options.id:0;
+		this.itemTypeId = options.itemTypeId;
+		this.name = options.name;
+		this.dollar = angular.isDefined(options.dollar) ? options.dollar:0;
+		this.cent = angular.isDefined(options.cent) ? options.cent:0;
+		this.weight = angular.isDefined(options.weight) ? options.weight:0;
+		this.active = angular.isDefined(options.active) ? options.active:true;
+	}
 }
 
 class _ItemTypeRequestBody {

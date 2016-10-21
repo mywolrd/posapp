@@ -187,6 +187,7 @@ var app =
 		.factory('itemService', [ 'APP_CONFIG', '$http', 'urlService', itemService])
 		.factory('menuService', ['APP_CONFIG', '$q', 'navigationService', 'itemService', menuService])
 		.factory('utilsService', utilsService)
+		.factory('keyboardService', keyboardService)
 		.component('navigation', navigationComponent)
 		.component('keyboardInput', keyboardInputComponent)
 		.component('newcustomer', newCustomerComponent)
@@ -199,6 +200,7 @@ var app =
 		.component('manageitemtype', manageItemTypeComponent)
 		.component('manageitem', manageItemComponent)
 		.component('prevnextbuttons', prevNextButtonsComponent)
+		.component('numberinput', numberKeyboardInputComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

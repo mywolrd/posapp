@@ -200,7 +200,7 @@ var app =
 		.component('manageitemtype', manageItemTypeComponent)
 		.component('manageitem', manageItemComponent)
 		.component('prevnextbuttons', prevNextButtonsComponent)
-		.component('numberinput', numberKeyboardInputComponent)
+		.component('inputcomponent', inputComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

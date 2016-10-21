@@ -1,9 +1,11 @@
 var manageItemComponent = {
 	controller:
-		function manageItemCtrl(itemService, menuService, utilsService) {
+		function manageItemCtrl(itemService, menuService, utilsService, keyboardService) {
 			var ctrl = this;
 			
 			ctrl.$onInit = function() {
+				ctrl.numberPadConfig = keyboardService.getNumberPad();
+				ctrl.keyboardConfig = keyboardService.getKeyboard();
 				ctrl.price = {};
 			}
 			
@@ -37,9 +39,9 @@ var manageItemComponent = {
 		+	'<div class="col-xs-1 no-padding"><button class="btn btn-primary btn-block" data-ng-click="$ctrl.saveItem()">Save</button></div>'
 		+	'<div class="col-xs-1"></div>'
 		+	'<div class="item col-xs-12" data-ng-repeat="item in $ctrl.items | limitTo:$ctrl.pageSize:$ctrl.pageNum*$ctrl.pageSize">'
-		+		'<span class="col-xs-2"><input type="text" class="form-control font-20" data-ng-model="item.weight"/></span>'
-		+		'<numberinput input-model="item.weight" span-width="2" font-size="20" ></numberinput>'
-		+		'<span class="col-xs-4"><input type="text" class="form-control font-20" data-ng-model="item.name"/></span>'
+		+		'<inputcomponent input-model="item.weight" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig"></inputcomponent>'
+		+		'<inputcomponent input-model="item.name" span-width="4" font-size="20" keyboard-config="$ctrl.keyboardConfig"></inputcomponent>'
+
 		+		'<input type="checkbox" "class="col-xs-1" data-ng-model="item.active"/>'
 		+		'<span class="col-xs-1"></span>'
 		+	'</div>'

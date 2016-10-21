@@ -11,7 +11,6 @@ import com.pos.dao.ItemDao;
 import com.pos.dao.ItemTypeDao;
 import com.pos.model.application.Item;
 import com.pos.model.application.ItemType;
-import com.pos.model.parameter.ItemTypeParameter;
 
 @Service
 public class ItemService {
@@ -41,24 +40,48 @@ public class ItemService {
         }
         return activeItems;
     }
-    
-    public void saveOrUpdateItemType(ItemTypeParameter itemType) {
-    	if (0 == itemType.getId()) {
-    		saveItemType(itemType);
-    	} else {
-    		updateItemType(itemType);
-    	}
+
+    public void saveOrUpdateItem(Item item) {
+        if (0 == item.getId()) {
+            this.saveItem(item);
+        } else {
+            this.updateItem(item);
+        }
     }
-    
-    private void saveItemType(ItemTypeParameter itemType) {
-    	int weight = this.itemTypeDao.getMaxWeight();
-    	weight++;
-    	ItemType newItemType = new ItemType.ItemTypeBuilder(itemType).weight(weight).build();
-    	itemTypeDao.save(newItemType);
+
+    public void saveOrUpdateItemType(ItemType itemType) {
+        if (0 == itemType.getId()) {
+            this.saveItemType(itemType);
+        } else {
+            this.updateItemType(itemType);
+        }
     }
-    
-    private void updateItemType(ItemTypeParameter itemType) {
-    	ItemType updatedItemType = new ItemType.ItemTypeBuilder(itemType).build();
-    	itemTypeDao.update(updatedItemType);
+
+    private void saveItem(Item item) {
+        int weight = this.itemDao.getMaxWeight();
+        weight++;
+
+        Item _newItem = new Item.ItemBuilder(item).weight(weight).build();
+        this.itemDao.save(_newItem);
+    }
+
+    private void updateItem(Item item) {
+        this.itemDao.update(item);
+    }
+
+    private void saveItemType(ItemType itemType) {
+        // TODO
+        // What should happen when there are two save operations, each from a
+        // different instances of the same app
+        // ?
+        int weight = this.itemTypeDao.getMaxWeight();
+        weight++;
+        ItemType newItemType = new ItemType.ItemTypeBuilder(itemType)
+                .weight(weight).build();
+        this.itemTypeDao.save(newItemType);
+    }
+
+    private void updateItemType(ItemType itemType) {
+        this.itemTypeDao.update(itemType);
     }
 }

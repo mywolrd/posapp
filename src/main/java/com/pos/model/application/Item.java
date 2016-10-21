@@ -1,6 +1,7 @@
 package com.pos.model.application;
 
 import com.google.common.base.Objects;
+import com.pos.model.parameter.ItemParameter;
 
 public class Item {
 
@@ -23,6 +24,27 @@ public class Item {
         public ItemBuilder(long itemTypeId, Price price) {
             this.itemTypeId = itemTypeId;
             this.price = price;
+        }
+
+        public ItemBuilder(ItemParameter item) {
+            this.id = item.getId();
+            this.itemTypeId = item.getItemTypeId();
+            this.price = new Price.PriceBuilder().dollar(item.getDollar())
+                    .cent(item.getCent()).build();
+            this.name = item.getName();
+            this.weight = item.getWeight();
+            this.active = item.isActive();
+        }
+
+        public ItemBuilder(Item item) {
+            this.id = item.getId();
+            this.itemTypeId = item.getItemTypeId();
+            this.price = new Price.PriceBuilder()
+                    .dollar(item.getPrice().getDollar())
+                    .cent(item.getPrice().getCent()).build();
+            this.name = item.getName();
+            this.weight = item.getWeight();
+            this.active = item.isActive();
         }
 
         public ItemBuilder name(String name) {
@@ -77,6 +99,10 @@ public class Item {
 
     public boolean isActive() {
         return this.active;
+    }
+
+    public int getWeight() {
+        return this.weight;
     }
 
     @Override

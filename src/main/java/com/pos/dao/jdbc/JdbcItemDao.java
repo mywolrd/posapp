@@ -22,11 +22,13 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
 
     private final static String listAll = "SELECT * from ITEMS";
 
-    private final static String insertItem = "insert into ITEMS (name, type, dollar, cent, active) values (:name, :type, :dollar, :cent, :active)";
+    private final static String insertItem = "insert into ITEMS (name, type, dollar, cent, weight, active) values (:name, :type, :dollar, :cent, :weight, :active)";
 
     private final static String updateItem = "update ITEMS set name = :name, type = :type, dollar = :dollar, cent = :cent where ITEMS.id = :id ";
 
     private final static String updateActive = "update ITEMS set active = :active where ITEMS.id = :id";
+
+    private final static String maxWeight = "SELECT MAX(WEIGHT) from ITEMS where ITEMS.ACTIVE = :active";
 
     @Autowired
     private ItemRowMapper rowMapper;
@@ -71,6 +73,7 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
                 .addValue(DBNames.NAME, item.getName())
                 .addValue(DBNames.DOLLAR, item.getPrice().getDollar())
                 .addValue(DBNames.CENT, item.getPrice().getCent())
+                .addValue(DBNames.WEIGHT, item.getWeight())
                 .addValue(DBNames.ACTIVE, Boolean.TRUE);
         try {
             this.namedParameterJdbcTemplate.update(insertItem, parameter);
@@ -110,5 +113,21 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
     @Override
     public void deactivate(Item item) {
         this.deactivateById(item.getId());
+    }
+
+    @Override
+    public int getMaxWeight() {
+        try {
+            SqlParameterSource parameter = new MapSqlParameterSource()
+                    .addValue(DBNames.ACTIVE, true);
+            Integer weight = this.namedParameterJdbcTemplate
+                    .queryForObject(maxWeight, parameter, Integer.class);
+            if (null == weight)
+                return 0;
+
+            return weight;
+        } catch (DataAccessException e) {
+            return Integer.MIN_VALUE;
+        }
     }
 }

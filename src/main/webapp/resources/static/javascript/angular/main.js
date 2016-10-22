@@ -200,7 +200,8 @@ var app =
 		.component('manageitemtype', manageItemTypeComponent)
 		.component('manageitem', manageItemComponent)
 		.component('prevnextbuttons', prevNextButtonsComponent)
-		.component('inputcomponent', inputComponent)
+		.component('swInput', spanWrappedInputComponent)
+		.component('swButton', spanWrappedButtonComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

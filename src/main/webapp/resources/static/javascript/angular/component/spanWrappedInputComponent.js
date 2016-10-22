@@ -1,4 +1,4 @@
-let inputComponent = {
+let spanWrappedInputComponent = {
 	controller:
 		function(utilsService) {
 			let ctrl = this;
@@ -18,10 +18,13 @@ let inputComponent = {
 		inputModel: '=',
 		keyboardConfig: '<',
 		spanWidth: '@',
-		fontSize: '@'
+		fontSize: '@',
+		placeHolder: '@',
+		isRequired: '<'
 	},
 	template:
-			'<span data-ng-class="$ctrl.span_class">'
-		+		'<input class="form-control" data-ng-class="$ctrl.input_class" type="text" data-ng-model="$ctrl.inputModel" data-ng-virtual-keyboard="$ctrl.keyboardConfig"/>'
+			'<span class="no-left-padding" data-ng-class="$ctrl.span_class">'
+		+		'<input class="form-control" data-ng-class="$ctrl.input_class" data-ng-required="$ctrl.isRequired" placeholder="{{$ctrl.placeHolder}}"' 
+		+			'type="text" data-ng-model="$ctrl.inputModel" data-ng-virtual-keyboard="$ctrl.keyboardConfig"/>'
 		+	'</span>'
 }

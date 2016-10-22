@@ -22,7 +22,5 @@ function utilsService() {
 		getCSStextFontSize: function() {
 			return TEXT_FONT_SIZE;
 		}
-	
-	
 	};
 }

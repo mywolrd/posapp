@@ -25,25 +25,22 @@ var manageItemComponent = {
 		items: '<',
 		itemType: '<'
 	},
-	template:'<div class="col-xs-3 form-group">'
-		+		'<input class="form-control font-20" type="text" data-ng-model="$ctrl.newItemName" placeholder="New Item"/>'
-		+	'</div>'
-		+	'<div class="col-xs-1"></div>'
-		+	'<div class="col-xs-2 form-group">'
-		+		'<input class="form-control font-20" type="text" data-ng-model="$ctrl.price.dollar" placeholder="$" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/>'
-		+	'</div>'
-		+	'<span> </span>'
-		+	'<div class="col-xs-2 form-group">'
-		+		'<input class="form-control font-20" type="text" data-ng-model="$ctrl.price.cent" placeholder="&#162;" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/>'
-		+	'</div>'
-		+	'<div class="col-xs-1 no-padding"><button class="btn btn-primary btn-block" data-ng-click="$ctrl.saveItem()">Save</button></div>'
-		+	'<div class="col-xs-1"></div>'
-		+	'<div class="item col-xs-12" data-ng-repeat="item in $ctrl.items | limitTo:$ctrl.pageSize:$ctrl.pageNum*$ctrl.pageSize">'
-		+		'<inputcomponent input-model="item.weight" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig"></inputcomponent>'
-		+		'<inputcomponent input-model="item.name" span-width="4" font-size="20" keyboard-config="$ctrl.keyboardConfig"></inputcomponent>'
-
-		+		'<input type="checkbox" "class="col-xs-1" data-ng-model="item.active"/>'
+	template:
+			'<div class="form-group">'
+		+		'<sw-input input-model="$ctrl.newItemName" span-width="3" font-size="20" keyboard-config="$ctrl.keyboardConfig" place-holder="New Item"></sw-input>'
 		+		'<span class="col-xs-1"></span>'
+		+		'<sw-input input-model="$ctrl.newItemName" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" place-holder="$"></sw-input>'
+		+		'<sw-input input-model="$ctrl.newItemName" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" place-holder="&#162;"></sw-input>'
+		+		'<span class="col-xs-1 no-padding"><button class="btn btn-primary btn-block" data-ng-click="$ctrl.saveItem()">Save</button></span>'
+		+		'<span class="col-xs-1"></span>'		
+		+	'</div>'
+
+		+	'<div class="item col-xs-12" data-ng-repeat="item in $ctrl.items | limitTo:$ctrl.pageSize:$ctrl.pageNum*$ctrl.pageSize">'
+		+		'<sw-input input-model="item.weight" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig"></sw-input>'
+		+		'<sw-input input-model="item.name" span-width="4" font-size="20" keyboard-config="$ctrl.keyboardConfig"></sw-input>'
+		+		'<input type="checkbox" "class="col-xs-1" data-ng-model="item.active"/>'
+		+		'<span class="col-xs-5"></span>'
+
 		+	'</div>'
 		+	'<prevnextbuttons update-current-page="$ctrl.chagenPageNum(curPage)" max-page="$ctrl.maxPageNum"></prevnextbuttons>'
 };

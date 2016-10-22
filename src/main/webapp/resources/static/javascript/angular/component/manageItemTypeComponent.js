@@ -35,8 +35,8 @@ var manageItemTypeComponent = {
 		
 			'<div class="form-group col-xs-12">'
 		+		'<sw-input input-model="$ctrl.newItemTypeName" span-width="7" font-size="20" keyboard-config="$ctrl.keyboardConfig" place-holder="New Item Type"></sw-input>'
-		+		'<span class="col-xs-1"></span>'
-		+		'<span class="col-xs-2 no-padding"><button class="btn btn-primary btn-block" data-ng-click="$ctrl.saveNewItemType()">Save</button></span>'		
+		+		'<span class="col-xs-1" />'
+		+		'<sw-button span-width="2" button-name="Save" do-click="$ctrl.saveNewItemType()"/>'	
 		+	'</div>'
 		
 		+	'<div class="item col-xs-12" data-ng-repeat="itemGroup in $ctrl.itemGroups | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'

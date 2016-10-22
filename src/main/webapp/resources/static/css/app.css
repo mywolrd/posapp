@@ -74,7 +74,7 @@ td .btn {
 	font-weight: bold;
 }
 
-.cart-item-button:focus {
+.cart-item-button:focus, input[type="text"]:focus {
 	background-color : lightgray;
 }
 
@@ -84,6 +84,14 @@ td .btn {
 
 .no-padding {
 	padding: 0;
+}
+
+.no-left-padding {
+	padding-left: 0;
+}
+
+.no-right-padding {
+	padding-right: 0;
 }
 
 .vertical-line-right {

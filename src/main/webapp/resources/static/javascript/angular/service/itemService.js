@@ -60,6 +60,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 	}
 	
 	function _saveOrUpdateItemType(itemType) {
+		console.log(itemType);
 		$http.post(urlService.item + '/type', itemType)
 		.then(function success(){
 		}, function error() {
@@ -95,15 +96,12 @@ function itemService(APP_CONFIG, $http, urlService) {
 		 * Takes name, weight, active, id
 		 * Weight, active, id can be undefined, but name must not be null, undefined.
 		 */
-		saveOrUpdateItemType: function(name, weight, active, id) {
-			let itemType = new _ItemTypeRequestBody(name, weight, active, id);
+		saveOrUpdateItemType: function(options) {
+			let itemType = new _ItemTypeRequestBody(options);
 			return _saveOrUpdateItemType(itemType);
 		},
 		saveOrUpdateItem: function(options) {
-			console.log(options);
 			let _item = new _ItemRequestBody(options);
-			console.log(_item);
-
 			return _saveOrUpdateItem(_item);
 		},
 		getItems: function() {
@@ -138,10 +136,10 @@ class _ItemRequestBody {
 }
 
 class _ItemTypeRequestBody {
-	constructor(name, weight, active, id) {
-		this.name = name;
-		this.weight = angular.isDefined(weight) ? weight:0;
-		this.active = angular.isDefined(active) ? active:true;
-		this.id = angular.isDefined(id) ? id:0;
+	constructor(options) {
+		this.name = angular.isDefined(options.name) ? options.name:null;
+		this.weight = angular.isDefined(options.weight) ? options.weight:0;
+		this.active = angular.isDefined(options.active) ? options.active:true;
+		this.id = angular.isDefined(options.id) ? options.id:0;
 	}
 }

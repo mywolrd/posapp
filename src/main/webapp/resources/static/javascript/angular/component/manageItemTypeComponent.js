@@ -1,7 +1,7 @@
-var manageItemTypeComponent = {
+let manageItemTypeComponent = {
 	controller:
 		function manageItemTypeCtrl(itemService, menuService, utilsService, keyboardService) {
-			var ctrl = this;
+			let ctrl = this;
 			
 			ctrl.$onInit = function() {
 				ctrl.pageSize = 10;
@@ -10,10 +10,8 @@ var manageItemTypeComponent = {
 				
 				ctrl.numberPadConfig = keyboardService.getNumberPad();
 				ctrl.keyboardConfig = keyboardService.getKeyboard();
-			}
-			
-			ctrl.changePageNum = function(curPage) {
-				ctrl.curPage = curPage;
+
+				ctrl.itemTypes = ctrl.parentCtrl.itemTypes;
 			}
 			
 			ctrl.saveNewItemType = function() {
@@ -24,27 +22,74 @@ var manageItemTypeComponent = {
 			}
 			
 			ctrl.selectItemType = function(index) {
-				ctrl.selectType({index: index});
+				ctrl.parentCtrl.selectItemType(index);
+			}
+			
+			ctrl.deselectItemType = function() {
+				
 			}
 		},
-	bindings: {
-		itemGroups: '<',
-		selectType: '&'
+	require: {
+		parentCtrl: '^^managemenu'
 	},
 	template:
-		
 			'<div class="form-group col-xs-12">'
 		+		'<sw-input input-model="$ctrl.newItemTypeName" span-width="7" font-size="20" keyboard-config="$ctrl.keyboardConfig" place-holder="New Item Type"></sw-input>'
 		+		'<span class="col-xs-1" />'
 		+		'<sw-button span-width="2" button-name="Save" do-click="$ctrl.saveNewItemType()"/>'	
 		+	'</div>'
 		
-		+	'<div class="item col-xs-12" data-ng-repeat="itemGroup in $ctrl.itemGroups | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
-		+		'<div class="col-xs-3"><input type="text" class="form-control font-20" data-ng-model="itemGroup.type.weight" data-ng-virtual-keyboard="{kt:' + "'Number_Pad'" + ', relative: false, size: 5}"/></div>'
-		+		'<span class="col-xs-6" data-ng-click="$ctrl.selectItemType($index)">{{itemGroup.type.name}}</span>'
-		+		'<span class="col-xs-1"></span>'
-		+		'<input type="checkbox" "class="col-xs-1" data-ng-model="itemGroup.type.active"/>'
-		+		'<span class="col-xs-1"></span>'
+		+	'<item-type-list/>'
+};
+
+let editSelectedItemType = {
+	controller:
+		function() {
+		
+		},
+	bindins: {
+		
+	},
+	require: {
+		
+	},
+	template:
+			'<>'
+		+	'<>'
+}
+
+let itemTypeListComponent = {
+	controller: 
+		function(utilsService) {
+			let ctrl = this;
+	
+			ctrl.$onInit = function() {
+				ctrl.pageSize = 10;
+				ctrl.curPage = 0;
+				ctrl.items = ctrl.parentCtrl.itemTypes;
+				ctrl.maxPageNum = utilsService.getMaxPageNum(ctrl.items, ctrl.pageSize);
+
+				ctrl.numberPadConfig = ctrl.parentCtrl.numberPadConfig;
+			}
+				
+			ctrl.changePageNum = function(curPage) {
+				ctrl.curPage = curPage;
+			}
+				
+			ctrl.selectItemType = function(index) {
+				ctrl.parentCtrl.selectItemType(index);
+			}
+		},
+	require: {
+		parentCtrl: '^^manageitemtype'
+	},
+	template: 
+			'<div class="item col-xs-12" data-ng-repeat="item in $ctrl.items | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
+		+		'<sw-input input-model="item.type.weight" span-width="3" font-size="20" keyboard-config="$ctrl.numberPadConfig"></sw-input>'
+		+		'<span class="col-xs-6" data-ng-click="$ctrl.selectItemType($index)">{{item.type.name}}</span>'
+		+		'<span class="col-xs-1" />'
+		+		'<input type="checkbox" "class="col-xs-1" data-ng-model="item.type.active"/>'
+		+		'<span class="col-xs-1" />'
 		+	'</div>'
-		+	'<prevnextbuttons update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum"></prevnextbuttons>'
+		+	'<pn-buttons update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'
 };

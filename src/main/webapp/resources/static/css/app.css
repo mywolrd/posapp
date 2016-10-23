@@ -78,6 +78,10 @@ td .btn {
 	background-color : lightgray;
 }
 
+.pn-buttons-container {
+	margin-top: 20px;	
+}
+
 #itemTypeTable tbody {
 	display: block;
 }

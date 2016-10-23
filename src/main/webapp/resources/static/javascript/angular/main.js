@@ -199,9 +199,10 @@ var app =
 		.component('managemenu', manageMenuComponent)
 		.component('manageitemtype', manageItemTypeComponent)
 		.component('manageitem', manageItemComponent)
-		.component('prevnextbuttons', prevNextButtonsComponent)
+		.component('pnButtons', prevNextButtonsComponent)
 		.component('swInput', spanWrappedInputComponent)
 		.component('swButton', spanWrappedButtonComponent)
+		.component('itemTypeList', itemTypeListComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

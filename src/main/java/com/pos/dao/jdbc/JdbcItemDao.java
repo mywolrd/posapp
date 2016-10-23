@@ -28,7 +28,7 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
 
     private final static String updateActive = "update ITEMS set active = :active where ITEMS.id = :id";
 
-    private final static String maxWeight = "SELECT MAX(WEIGHT) from ITEMS where ITEMS.ACTIVE = :active";
+    private final static String maxWeight = "SELECT MAX(WEIGHT) from ITEMS where ITEMS.ACTIVE = :active and ITEMS.TYPE = :type";
 
     @Autowired
     private ItemRowMapper rowMapper;
@@ -116,10 +116,11 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
     }
 
     @Override
-    public int getMaxWeight() {
+    public int getMaxWeight(long itemTypeId) {
         try {
             SqlParameterSource parameter = new MapSqlParameterSource()
-                    .addValue(DBNames.ACTIVE, true);
+                    .addValue(DBNames.ACTIVE, true)
+                    .addValue(DBNames.TYPE, itemTypeId);
             Integer weight = this.namedParameterJdbcTemplate
                     .queryForObject(maxWeight, parameter, Integer.class);
             if (null == weight)

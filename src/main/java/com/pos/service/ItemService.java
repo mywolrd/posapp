@@ -58,7 +58,7 @@ public class ItemService {
     }
 
     private void saveItem(Item item) {
-        int weight = this.itemDao.getMaxWeight();
+        int weight = this.itemDao.getMaxWeight(item.getItemTypeId());
         weight++;
 
         Item _newItem = new Item.ItemBuilder(item).weight(weight).build();

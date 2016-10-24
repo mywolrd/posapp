@@ -4,14 +4,10 @@ let manageItemTypeComponent = {
 			let ctrl = this;
 			
 			ctrl.$onInit = function() {
-				ctrl.pageSize = 10;
-				ctrl.curPage = 0;
-				ctrl.maxPageNum = utilsService.getMaxPageNum(ctrl.itemGroups, ctrl.pageSize);
-				
 				ctrl.numberPadConfig = keyboardService.getNumberPad();
 				ctrl.keyboardConfig = keyboardService.getKeyboard();
 
-				ctrl.itemTypes = ctrl.parentCtrl.itemTypes;
+				ctrl.itemTypes = itemService.getItemsGroupedByType();
 			}
 			
 			ctrl.saveNewItemType = function() {
@@ -21,16 +17,16 @@ let manageItemTypeComponent = {
 			ctrl.updateItemType = function() {
 			}
 			
-			ctrl.selectItemType = function(index) {
-				ctrl.parentCtrl.selectItemType(index);
-			}
-			
 			ctrl.deselectItemType = function() {
 				
 			}
+			
+			ctrl.selectItemType = function(itemsGroupedByType) {
+				ctrl.setItems({itemsGroupedByType: itemsGroupedByType});
+			}
 		},
-	require: {
-		parentCtrl: '^^managemenu'
+	bindings: {
+		setItems: '&'
 	},
 	template:
 			'<div class="form-group col-xs-12">'
@@ -39,7 +35,7 @@ let manageItemTypeComponent = {
 		+		'<sw-button span-width="2" button-name="Save" do-click="$ctrl.saveNewItemType()"/>'	
 		+	'</div>'
 		
-		+	'<item-type-list/>'
+		+	'<item-type-list items="$ctrl.itemTypes" do-click="$ctrl.selectItemType(itemsGroupedByType)"/>'
 };
 
 let editSelectedItemType = {
@@ -47,29 +43,28 @@ let editSelectedItemType = {
 		function() {
 		
 		},
-	bindins: {
+	bindings: {
 		
 	},
 	require: {
 		
 	},
 	template:
-			'<>'
-		+	'<>'
+			'<div class="col-xs-12">'
+		+		'<sw-input input-model="$ctrl.newItemTypeName" span-width="7" font-size="20" keyboard-config="$ctrl.keyboardConfig" place-holder="New Item Type"></sw-input>'
+		+	'</div>'
 }
 
 let itemTypeListComponent = {
 	controller: 
-		function(utilsService) {
+		function(utilsService, keyboardService) {
 			let ctrl = this;
 	
 			ctrl.$onInit = function() {
 				ctrl.pageSize = 10;
 				ctrl.curPage = 0;
-				ctrl.items = ctrl.parentCtrl.itemTypes;
 				ctrl.maxPageNum = utilsService.getMaxPageNum(ctrl.items, ctrl.pageSize);
-
-				ctrl.numberPadConfig = ctrl.parentCtrl.numberPadConfig;
+				ctrl.numberPadConfig = keyboardService.getNumberPad();
 			}
 				
 			ctrl.changePageNum = function(curPage) {
@@ -77,11 +72,13 @@ let itemTypeListComponent = {
 			}
 				
 			ctrl.selectItemType = function(index) {
-				ctrl.parentCtrl.selectItemType(index);
+				let _itemsGroupedByType = ctrl.items[index];
+				ctrl.doClick({itemsGroupedByType: _itemsGroupedByType});
 			}
 		},
-	require: {
-		parentCtrl: '^^manageitemtype'
+	bindings: {
+		items: '<',
+		doClick: '&'
 	},
 	template: 
 			'<div class="item col-xs-12" data-ng-repeat="item in $ctrl.items | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'

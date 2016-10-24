@@ -1,18 +1,18 @@
 function menuService(APP_CONFIG, $q, navigationService, itemService) {
 	
-	var _data = {};
-	var refreshMenu = false;
-	var IS_MENU_READY = false;
+	let _data = {};
+	let refreshMenu = false;
+	let IS_MENU_READY = false;
 	
 	function _initMenu() {
-		var promises = itemService.getAJAXItemPromises();
+		let promises = itemService.getAJAXItemPromises();
 		$q.all(promises).then(
 			function(res) {
 
-				var itemTypesRes = res[0]
-				var itemsRes = res[1];
+				let itemTypesRes = res[0]
+				let itemsRes = res[1];
 
-				var groupedByType = itemService.groupItemsByType(itemTypesRes.data, itemsRes.data);
+				let groupedByType = itemService.groupItemsByType(itemTypesRes.data, itemsRes.data);
 				_buildItemMenu(groupedByType);
 			
 				_data.addonitems = [ {
@@ -66,12 +66,12 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 	}
 	
 	function _buildItemMenuGrid(items, numberOfItems) {
-		var itemMenu = [];
-		var row = [];
-		var i, len;
+		let itemMenu = [];
+		let row = [];
+		let i, len;
 		
 		for (i=0, len=items.length; i < len; i++) {
-			var item = items[i];
+			let item = items[i];
 			row.push(item);
 
 			if (((i + 1) % numberOfItems) == 0 || i == (len - 1)) {
@@ -83,19 +83,19 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 	}
 	
 	function _buildItemMenu(items) {
-		var itemMenu = [];
-		var i, len;
+		let itemMenu = [];
+		let i, len;
 		for (i=0, len=items.length; i < len; i++) {
 
-			var submenu = items[i].items;
+			let submenu = items[i].items;
 			if (submenu) {
-				var item = {name: items[i].type.name, submenu: _buildItemMenuGrid(submenu, 5)};
+				let item = {name: items[i].type.name, submenu: _buildItemMenuGrid(submenu, 5)};
 				
 				itemMenu.push(item);
 			}
 		}
 		
-		var mainItemMenu = _buildItemMenuGrid(itemMenu, 5);
+		let mainItemMenu = _buildItemMenuGrid(itemMenu, 5);
 		_data.mainItemMenu = mainItemMenu;
 	}
 	

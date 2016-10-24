@@ -11,18 +11,21 @@ function itemService(APP_CONFIG, $http, urlService) {
 			return dict;
 		}, {});
 		
-		let i, len;
-		let groupedByType = [];
-		for (i=0, len=itemTypes.length; i < len; i++) {
-			let itemType = itemTypes[i];
-			let obj = {
-					type: itemType,
-					items: groupedItems[itemType.id]
-				};
-			groupedByType.push(obj);
-		}
+		itemTypes.sort(sortByWeight);
+		let groupedByType = itemTypes.reduce(function(arr, itemType) {
+			let items = groupedItems[itemType.id];
+			if (items) {
+				items.sort(sortByWeight);
+			} else {
+				items = null;
+			}
+			arr.push({ type: itemType, items: items })
+			return arr;
+		}, []);
+
 		_data.itemTypes = itemTypes;
-		_data.items = groupedByType;
+		_data.items = items;
+		_data.itemsGroupedByType = groupedByType;
 		return groupedByType;
 	}
 
@@ -45,7 +48,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 	}
 	
 	function _ajaxGetItems() {
-		return $http.get(urlService.item + '/list');
+		return $http.get(urlService.item + '/item/list');
 	}
 	
 	function _ajaxGetItemTypes() {
@@ -103,6 +106,11 @@ function itemService(APP_CONFIG, $http, urlService) {
 		saveOrUpdateItem: function(options) {
 			let _item = new _ItemRequestBody(options);
 			return _saveOrUpdateItem(_item);
+		},
+		getItemsGroupedByType: function() {
+			if (!_data.itemsGroupedByType)	return null;
+			
+			return _data.itemsGroupedByType;
 		},
 		getItems: function() {
 			if (!_data.items)	return null;

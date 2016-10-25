@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,17 +25,25 @@ public class ItemController {
     @Autowired
     private ItemService itemService;
 
-    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    @RequestMapping(value = "/item/list", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<List<Item>> listItems() {
-        List<Item> items = itemService.listActiveItems();
+        List<Item> items = itemService.listItems();
+        return new ResponseEntity<>(items, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/item/itemtypeid/{itemTypeId}/list", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<Item>> listItemsByType(
+            @PathVariable long itemTypeId) {
+        List<Item> items = itemService.listItemsByType(itemTypeId);
         return new ResponseEntity<>(items, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/type/list", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<List<ItemType>> listItemTypes() {
-        List<ItemType> itemTypes = itemService.listItemTtypes();
+        List<ItemType> itemTypes = itemService.listItemTypes();
         return new ResponseEntity<>(itemTypes, HttpStatus.OK);
     }
 

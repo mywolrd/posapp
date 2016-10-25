@@ -55,9 +55,9 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
     }
 
     @Override
-    public List<Item> listItemsByType(String type) {
+    public List<Item> listItemsByType(long itemTypeId) {
         SqlParameterSource parameter = new MapSqlParameterSource()
-                .addValue(DBNames.TYPE, type);
+                .addValue(DBNames.TYPE, itemTypeId);
         try {
             return this.namedParameterJdbcTemplate.query(listByType, parameter,
                     rowMapper);

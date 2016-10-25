@@ -10,7 +10,7 @@ public interface ItemDao {
 
     List<Item> listItems();
 
-    List<Item> listItemsByType(String type);
+    List<Item> listItemsByType(long itemTypeId);
 
     void save(Item item);
 

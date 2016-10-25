@@ -13,7 +13,7 @@ function orderService() {
 }
 
 function messageService(APP_CONFIG) {
-	var _data = {};
+	let _data = {};
 	
 	return {
 		setMessage: function(message) {
@@ -31,7 +31,7 @@ function messageService(APP_CONFIG) {
 	};
 }
 
-var app = 
+let app = 
 	angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
 		.constant('APP_CONFIG', {
 			NAVIGATION: [{

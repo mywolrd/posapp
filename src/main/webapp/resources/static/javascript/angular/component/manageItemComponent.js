@@ -1,7 +1,7 @@
-var manageItemComponent = {
+let manageItemComponent = {
 	controller:
 		function manageItemCtrl(itemService, menuService, utilsService, keyboardService) {
-			var ctrl = this;
+			let ctrl = this;
 			
 			ctrl.$onInit = function() {
 				ctrl.numberPadConfig = keyboardService.getNumberPad();
@@ -10,7 +10,7 @@ var manageItemComponent = {
 			}
 			
 			ctrl.saveItem = function() {
-				if (angular.isDefined(ctrl.itemType) && null !== ctrl.itemType) {
+				if (ctrl.itemType) {
 					itemService.saveOrUpdateItem({	itemTypeId: ctrl.itemType.id,
 													name: ctrl.newItemName,
 													dollar: ctrl.price.dollar,
@@ -35,7 +35,9 @@ var manageItemComponent = {
 		+		'<span class="col-xs-1 /">'		
 		+	'</div>'
 
-		+	'<div class="item col-xs-12" data-ng-repeat="item in $ctrl.items | limitTo:$ctrl.pageSize:$ctrl.pageNum*$ctrl.pageSize">'
+		+	'<div data-ng-if="!$ctrl.items"><span>No Items for {{$ctrl.itemType.name}}</span></div>'
+		
+		+	'<div data-ng-if="$ctrl.items" class="item col-xs-12" data-ng-repeat="item in $ctrl.items | limitTo:$ctrl.pageSize:$ctrl.pageNum*$ctrl.pageSize">'
 		+		'<sw-input input-model="item.weight" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig"></sw-input>'
 		+		'<sw-input input-model="item.name" span-width="4" font-size="20" keyboard-config="$ctrl.keyboardConfig"></sw-input>'
 		+		'<span class="col-xs-1" />'

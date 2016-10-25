@@ -15,13 +15,16 @@ let manageItemTypeComponent = {
 			}
 			
 			ctrl.updateItemType = function() {
+				itemService.saveOrUpdateItemType(ctrl.currentItemType);
 			}
 			
-			ctrl.deselectItemType = function() {
-				
+			ctrl.unselectItemType = function() {
+				ctrl.currentItemType = null;
+				ctrl.setItems({itemsGroupedByType: null})
 			}
 			
 			ctrl.selectItemType = function(itemsGroupedByType) {
+				ctrl.currentItemType = itemsGroupedByType.type;
 				ctrl.setItems({itemsGroupedByType: itemsGroupedByType});
 			}
 		},
@@ -35,7 +38,17 @@ let manageItemTypeComponent = {
 		+		'<sw-button span-width="2" button-name="Save" do-click="$ctrl.saveNewItemType()"/>'	
 		+	'</div>'
 		
-		+	'<item-type-list items="$ctrl.itemTypes" do-click="$ctrl.selectItemType(itemsGroupedByType)"/>'
+		+	'<div class="form-group col-xs-12" data-ng-if="$ctrl.currentItemType">'
+		+		'<span class="col-xs-12" />'
+		+		'<sw-input input-model="$ctrl.currentItemType.name" span-width="7" font-size="20" keyboard-config="$ctrl.keyboardConfig" />'
+		+		'<span class="col-xs-12" />'
+		+		'<span class="col-xs-2"/>'
+		+		'<sw-button span-width="3" button-name="Back" do-click="$ctrl.unselectItemType()" />'
+		+		'<span class="col-xs-2"/>'
+		+		'<sw-button span-width="3" button-name="Update" do-click="$ctrl.updateItemType()" />'
+		+		'<span class="col-xs-2"/>'
+		+	'</div>'
+		+	'<item-type-list data-ng-if="!$ctrl.currentItemType" items="$ctrl.itemTypes" do-click="$ctrl.selectItemType(itemsGroupedByType)"/>'
 };
 
 let editSelectedItemType = {

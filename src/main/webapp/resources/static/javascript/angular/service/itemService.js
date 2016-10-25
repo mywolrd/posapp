@@ -100,8 +100,8 @@ function itemService(APP_CONFIG, $http, urlService) {
 		 * Weight, active, id can be undefined, but name must not be null, undefined.
 		 */
 		saveOrUpdateItemType: function(options) {
-			let itemType = new _ItemTypeRequestBody(options);
-			return _saveOrUpdateItemType(itemType);
+			let _itemType = new _ItemTypeRequestBody(options);
+			return _saveOrUpdateItemType(_itemType);
 		},
 		saveOrUpdateItem: function(options) {
 			let _item = new _ItemRequestBody(options);

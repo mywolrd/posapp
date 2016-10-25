@@ -16,6 +16,10 @@ div#content {
 	padding-top: 20px;	
 }
 
+span:empty::before {
+	content: "\200b";
+}
+
 .selected {
 	background-color: #B0C4DE;
 }

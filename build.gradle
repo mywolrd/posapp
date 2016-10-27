@@ -56,6 +56,7 @@ combineJs {
     encoding = "UTF-8"
     source = files("src/main/webapp/resources/static/javascript/angular/component", 
     			"src/main/webapp/resources/static/javascript/angular/service",
+    			"src/main/webapp/resources/static/javascript/angular/provider",
     			"src/main/webapp/resources/static/javascript/angular/main.js")
     source.each{
     	File file ->

@@ -32,7 +32,7 @@ function messageService(APP_CONFIG) {
 }
 
 let app = 
-	angular.module('posapp', [ 'ui.router', 'angular-virtual-keyboard' ])
+	angular.module('posapp', ['ui.router', 'ui.bootstrap', 'angular-virtual-keyboard', 'angular-loading-bar'])
 		.constant('APP_CONFIG', {
 			NAVIGATION: [{
 			              	name: "POS App"
@@ -106,7 +106,7 @@ let app =
 			MANAGE_MENU_DEFAULT_NUMBER_OF_ITEMS : 10,
 			
 			// menu configs
-			SHOW_ADD_ON_ITEMS : true,
+			SHOW_ADD_ON_ITEMS : false,
 			NUMBER_OF_ADDON_ITEM_BUTTONS : 4,
 			NUMBER_OF_BUTTONS_MENU : 5,
 			
@@ -178,6 +178,8 @@ let app =
 							});
 
 						} ])
+						
+		.provider('spinnerModal', spinnerModalProvider)
 		.factory('stringService', stringService)
 		.factory('urlService', urlService)
 		.factory('cartService', [ 'APP_CONFIG', 'stringService', cartService ])
@@ -203,6 +205,7 @@ let app =
 		.component('swInput', spanWrappedInputComponent)
 		.component('swButton', spanWrappedButtonComponent)
 		.component('itemTypeList', itemTypeListComponent)
+		.component('spinner', spinnerModalComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

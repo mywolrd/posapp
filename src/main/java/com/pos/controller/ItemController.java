@@ -49,7 +49,7 @@ public class ItemController {
 
     @RequestMapping(value = "/item", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Item> saveOrUpdateItem(
+    public ResponseEntity<List<Item>> saveOrUpdateItem(
             @RequestBody ItemParameter item) {
         if (0 == item.getItemTypeId()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -63,7 +63,7 @@ public class ItemController {
 
     @RequestMapping(value = "/type", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<ItemType> saveOrUpdateItemType(
+    public ResponseEntity<List<ItemType>> saveOrUpdateItemType(
             @RequestBody ItemTypeParameter itemType) {
 
         if (null == itemType.getName() || itemType.getName().isEmpty()) {
@@ -73,6 +73,7 @@ public class ItemController {
         ItemType _itemType = new ItemType.ItemTypeBuilder(itemType).build();
         itemService.saveOrUpdateItemType(_itemType);
 
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        List<ItemType> itemTypes = itemService.listItemTypes();
+        return new ResponseEntity<>(itemTypes, HttpStatus.CREATED);
     }
 }

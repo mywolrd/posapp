@@ -100,7 +100,7 @@ let app =
 			// true : requires a customer to complete an order
 			// false: does not
 			CUSTOMER_MODE : true,
-
+			ENABLE_ONSCREEN_KEYBOARD : false, 
 			// manage menu configs
 			MANAGE_MENU_DEFAULT_NUMBER_OF_TYPES : 10,
 			MANAGE_MENU_DEFAULT_NUMBER_OF_ITEMS : 10,
@@ -189,7 +189,7 @@ let app =
 		.factory('itemService', [ 'APP_CONFIG', '$http', 'urlService', itemService])
 		.factory('menuService', ['APP_CONFIG', '$q', 'navigationService', 'itemService', menuService])
 		.factory('utilsService', utilsService)
-		.factory('keyboardService', keyboardService)
+		.factory('keyboardService', ['APP_CONFIG', keyboardService])
 		.component('navigation', navigationComponent)
 		.component('keyboardInput', keyboardInputComponent)
 		.component('newcustomer', newCustomerComponent)

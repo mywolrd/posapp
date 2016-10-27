@@ -52,11 +52,16 @@ function itemService(APP_CONFIG, $http, urlService) {
 		return null;
 	}
 	
-	function _saveOrUpdateItemType(itemType) {
-		$http.post(urlService.item + '/type', itemType)
-		.then(function success(){
-		}, function error() {
-		} );
+	function _saveOrUpdateItemType(itemType, fn) {
+		let _itemType = new _ItemTypeRequestBody(itemType);
+		
+		$http.post(urlService.item + '/type', _itemType)
+			.then(function (res){
+				_setItemTypes(res.data);
+				fn();
+		}, function () {
+		
+		});
 	}
 	
 	function _saveOrUpdateItem(item) {
@@ -64,6 +69,14 @@ function itemService(APP_CONFIG, $http, urlService) {
 		.then(function success(){
 		}, function error() {
 		} );
+	}
+	
+	function _setItemTypes(itemTypes) {
+		_data.itemTypes = null;
+		if (angular.isArray(itemTypes)) {
+			itemTypes.sort(_sortByWeight);
+			_data.itemTypes = itemTypes;
+		}
 	}
 	
 	return {
@@ -85,10 +98,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 			return promises;
 		},
 		
-		saveOrUpdateItemType: function(options) {
-			let _itemType = new _ItemTypeRequestBody(options);
-			return _saveOrUpdateItemType(_itemType);
-		},
+		saveOrUpdateItemType: _saveOrUpdateItemType,
 		saveOrUpdateItem: function(options) {
 			let _item = new _ItemRequestBody(options);
 			return _saveOrUpdateItem(_item);
@@ -105,13 +115,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 				_data.items = _groupItemsByType(items);
 			}
 		},
-		setItemTypes: function(itemTypes) {
-			_data.itemTypes = null;
-			if (angular.isArray(itemTypes)) {
-				itemTypes.sort(_sortByWeight);
-				_data.itemTypes = itemTypes;
-			}
-		},
+		setItemTypes: _setItemTypes,
 		getItems: function() {
 			if (!_data.items)	return null;
 			

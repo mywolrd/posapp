@@ -14,12 +14,11 @@ let manageItemTypeComponent = {
 				ctrl.newItemTypeName = null;
 			}
 			
-			_saveNewItemType = function(newItemTypeName) {
-				itemService.saveOrUpdateItemType({name: newItemTypeName});
-			}
-			
-			_updateItemType = function(itemType) {
-				itemService.saveOrUpdateItemType(itemType);
+			_saveOrUpdateItemType = function(itemType) {
+				itemService.saveOrUpdateItemType(itemType, function success(){
+					ctrl.newItemTypeName = null;
+					ctrl.itemTypes = itemService.getItemTypes();
+				});
 			}
 			
 			ctrl.unselectItemType = function() {
@@ -38,8 +37,10 @@ let manageItemTypeComponent = {
 			
 			ctrl.updateItem = function(name, value, index) {
 				if (angular.isUndefined(index) && angular.equals(_name, name)) {
-					if (value)
-						_saveNewItemType(value);
+					if (value) {
+						ctrl.newItemTypeName = value;
+						_saveOrUpdateItemType({name: value});
+					}
 				}
 				
 				if (angular.isDefined(index) &&
@@ -47,7 +48,7 @@ let manageItemTypeComponent = {
 						angular.isDefined(value)) {
 					let _itemType = angular.copy(ctrl.itemTypes[index]);
 					_itemType[name] = value;
-					_updateItemType(_itemType);
+					_saveOrUpdateItemType(_itemType);
 				}
 				
 			}
@@ -74,7 +75,7 @@ let itemTypeListComponent = {
 			ctrl.$onInit = function() {
 				ctrl.pageSize = 10;
 				ctrl.curPage = 0;
-				ctrl.maxPageNum = utilsService.getMaxPageNum(ctrl.items, ctrl.pageSize);
+				ctrl.maxPageNum = utilsService.getMaxPageNum(ctrl.itemTypes, ctrl.pageSize);
 				ctrl.numberPadConfig = keyboardService.getNumberPad();
 				ctrl.keyboardConfig = keyboardService.getKeyboard();
 			}
@@ -82,22 +83,25 @@ let itemTypeListComponent = {
 			ctrl.changePageNum = function(curPage) {
 				ctrl.curPage = curPage;
 			}
-				
-			ctrl.selectItemType = function(index) {
-				ctrl.doClick({index: index});
-			}
 			
 			ctrl.update = function(name, value, index) {
-				ctrl.updateItem({name: name, value: value, index: index});
+				let _index = getTrueIndex(index);
+				ctrl.updateItem({name: name, value: value, index: _index});
 			}
 			
 			ctrl.showItems = function(index) {
-				if (index === currentItemTypeIndex)
+				let _index = getTrueIndex(index);
+				
+				if (_index === currentItemTypeIndex)
 					currentItemTypeIndex = -1;
 				else
-					currentItemTypeIndex = index;
+					currentItemTypeIndex = _index;
 				
 				ctrl.doClick({index: currentItemTypeIndex});
+			}
+			
+			function getTrueIndex(index) {
+				return (ctrl.pageSize * ctrl.curPage) + index;
 			}
 		},
 	bindings: {
@@ -108,13 +112,13 @@ let itemTypeListComponent = {
 	template: 
 			'<div class="item col-xs-12" data-ng-repeat="itemType in $ctrl.itemTypes | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
 		+		'<sw-input input-type="text" input-value="itemType.weight" input-name="weight" on-update="$ctrl.update(name, value, index)"' 
-		+			'item-index="{{$index}}" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig"></sw-input>'
+		+			'item-index="$index" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig"></sw-input>'
 		
 		+		'<sw-input input-type="text" input-value="itemType.name" input-name="name" on-update="$ctrl.update(name, value, index)"' 
-		+			'item-index="{{$index}}" span-width="5" font-size="20" keyboard-config="$ctrl.keyboardConfig"></sw-input>'
+		+			'item-index="$index" span-width="5" font-size="20" keyboard-config="$ctrl.keyboardConfig"></sw-input>'
 		+		'<span class="col-xs-1" />'
 		+		'<sw-input input-type="checkbox" input-value="itemType.active" input-name="active" on-update="$ctrl.update(name, value, index)"'
-		+			'item-index="{{$index}}" span-width="1" />'
+		+			'item-index="$index" span-width="1" />'
 
 		+		'<sw-button button-class="btn-default" span-width="2" button-name=">>" do-click="$ctrl.showItems($index)"/>'	
 

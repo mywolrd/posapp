@@ -12,7 +12,7 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 				itemService.setItemTypes(res[0].data);
 				itemService.setItems(res[1].data);
 				
-				_buildItemMenu(itemService.getItemTypes(), itemService.getItems());
+				_buildItemMenu();
 			
 				_data.addonitems = [ {
 					itemName : 'Button1',
@@ -65,8 +65,8 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 	}
 	
 	function _buildItemMenuGrid(items, numberOfItems) {
-		let itemMenu = [];
-		let row = [];
+		let itemMenu = [],
+			row = [];
 		
 		for (let i=0, len=items.length; i < len; i++) {
 			let item = items[i];
@@ -80,8 +80,11 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 		return itemMenu;
 	}
 	
-	function _buildItemMenu(itemTypes, items) {
-		let itemMenu = [];
+	function _buildItemMenu() {
+		let itemMenu = [],
+			itemTypes = itemService.getItemTypes(),
+			items = itemService.getItems();
+		
 		for (let i=0, len=itemTypes.length; i < len; i++) {
 			let _itemsByType = items.get(itemTypes[i].id);
 			if (_itemsByType) {
@@ -105,6 +108,9 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 			if (!IS_MENU_READY) {
 				_initMenu();
 			}
+		},
+		refreshMenu: function() {
+			_buildItemMenu();
 		},
 		isMenuReady: function() {
 			return IS_MENU_READY;

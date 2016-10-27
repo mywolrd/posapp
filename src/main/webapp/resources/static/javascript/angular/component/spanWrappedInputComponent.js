@@ -2,29 +2,49 @@ let spanWrappedInputComponent = {
 	controller:
 		function(utilsService) {
 			let ctrl = this;
+			let _text = 'text';
 			
 			ctrl.$onInit = function() {
 				ctrl.span_class = [];
-				ctrl.span_class.push(utilsService.getCSScolxs() + ctrl.spanWidth);
+				if (ctrl.spanWidth)
+					ctrl.span_class.push(utilsService.getCSScolxs() + ctrl.spanWidth);
 				
 				ctrl.input_class = [];
-				ctrl.input_class.push(utilsService.getCSStextFontSize() + ctrl.fontSize);
+				if (ctrl.fontSize);
+					ctrl.input_class.push(utilsService.getCSStextFontSize() + ctrl.fontSize);
+				
+				ctrl.updateOn = {};
+				if (_text === ctrl.inputType)
+					ctrl.updateOn = {updateOn: 'blur'};
+				
+				ctrl.input = angular.copy(ctrl.inputValue);
+			}
+			
+			ctrl.$onChanges = function(changesObj) {
+				let updatedInputValue = changesObj.inputValue.currentValue;
+				ctrl.input = angular.copy(updatedInputValue);
+			}
+			
+			ctrl.update = function() {
+				ctrl.onUpdate({	name: ctrl.inputName, value: ctrl.input, index: ctrl.itemIndex});
 			}
 		},
 	bindings: {
-		//TODO
-		//Per AngularJS Documentation, Two-way binding is a no-no.
-		//Not sure how to reverse one-way binding without a service(complexity).
-		inputModel: '=',
+		inputValue: '<',
 		keyboardConfig: '<',
+		isRequired: '<',
+		inputType: '@',
+		inputName: '@',
 		spanWidth: '@',
 		fontSize: '@',
 		placeHolder: '@',
-		isRequired: '<'
+		itemIndex: '@',
+		onUpdate:'&'
 	},
 	template:
 			'<span class="no-left-padding" data-ng-class="$ctrl.span_class">'
 		+		'<input class="form-control" data-ng-class="$ctrl.input_class" data-ng-required="$ctrl.isRequired" placeholder="{{$ctrl.placeHolder}}"' 
-		+			'type="text" data-ng-model="$ctrl.inputModel" data-ng-virtual-keyboard="$ctrl.keyboardConfig"/>'
+		+			'data-ng-model="$ctrl.input" ng-change="$ctrl.update()" data-ng-model-options="$ctrl.updateOn"' 
+		+			'ng-change="$ctrl.update()" type="{{$ctrl.inputType}}" data-ng-virtual-keyboard="$ctrl.keyboardConfig"/>'
 		+	'</span>'
 }

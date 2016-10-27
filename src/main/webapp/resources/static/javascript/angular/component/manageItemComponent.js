@@ -18,7 +18,7 @@ let manageItemComponent = {
 				}
 			}
 			
-			ctrl.updateItem = function() {
+			ctrl.update = function(name, value, index) {
 			}
 		},
 	bindings: {
@@ -38,12 +38,23 @@ let manageItemComponent = {
 		+	'<div data-ng-if="!$ctrl.items"><span>No Items for {{$ctrl.itemType.name}}</span></div>'
 		
 		+	'<div data-ng-if="$ctrl.items" class="item col-xs-12" data-ng-repeat="item in $ctrl.items | limitTo:$ctrl.pageSize:$ctrl.pageNum*$ctrl.pageSize">'
-		+		'<sw-input input-model="item.weight" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig"></sw-input>'
-		+		'<sw-input input-model="item.name" span-width="4" font-size="20" keyboard-config="$ctrl.keyboardConfig"></sw-input>'
+		
+		+		'<sw-input input-type="text" input-value="item.weight" input-name="weight" on-update="$ctrl.update(name, value, index)"' 
+		+			'item-index="{{$index}}" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig"></sw-input>'
+		
+		+		'<sw-input input-type="text" input-value="item.name" input-name="name" on-update="$ctrl.update(name, value, index)"' 
+		+			'item-index="{{$index}}" span-width="4" font-size="20" keyboard-config="$ctrl.keyboardConfig"></sw-input>'
+		
 		+		'<span class="col-xs-1" />'
-		+		'<sw-input input-model="item.price.dollar" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" />'
-		+		'<sw-input input-model="item.price.cent" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" />'		
-		+		'<input type="checkbox" "class="col-xs-1" data-ng-model="item.active"/>'
+		
+		+		'<sw-input input-type="text" input-value="item.price.dollar" input-name="dollar" on-update="$ctrl.update(name, value, index)"' 
+		+			'item-index="{{$index}}" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig"></sw-input>'
+		
+		+		'<sw-input input-type="text" input-value="item.price.cent" input-name="cent" on-update="$ctrl.update(name, value, index)"' 
+		+			'item-index="{{$index}}" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig"></sw-input>'
+		
+		+		'<sw-input input-type="checkbox" input-value="item.active" input-name="active" on-update="$ctrl.update(name, value, index)"'
+		+			'item-index="{{$index}}" span-width="1" />'
 
 		+	'</div>'
 		+	'<pn-buttons update-current-page="$ctrl.chagenPageNum(curPage)" max-page="$ctrl.maxPageNum" />'

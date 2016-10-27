@@ -20,11 +20,10 @@ let manageMenuComponent = {
 				}
 			}
 		},
-	template:'<div class="form-group col-xs-4 vertical-line-right">'
+	template:'<div class="form-group col-xs-5">'
 		+		'<manageitemtype set-items="$ctrl.setItems(type)"/>'
 		+	'</div>'
 		+	'<div class="form-group col-xs-7">'
 		+		'<manageitem data-ng-if="$ctrl.currentItemType" items="$ctrl.currentItems" item-type="$ctrl.currentItemType"></manageitem>'
 		+	'</div>'
-		+	'<div class="col-xs-1"></div>'
 }

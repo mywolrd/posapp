@@ -16,35 +16,28 @@ let spanWrappedInputComponent = {
 				ctrl.updateOn = {};
 				if (_text === ctrl.inputType)
 					ctrl.updateOn = {updateOn: 'blur'};
-				
-				ctrl.input = angular.copy(ctrl.inputValue);
-			}
-			
-			ctrl.$onChanges = function(changesObj) {
-				let updatedInputValue = changesObj.inputValue.currentValue;
-				ctrl.input = angular.copy(updatedInputValue);
 			}
 			
 			ctrl.update = function() {
-				ctrl.onUpdate({	name: ctrl.inputName, value: ctrl.input, index: ctrl.itemIndex});
+				ctrl.onUpdate({	name: ctrl.inputName, value: ctrl.inputValue, index: ctrl.itemIndex});
 			}
 		},
 	bindings: {
 		inputValue: '<',
 		keyboardConfig: '<',
 		isRequired: '<',
+		itemIndex: '<',
 		inputType: '@',
 		inputName: '@',
 		spanWidth: '@',
 		fontSize: '@',
 		placeHolder: '@',
-		itemIndex: '@',
 		onUpdate:'&'
 	},
 	template:
 			'<span class="no-left-padding" data-ng-class="$ctrl.span_class">'
 		+		'<input class="form-control" data-ng-class="$ctrl.input_class" data-ng-required="$ctrl.isRequired" placeholder="{{$ctrl.placeHolder}}"' 
-		+			'data-ng-model="$ctrl.input" ng-change="$ctrl.update()" data-ng-model-options="$ctrl.updateOn"' 
+		+			'data-ng-model="$ctrl.inputValue" ng-change="$ctrl.update()" data-ng-model-options="$ctrl.updateOn"' 
 		+			'ng-change="$ctrl.update()" type="{{$ctrl.inputType}}" data-ng-virtual-keyboard="$ctrl.keyboardConfig"/>'
 		+	'</span>'
 }

@@ -3,34 +3,24 @@
  */
 function itemService(APP_CONFIG, $http, urlService) {
 	let _data = {};
-
-	function _groupItemsByType(itemTypes, items) {
-		let groupedItems = items.reduce(function(dict, currentItem) {
-			dict[currentItem['itemTypeId']] = dict[currentItem['itemTypeId']] || [];
-			dict[currentItem['itemTypeId']].push(currentItem);
-			return dict;
-		}, {});
+	
+	function _groupItemsByType(items) {
+		let groupedByType = items.reduce(function(map, currentItem) {
+			let itemTypeId = currentItem['itemTypeId'];
+			let items = map.get(itemTypeId) || [];
+			items.push(currentItem);
+			map.set(itemTypeId, items);
+			return map;
+		}, new Map());
 		
-		itemTypes.sort(sortByWeight);
-		let groupedByType = itemTypes.reduce(function(arr, itemType) {
-			let items = groupedItems[itemType.id];
-			if (items) {
-				items.sort(sortByWeight);
-			} else {
-				items = null;
-			}
-			arr.push({ type: itemType, items: items })
-			return arr;
-		}, []);
-
-		_data.itemTypes = itemTypes;
-		_data.items = items;
-		_data.itemsGroupedByType = groupedByType;
+		for (let items in groupedByType.values()) {
+			items.sort(_sortByWeight);
+		}
 		return groupedByType;
 	}
 
-	function sortByWeight(a, b) {
-		if (!angular.isDefined(a.weight) && !angular.isDefined(b.weight))
+	function _sortByWeight(a, b) {
+		if (angular.isUndefined(a.weight) && angular.isUndefined(b.weight))
 			return 0;
 		
 		let weight_a = new Number(a.weight);
@@ -63,7 +53,6 @@ function itemService(APP_CONFIG, $http, urlService) {
 	}
 	
 	function _saveOrUpdateItemType(itemType) {
-		console.log(itemType);
 		$http.post(urlService.item + '/type', itemType)
 		.then(function success(){
 		}, function error() {
@@ -90,15 +79,12 @@ function itemService(APP_CONFIG, $http, urlService) {
 			let items = _ajaxGetItems();
 			if (items)	promises.push(items);
 			
-			//let addonitems = _ajaxGetAddOnItems();
-			//if (addonitems)	promises.push(addonitems);
+			let addonitems = _ajaxGetAddOnItems();
+			if (addonitems)	promises.push(addonitems);
 			
 			return promises;
 		},
-		/*
-		 * Takes name, weight, active, id
-		 * Weight, active, id can be undefined, but name must not be null, undefined.
-		 */
+		
 		saveOrUpdateItemType: function(options) {
 			let _itemType = new _ItemTypeRequestBody(options);
 			return _saveOrUpdateItemType(_itemType);
@@ -111,6 +97,20 @@ function itemService(APP_CONFIG, $http, urlService) {
 			if (!_data.itemsGroupedByType)	return null;
 			
 			return _data.itemsGroupedByType;
+		},
+		setItems: function(items) {
+			_data.items = null;
+			
+			if (angular.isArray(items)) {
+				_data.items = _groupItemsByType(items);
+			}
+		},
+		setItemTypes: function(itemTypes) {
+			_data.itemTypes = null;
+			if (angular.isArray(itemTypes)) {
+				itemTypes.sort(_sortByWeight);
+				_data.itemTypes = itemTypes;
+			}
 		},
 		getItems: function() {
 			if (!_data.items)	return null;

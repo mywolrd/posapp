@@ -7,7 +7,8 @@ let manageItemTypeComponent = {
 				ctrl.numberPadConfig = keyboardService.getNumberPad();
 				ctrl.keyboardConfig = keyboardService.getKeyboard();
 
-				ctrl.itemTypes = itemService.getItemsGroupedByType();
+				ctrl.itemTypes = itemService.getItemTypes();
+				ctrl.items = itemService.getItems();
 			}
 			
 			ctrl.saveNewItemType = function() {
@@ -20,12 +21,12 @@ let manageItemTypeComponent = {
 			
 			ctrl.unselectItemType = function() {
 				ctrl.currentItemType = null;
-				ctrl.setItems({itemsGroupedByType: null})
+				ctrl.setItems({type: ctrl.currentItemType});
 			}
 			
-			ctrl.selectItemType = function(itemsGroupedByType) {
-				ctrl.currentItemType = itemsGroupedByType.type;
-				ctrl.setItems({itemsGroupedByType: itemsGroupedByType});
+			ctrl.selectItemType = function(index) {
+				ctrl.currentItemType = ctrl.itemTypes[index];
+				ctrl.setItems({type: ctrl.currentItemType});
 			}
 		},
 	bindings: {
@@ -35,7 +36,7 @@ let manageItemTypeComponent = {
 			'<div class="form-group col-xs-12">'
 		+		'<sw-input input-model="$ctrl.newItemTypeName" span-width="7" font-size="20" keyboard-config="$ctrl.keyboardConfig" place-holder="New Item Type"></sw-input>'
 		+		'<span class="col-xs-1" />'
-		+		'<sw-button span-width="2" button-name="Save" do-click="$ctrl.saveNewItemType()"/>'	
+		+		'<sw-button button-class="btn-primary" span-width="2" button-name="Save" do-click="$ctrl.saveNewItemType()"/>'	
 		+	'</div>'
 		
 		+	'<div class="form-group col-xs-12" data-ng-if="$ctrl.currentItemType">'
@@ -43,12 +44,12 @@ let manageItemTypeComponent = {
 		+		'<sw-input input-model="$ctrl.currentItemType.name" span-width="7" font-size="20" keyboard-config="$ctrl.keyboardConfig" />'
 		+		'<span class="col-xs-12" />'
 		+		'<span class="col-xs-2"/>'
-		+		'<sw-button span-width="3" button-name="Back" do-click="$ctrl.unselectItemType()" />'
+		+		'<sw-button button-class="btn-default" span-width="3" button-name="Back" do-click="$ctrl.unselectItemType()" />'
 		+		'<span class="col-xs-2"/>'
-		+		'<sw-button span-width="3" button-name="Update" do-click="$ctrl.updateItemType()" />'
+		+		'<sw-button button-class="btn-primary" span-width="3" button-name="Update" do-click="$ctrl.updateItemType()" />'
 		+		'<span class="col-xs-2"/>'
 		+	'</div>'
-		+	'<item-type-list data-ng-if="!$ctrl.currentItemType" items="$ctrl.itemTypes" do-click="$ctrl.selectItemType(itemsGroupedByType)"/>'
+		+	'<item-type-list data-ng-if="!$ctrl.currentItemType" item-types="$ctrl.itemTypes" do-click="$ctrl.selectItemType(index)"/>'
 };
 
 let editSelectedItemType = {
@@ -85,20 +86,19 @@ let itemTypeListComponent = {
 			}
 				
 			ctrl.selectItemType = function(index) {
-				let _itemsGroupedByType = ctrl.items[index];
-				ctrl.doClick({itemsGroupedByType: _itemsGroupedByType});
+				ctrl.doClick({index: index});
 			}
 		},
 	bindings: {
-		items: '<',
+		itemTypes: '<',
 		doClick: '&'
 	},
 	template: 
-			'<div class="item col-xs-12" data-ng-repeat="item in $ctrl.items | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
-		+		'<sw-input input-model="item.type.weight" span-width="3" font-size="20" keyboard-config="$ctrl.numberPadConfig"></sw-input>'
-		+		'<span class="col-xs-6" data-ng-click="$ctrl.selectItemType($index)">{{item.type.name}}</span>'
+			'<div class="item col-xs-12" data-ng-repeat="itemType in $ctrl.itemTypes | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
+		+		'<sw-input input-model="itemType.weight" span-width="3" font-size="20" keyboard-config="$ctrl.numberPadConfig"></sw-input>'
+		+		'<span class="col-xs-6" data-ng-click="$ctrl.selectItemType($index)">{{itemType.name}}</span>'
 		+		'<span class="col-xs-1" />'
-		+		'<input type="checkbox" "class="col-xs-1" data-ng-model="item.type.active"/>'
+		+		'<input type="checkbox" "class="col-xs-1" data-ng-model="itemType.active"/>'
 		+		'<span class="col-xs-1" />'
 		+	'</div>'
 		+	'<pn-buttons update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'

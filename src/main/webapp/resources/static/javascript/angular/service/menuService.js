@@ -9,11 +9,10 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 		$q.all(promises).then(
 			function(res) {
 
-				let itemTypesRes = res[0]
-				let itemsRes = res[1];
-
-				let groupedByType = itemService.groupItemsByType(itemTypesRes.data, itemsRes.data);
-				_buildItemMenu(groupedByType);
+				itemService.setItemTypes(res[0].data);
+				itemService.setItems(res[1].data);
+				
+				_buildItemMenu(itemService.getItemTypes(), itemService.getItems());
 			
 				_data.addonitems = [ {
 					itemName : 'Button1',
@@ -68,9 +67,8 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 	function _buildItemMenuGrid(items, numberOfItems) {
 		let itemMenu = [];
 		let row = [];
-		let i, len;
 		
-		for (i=0, len=items.length; i < len; i++) {
+		for (let i=0, len=items.length; i < len; i++) {
 			let item = items[i];
 			row.push(item);
 
@@ -82,16 +80,13 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 		return itemMenu;
 	}
 	
-	function _buildItemMenu(items) {
+	function _buildItemMenu(itemTypes, items) {
 		let itemMenu = [];
-		let i, len;
-		for (i=0, len=items.length; i < len; i++) {
-
-			let submenu = items[i].items;
-			if (submenu) {
-				let item = {name: items[i].type.name, submenu: _buildItemMenuGrid(submenu, 5)};
-				
-				itemMenu.push(item);
+		for (let i=0, len=itemTypes.length; i < len; i++) {
+			let _itemsByType = items.get(itemTypes[i].id);
+			if (_itemsByType) {
+				itemMenu.push({	name: itemTypes[i].name, 
+								submenu: _buildItemMenuGrid(_itemsByType, 5)});				
 			}
 		}
 		

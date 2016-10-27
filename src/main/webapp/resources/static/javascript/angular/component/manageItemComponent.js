@@ -31,7 +31,7 @@ let manageItemComponent = {
 		+		'<span class="col-xs-1"></span>'
 		+		'<sw-input input-model="$ctrl.price.dollar" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" place-holder="$" />'
 		+		'<sw-input input-model="$ctrl.price.cent" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" place-holder="&#162;" />'
-		+		'<sw-button span-width="1" font-size="20" button-name="Save" do-click="$ctrl.saveItem()"/>'	
+		+		'<sw-button button-class="btn-primary" span-width="1" font-size="20" button-name="Save" do-click="$ctrl.saveItem()"/>'	
 		+		'<span class="col-xs-1 /">'		
 		+	'</div>'
 

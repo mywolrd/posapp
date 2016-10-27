@@ -28,9 +28,9 @@ var prevNextButtonsComponent = {
 	template:
 			'<div class="col-xs-12 pn-buttons-container" data-ng-show="$ctrl.maxPage > 0">'
 		+		'<span class="col-xs-3"/>'
-		+		'<sw-button span-width="2" button-name="<" do-click="$ctrl.prevPage()"/>'
+		+		'<sw-button  button-class="btn-primary" span-width="2" button-name="<" do-click="$ctrl.prevPage()"/>'
 		+		'<span class="col-xs-2" />'
-		+		'<sw-button span-width="2" button-name=">" do-click="$ctrl.nextPage()"/>'
+		+		'<sw-button  button-class="btn-primary" span-width="2" button-name=">" do-click="$ctrl.nextPage()"/>'
 		+		'<span class="col-xs-3" />'
 		+	'</div>'
 };

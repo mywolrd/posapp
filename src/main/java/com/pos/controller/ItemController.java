@@ -58,7 +58,8 @@ public class ItemController {
         Item _item = new Item.ItemBuilder(item).build();
         itemService.saveOrUpdateItem(_item);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        List<Item> items = itemService.listItemsByType(_item.getItemTypeId());
+        return new ResponseEntity<>(items, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/type", method = RequestMethod.POST)

@@ -13,7 +13,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 			return map;
 		}, new Map());
 		
-		for (let items in groupedByType.values()) {
+		for (let items of groupedByType.values()) {
 			items.sort(_sortByWeight);
 		}
 		return groupedByType;
@@ -65,10 +65,14 @@ function itemService(APP_CONFIG, $http, urlService) {
 	}
 	
 	function _saveOrUpdateItem(item) {
-		$http.post(urlService.item + '/item', item)
-		.then(function success(){
+		let _item = new _ItemRequestBody(item);
+
+		$http.post(urlService.item + '/item', _item)
+			.then(function success(){
+		
 		}, function error() {
-		} );
+		
+		});
 	}
 	
 	function _setItemTypes(itemTypes) {
@@ -76,6 +80,14 @@ function itemService(APP_CONFIG, $http, urlService) {
 		if (angular.isArray(itemTypes)) {
 			itemTypes.sort(_sortByWeight);
 			_data.itemTypes = itemTypes;
+		}
+	}
+	
+	function _setItems(items) {
+		_data.items = null;
+			
+		if (angular.isArray(items)) {
+			_data.items = _groupItemsByType(items);
 		}
 	}
 	
@@ -99,22 +111,13 @@ function itemService(APP_CONFIG, $http, urlService) {
 		},
 		
 		saveOrUpdateItemType: _saveOrUpdateItemType,
-		saveOrUpdateItem: function(options) {
-			let _item = new _ItemRequestBody(options);
-			return _saveOrUpdateItem(_item);
-		},
+		saveOrUpdateItem: _saveOrUpdateItem,
 		getItemsGroupedByType: function() {
 			if (!_data.itemsGroupedByType)	return null;
 			
 			return _data.itemsGroupedByType;
 		},
-		setItems: function(items) {
-			_data.items = null;
-			
-			if (angular.isArray(items)) {
-				_data.items = _groupItemsByType(items);
-			}
-		},
+		setItems: _setItems,
 		setItemTypes: _setItemTypes,
 		getItems: function() {
 			if (!_data.items)	return null;

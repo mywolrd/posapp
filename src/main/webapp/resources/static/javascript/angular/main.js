@@ -32,7 +32,7 @@ function messageService(APP_CONFIG) {
 }
 
 let app = 
-	angular.module('posapp', ['ui.router', 'ui.bootstrap', 'angular-virtual-keyboard', 'angular-loading-bar'])
+	angular.module('posapp', ['ngSanitize', 'ui.router', 'ui.bootstrap', 'angular-virtual-keyboard', 'angular-loading-bar'])
 		.constant('APP_CONFIG', {
 			NAVIGATION: [{
 			              	name: "POS App"
@@ -204,8 +204,11 @@ let app =
 		.component('pnButtons', prevNextButtonsComponent)
 		.component('swInput', spanWrappedInputComponent)
 		.component('swButton', spanWrappedButtonComponent)
-		.component('itemTypeList', itemTypeListComponent)
 		.component('spinner', spinnerModalComponent)
+		.component('itemtype', editItemTypeComponent)
+		.component('itemTypeList', itemTypeListComponent)
+		.component('item', editItemComponent)
+		.component('itemList', itemListComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

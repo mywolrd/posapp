@@ -1,7 +1,6 @@
 function menuService(APP_CONFIG, $q, navigationService, itemService) {
 	
 	let _data = {};
-	let refreshMenu = false;
 	let IS_MENU_READY = false;
 	
 	function _initMenu() {
@@ -11,52 +10,8 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 
 				itemService.setItemTypes(res[0].data);
 				itemService.setItems(res[1].data);
-				
+
 				_buildItemMenu();
-			
-				_data.addonitems = [ {
-					itemName : 'Button1',
-					price : {
-						dollar : 5,
-						cent : 0
-					}
-					}, {
-						itemName : 'Button2',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					}, {
-						itemName : 'Button3',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					}, {
-						itemName : 'Button4',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					}, {
-						itemName : 'Button5',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					}, {
-						itemName : 'Button6',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					}, {
-						itemName : 'Button7',
-						price : {
-							dollar : 5,
-							cent : 0
-						}
-					} ];
 				
 				navigationService.setReady(true);
 			}, function(res) {
@@ -89,18 +44,20 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 			let _itemsByType = items.get(itemTypes[i].id);
 			if (_itemsByType) {
 				itemMenu.push({	name: itemTypes[i].name, 
-								submenu: _buildItemMenuGrid(_itemsByType, 5)});				
+								submenu: _buildItemMenuGrid(_itemsByType, APP_CONFIG.NUMBER_OF_BUTTONS_PER_ROW)});				
 			}
 		}
 		
-		let mainItemMenu = _buildItemMenuGrid(itemMenu, 5);
+		let mainItemMenu = _buildItemMenuGrid(itemMenu, APP_CONFIG.NUMBER_OF_BUTTONS_PER_ROW);
 		_data.mainItemMenu = mainItemMenu;
 	}
 	
+	function _isPriceLocked () {
+		return APP_CONFIG.IS_PRICE_LOCKED;
+	}
+	
 	return {
-		isPriceLocked: function() {
-			return APP_CONFIG.IS_PRICE_LOCKED;
-		},
+		isPriceLocked: _isPriceLocked,
 		getNumberOfAddonItemButtons: function() {
 			return APP_CONFIG.NUMBER_OF_ADDON_ITEM_BUTTONS;
 		},

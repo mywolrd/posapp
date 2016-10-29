@@ -19,11 +19,17 @@ let manageMenuComponent = {
 					ctrl.currentItems = ctrl.items.get(type.id);
 				}
 			}
+			
+			ctrl.updateItems = function() {
+				ctrl.items = itemService.getItems();
+				ctrl.currentItems = ctrl.items.get(ctrl.currentItemType.id);
+			}
 		},
 	template:'<div class="form-group col-xs-5">'
 		+		'<manageitemtype set-items="$ctrl.setItems(type)"/>'
 		+	'</div>'
 		+	'<div class="form-group col-xs-7">'
-		+		'<manageitem data-ng-if="$ctrl.currentItemType" items="$ctrl.currentItems" item-type="$ctrl.currentItemType"></manageitem>'
+		+		'<manageitem data-ng-if="$ctrl.currentItemType" items="$ctrl.currentItems"' 
+		+			'update-items="$ctrl.updateItems()" item-type="$ctrl.currentItemType"></manageitem>'
 		+	'</div>'
 }

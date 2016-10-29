@@ -13,14 +13,22 @@ let manageItemComponent = {
 				ctrl.numberPadConfig = keyboardService.getNumberPad();
 				ctrl.keyboardConfig = keyboardService.getKeyboard();
 				
-				ctrl.newItem = {};
-				ctrl.newItem[_itemTypeId] = ctrl.itemType.id;
+				_reset();
+			}
+			
+			ctrl.$onChanges = function(changesObj) {
+				_reset();
 			}
 			
 			ctrl.saveItem = function(name, value) {
-				ctrl.newItem[name] = value;
-				if (isCompleteItem())
-					itemService.saveOrUpdateItem(ctrl.newItem);
+				ctrl.newItem[name] = value;				
+				//Meh...
+				ctrl.newItemName = ctrl.newItem[_name];
+				ctrl.dollar = ctrl.newItem[_dollar];
+				ctrl.cent = ctrl.newItem[_cent];
+				
+				if (_isCompleteItem())
+					itemService.saveOrUpdateItem(ctrl.newItem, _saveOrUpdateSuccess);
 			}
 			
 			ctrl.update = function(name, value, index) {
@@ -29,11 +37,27 @@ let manageItemComponent = {
 					_item[_cent] = _item[_price][_cent];
 					_item[_dollar] = _item[_price][_dollar];
 					_item[name] = value;
-					itemService.saveOrUpdateItem(_item);
+					delete _item[_price];
+					
+					itemService.saveOrUpdateItem(_item, _saveOrUpdateSuccess);
 				}
 			}
 			
-			function isCompleteItem() {
+			function _saveOrUpdateSuccess() {
+				_reset();
+				ctrl.updateItems();
+			}
+			
+			function _reset() {
+				ctrl.newItem = {};
+				ctrl.newItem[_itemTypeId] = ctrl.itemType.id;
+				
+				ctrl.newItemName = null;
+				ctrl.dollar = null;
+				ctrl.cent = null;
+			}
+			
+			function _isCompleteItem() {
 				return ctrl.newItem[_name] 
 					&& ctrl.newItem[_cent] 
 					&& ctrl.newItem[_dollar] 
@@ -42,7 +66,8 @@ let manageItemComponent = {
 		},
 	bindings: {
 		items: '<',
-		itemType: '<'
+		itemType: '<',
+		updateItems: '&'
 	},
 	template:
 			'<div class="form-group col-xs-12">'

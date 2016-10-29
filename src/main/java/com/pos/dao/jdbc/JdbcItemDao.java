@@ -24,7 +24,7 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
 
     private final static String insertItem = "insert into ITEMS (name, type, dollar, cent, weight, active) values (:name, :type, :dollar, :cent, :weight, :active)";
 
-    private final static String updateItem = "update ITEMS set name = :name, type = :type, dollar = :dollar, cent = :cent where ITEMS.id = :id ";
+    private final static String updateItem = "update ITEMS set name = :name, type = :type, dollar = :dollar, cent = :cent, active = :active, weight = :weight where ITEMS.id = :id ";
 
     private final static String updateActive = "update ITEMS set active = :active where ITEMS.id = :id";
 
@@ -90,6 +90,7 @@ public class JdbcItemDao extends JdbcBaseDao implements ItemDao {
                 .addValue(DBNames.DOLLAR, item.getPrice().getDollar())
                 .addValue(DBNames.CENT, item.getPrice().getCent())
                 .addValue(DBNames.ACTIVE, item.isActive())
+                .addValue(DBNames.WEIGHT, item.getWeight())
                 .addValue(DBNames.ID, item.getId());
         try {
             this.namedParameterJdbcTemplate.update(updateItem, parameter);

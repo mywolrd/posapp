@@ -5,16 +5,23 @@ function cartService(APP_CONFIG, stringService) {
 	var _data = {};
 	_data.cart = [];
 
+	function _remove(index) {
+		_data.cart.splice(index, 1);
+	}
+	
 	return {
+		remove: _remove,
 		getCart : function() {
 			return _data.cart;
 		},
 		clearCart : function() {
 			_data.cart = [];
 		},
-		addItem : function(item) {
+		addItem : function(typeName, item) {
 			var itemCopy = angular.copy(item);
-			var cartItem = itemCopy.itemType ? new _CartItem(itemCopy, 1, true) : new _CartItem(itemCopy, 0, false);
+			var cartItem = itemCopy.itemTypeId ? 
+							new _CartItem(itemCopy, typeName, 1) 
+						: 	new _CartItem(itemCopy, typeName, 0);
 			_data.cart.push(cartItem);
 		},
 		getCartInfo : function() {
@@ -40,16 +47,18 @@ function cartService(APP_CONFIG, stringService) {
 }
 
 class _CartItem {
-	constructor(item, quantity, hasQuantity) {
+	constructor(item, typeName, quantity) {
 		this.item = item;
-		this.price = angular.copy(item.price);
-		this.newprice = {};
-		this.oldprice = {};
+		this.typeName = typeName;
+		
+		this.newprice = angular.copy(item.price);
+		this.oldprice = angular.copy(item.price);
+		
 		this.quantity = quantity;
-		this.hasQuantity = hasQuantity;
+		this.hasQuantity = quantity === 1 ? true : false;
 	}
 	
 	get itemName() {
-		return this.item.itemName;
+		return this.typeName.concat(" ", this.item.name);
 	}	
 }

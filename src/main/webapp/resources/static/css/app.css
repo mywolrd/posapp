@@ -54,31 +54,74 @@ td .btn {
 	background-color: aliceblue;
 }
 
-#cart-items-list {
-	height: 400px;
+.menu-container {
+	padding-right: 20px;
+	padding-left: 0;
 }
 
-.item {
-	line-height: 40px;
-	font-size: 19px;
-	font-weight: bold;
-	border: none;
-	cursor: pointer;
-	margin: 2px;
+.menu-container div, .menu, .menu-row {
+	padding: 0;
 }
+
+.menu-row {
+	margin-bottom: 10px;
+}
+
+.menu-row sw-button span {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.menu-row sw-button span button {
+	height: 50px;
+	padding: 0;
+	/*line-height: 25px;*/
+	font-size: 130%;
+	font-weight: bold;
+	white-space: normal;
+}
+
+.cart-container {
+	padding-left: 30px;
+	padding-right:10px;
+}
+
+.cart-container div, .cart, .cart-item-list  {
+	padding: 0;
+}
+
+.cart-item span {
+	padding-left: 0;
+}
+
+.cart-info {
+	margin-bottom: 20px;
+}
+
+.cart-info  sw-button  span  button {
+	font-size : 20px;
+	font-weight: bold;
+}
+
+.cart-item {
+	height: 50px;
+	border: none;
+	margin: 2px;
+	padding: 0;
+}
+
 
 .font-20 {
 	font-size: 20px;
 	font-weight: bold;	
 }
 
-.cart-item-button {
-	display: table-cell;
-	font-size: 19px;
-	font-weight: bold;
+.font-18 {
+	font-size: 18px;
+	font-weight: bold;	
 }
 
-.cart-item-button:focus, input[type="text"]:focus {
+input[type="text"]:focus {
 	background-color : lightgray;
 }
 

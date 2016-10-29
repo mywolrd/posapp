@@ -1,6 +1,6 @@
 let manageItemTypeComponent = {
 	controller:
-		function manageItemTypeCtrl(itemService, keyboardService) {
+		function manageItemTypeCtrl(itemService, menuService, keyboardService) {
 			let ctrl = this, 
 				_name = 'name';
 			
@@ -18,6 +18,8 @@ let manageItemTypeComponent = {
 				itemService.saveOrUpdateItemType(itemType, function success(){
 					ctrl.newItemTypeName = null;
 					ctrl.itemTypes = itemService.getItemTypes();
+					
+					menuService.refreshMenu();
 				});
 			}
 			

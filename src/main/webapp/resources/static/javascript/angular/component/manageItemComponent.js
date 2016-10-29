@@ -1,6 +1,6 @@
 let manageItemComponent = {
 	controller:
-		function manageItemCtrl(itemService, menuService, utilsService, keyboardService) {
+		function manageItemCtrl(itemService, menuService, keyboardService) {
 			let ctrl = this,
 				_name = "name",
 				_cent = "cent",
@@ -45,6 +45,7 @@ let manageItemComponent = {
 			
 			function _saveOrUpdateSuccess() {
 				_reset();
+				menuService.refreshMenu();
 				ctrl.updateItems();
 			}
 			

@@ -17,7 +17,7 @@ let spanWrappedInputComponent = {
 				if (_text === ctrl.inputType)
 					ctrl.updateOn = {updateOn: 'blur'};
 			}
-			
+
 			ctrl.update = function() {
 				ctrl.onUpdate({	name: ctrl.inputName, value: ctrl.inputValue, index: ctrl.itemIndex});
 			}

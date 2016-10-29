@@ -1,6 +1,6 @@
 let manageItemTypeComponent = {
 	controller:
-		function manageItemTypeCtrl(itemService, menuService, utilsService, keyboardService) {
+		function manageItemTypeCtrl(itemService, keyboardService) {
 			let ctrl = this, 
 				_name = 'name';
 			

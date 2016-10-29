@@ -64,12 +64,14 @@ function itemService(APP_CONFIG, $http, urlService) {
 		});
 	}
 	
-	function _saveOrUpdateItem(item) {
+	function _saveOrUpdateItem(item, fn) {
 		let _item = new _ItemRequestBody(item);
-
 		$http.post(urlService.item + '/item', _item)
-			.then(function success(){
-		
+			.then(function success(res){
+				let _items = res.data;
+				_items.sort(_sortByWeight);
+				_data.items.set(_item.itemTypeId, _items);
+				fn();
 		}, function error() {
 		
 		});

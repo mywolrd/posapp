@@ -32,7 +32,7 @@ function messageService(APP_CONFIG) {
 }
 
 let app = 
-	angular.module('posapp', ['ngSanitize', 'ui.router', 'ui.bootstrap', 'angular-virtual-keyboard', 'angular-loading-bar'])
+	angular.module('posapp', ['ui.router', 'ui.bootstrap', 'angular-virtual-keyboard', 'angular-loading-bar'])
 		.constant('APP_CONFIG', {
 			NAVIGATION: [{
 			              	name: "POS App"
@@ -108,7 +108,7 @@ let app =
 			// menu configs
 			SHOW_ADD_ON_ITEMS : false,
 			NUMBER_OF_ADDON_ITEM_BUTTONS : 4,
-			NUMBER_OF_BUTTONS_MENU : 5,
+			NUMBER_OF_BUTTONS_PER_ROW : 4,
 			
 			IS_PRICE_LOCKED: true,
 			
@@ -194,9 +194,9 @@ let app =
 		.component('keyboardInput', keyboardInputComponent)
 		.component('newcustomer', newCustomerComponent)
 		.component('customersearch', searchCustomerComponent)
-		.component('menuview', menuViewComponent)
+		.component('menu', menuComponent)
 		.component('addonitemview', addonItemViewComponent)
-		.component('cartview', cartViewComponent)
+		.component('cart', cartComponent)
 		.component('neworder', newOrderComponent)
 		.component('managemenu', manageMenuComponent)
 		.component('manageitemtype', manageItemTypeComponent)
@@ -209,6 +209,7 @@ let app =
 		.component('itemTypeList', itemTypeListComponent)
 		.component('item', editItemComponent)
 		.component('itemList', itemListComponent)
+		.component('cartItem', cartItemComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

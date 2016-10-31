@@ -1,50 +1,60 @@
 /**
  * Customer Service
  */
-function customerService(APP_CONFIG, $http, urlService, stringService) {
-	var _data = {};
-	return {
-		getNewCustomerInput : function() {
-			return angular.copy(APP_CONFIG.NEW_CUSTOMER_INPUT);
-		},
-		getSearchCustomerInput : function() {
-			return angular.copy(APP_CONFIG.SEARCH_CUSTOMER_INPUT);
-		},
-		save : function(info, success, fail) {
-			$http.post(urlService.customer + '/save', info).then(success, fail);
-		},
+function customerService(APP_CONFIG, $http, urlService, stringService, rx) {
+	let current,
+		previous,
+		subject = new rx.Subject();
 
-		update : function(info, success, fail) {
-			$http.post(urlService.customer + '/update', info).then(success,
-					fail);
-		},
-
-		search : function(querystr, success, fail) {
-			if (querystr)
-				$http.get(
-						urlService.customer + '/search/'
-								+ querystr.toLowerCase()).then(success, fail);
-		},
-
-		setCurrentCustomer : function(customer) {
-			if (customer) {
-				_data.previous = _data.current;
-				_data.current = customer;
-			}
-		},
-
-		getCurrentCustomer : function() {
-			if (_data.current)
-				return _data.current;
-
-			return null;
-		},
-
-		clearCurrentCustomer : function() {
-			if (_data.current)
-				_data.previous = _data.current;
-
-			_data.current = null;
+	function _getSearchCustomerInputFields() {
+		return angular.copy(APP_CONFIG.SEARCH_CUSTOMER_INPUT);
+	}
+	
+	function _save(info, success, fail) {
+		$http.post(urlService.customer + '/save', info).then(success, fail);
+	}
+	
+	function _update(info, success, fail) {
+		$http.post(urlService.customer + '/update', info).then(success, fail);
+	}
+	
+	function _search(querystr, success, fail) {
+		if (querystr)
+			$http.get(urlService.customer + '/search/'+ querystr.toLowerCase()).then(success, fail);
+	}
+	
+	function _setCurrentCustomer(customer) {
+		if (customer) {
+			previous = current;
+			current = customer;
+			subject.onNext(current);
 		}
+	}
+	
+	function _getCurrentCustomer() {
+		if (current)
+			return current;
+		return null;
+	}
+	
+	function _clearCurrentCustomer() {
+		if (current)
+			previous = current;
+		current = null;
+	}
+	
+	function _subscribe(o) {
+		return subject.subscribe(o);
+	}
+	
+	return {
+		getSearchCustomerInput: _getSearchCustomerInputFields,
+		save: _save,
+		update: _update,
+		search: _search,
+		setCurrentCustomer: _setCurrentCustomer,
+		getCurrentCustomer: _getCurrentCustomer,
+		clearCurrentCustomer: _clearCurrentCustomer,
+		subscribe: _subscribe
 	};
 }

@@ -1,52 +1,49 @@
-var newCustomerComponent = {
+let newCustomerComponent = {
 	controller:
 		function newCustomerCtrl(customerService) {
-			var ctrl = this;
-	
-			ctrl.title = 'New Customer';
-			ctrl.actionName = 'Save';
-			ctrl.inputObjs = customerService.getNewCustomerInput();
-	
-			ctrl.action = function() {
-				var param = {
-					'lastName' : this.inputObjs[0].value,
-					'firstName' : this.inputObjs[1].value,
-					'phoneNumber' : this.inputObjs[2].value
-				};
-				
-				customerService.save(param, function(res) {
+			let ctrl = this;
+			
+			ctrl.$onInit = function() {
+				ctrl.new_customer_info = [
+					{label: 'Last Name', id: "lastName", value: null, required: true}, 
+					{label: 'First Name', id: "firstName", value: null, required: false}, 
+					{label: 'Phone Number',id: "phoneNumber", value: null, required: false}];
+						
+				ctrl.title = 'New Customer';
+			}
+
+			ctrl.save = function() {
+				let new_customer = ctrl.new_customer_info.reduce(function(map, currentItem) {
+					map[currentItem.id] = currentItem.value;
+					return map;
+				}, {});
+
+				customerService.save(new_customer, function(res) {
 					customerService.setCurrentCustomer(res.data);
-					reset();
+					_reset();
 				}, function(res) {
 				});
 			};
-	
-			function reset() {
-				ctrl.inputObjs = customerService.getNewCustomerInput();
+			
+			ctrl.update = function(name, value, index) {
+				ctrl.new_customer_info[index].value = value;
+			};
+			
+			function _reset() {				
+				for (info of ctrl.new_customer_info) {
+					info.value = null;
+				}				
 			};
 		},
-	template:'<form class="input-form">'
-		+		'<div class="row">'
-		+ 			'<div class="col-xs-1"></div>'
-		+ 			'<div class="col-xs-4">'
-		+ 				'<h1>{{title}}</h1><br/>'
-		+ 				'<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input><br/>'
-		+ 				'<div class="row">'
-		+ 					'<button class="btn btn-primary btn-lg btn-block" data-ng-click="$ctrl.action()">{{$ctrl.actionName}}</button>'
-		+ 				'</div>'
-		+ 			'</div>'
-		+ 			'<div class="col-xs-6">'
-		+ 				'<br/><br/>'
-		+ 				'<table class="table">'
-		+ 					'<tbody>'
-		+ 						'<tr class="cursor-pointer" data-ng-click="$ctrl.rowClickAction(row)" data-ng-repeat="row in $ctrl.results" data-ng-class="row.id === $ctrl.idSelected ?' + "'selected' : ''" + '">'
-		+ 							'<td>{{$index+1}}</td>'
-		+ 							'<td data-ng-repeat="str in ::row.displayValue">{{::str}}</td>'
-		+ 						'</tr>'
-		+ 					'</tbody>' 
-		+ 				'</table>'
-		+ 			'</div>'
-		+ 			'<div class="col-xs-1"></div>'
+	template:
+			'<form class="input-form col-xs-6" data-ng-submit="$ctrl.save()">'
+		+		'<h2>{{$ctrl.title}}</h2>'
+		+ 		'<div class="col-xs-12 labeled-input-row" data-ng-repeat="info in $ctrl.new_customer_info">'
+		+			'<sw-labeled-input label-for="{{info.id}}" input-value="info.value" span-width="6" input-label="{{info.label}}"'
+		+				'input-type="text" item-index="$index" input-name="{{info.id}}" is-required="info.required" place-holder="{{info.label}}"'
+		+				'font-size="20" on-update="$ctrl.update(name, value, index)"/>'
 		+ 		'</div>'
+		+		'<span class="col-xs-3" />'
+		+		'<sw-button type="submit" button-class="btn-primary" span-width="9" font-size="20" button-name="Save" />'
 		+	'</form>'
 }

@@ -36,7 +36,7 @@ let newCustomerComponent = {
 			};
 		},
 	template:
-			'<form class="input-form col-xs-6" data-ng-submit="$ctrl.save()">'
+			'<form id="search-customer" class="input-form col-xs-6" data-ng-submit="$ctrl.save()">'
 		+		'<h2>{{$ctrl.title}}</h2>'
 		+ 		'<div class="col-xs-12 labeled-input-row" data-ng-repeat="info in $ctrl.new_customer_info">'
 		+			'<sw-labeled-input label-for="{{info.id}}" input-value="info.value" span-width="6" input-label="{{info.label}}"'

@@ -32,7 +32,7 @@ function messageService(APP_CONFIG) {
 }
 
 let app = 
-	angular.module('posapp', ['ui.router', 'ui.bootstrap', 'angular-virtual-keyboard', 'angular-loading-bar'])
+	angular.module('posapp', ['ui.router', 'ui.bootstrap', 'angular-virtual-keyboard', 'angular-loading-bar', 'rx'])
 		.constant('APP_CONFIG', {
 			NAVIGATION: [{
 			              	name: "POS App"
@@ -182,7 +182,7 @@ let app =
 		.provider('spinnerModal', spinnerModalProvider)
 		.factory('stringService', stringService)
 		.factory('urlService', urlService)
-		.factory('cartService', [ 'APP_CONFIG', 'stringService', cartService ])
+		.factory('cartService', [ 'APP_CONFIG', 'stringService', 'rx', cartService ])
 		.factory('customerService', [ 'APP_CONFIG', '$http', 'urlService', 'stringService', customerService ])
 		.factory('navigationService', [ 'APP_CONFIG', '$state', navigationService ])
 		.factory('orderService', [ '$http', 'urlService', 'stringService', orderService ])
@@ -210,6 +210,8 @@ let app =
 		.component('item', editItemComponent)
 		.component('itemList', itemListComponent)
 		.component('cartItem', cartItemComponent)
+		.component('cartItemList', cartItemListComponent)
+		.component('swLabeledInput', spanWrappedLabeledInputComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

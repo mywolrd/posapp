@@ -1,37 +1,45 @@
 /**
  * Cart Service
  */
-function cartService(APP_CONFIG, stringService) {
-	var _data = {};
-	_data.cart = [];
-
+function cartService(APP_CONFIG, stringService, rx) {
+	let _cart = [],
+		subject = new rx.Subject();
+	
 	function _remove(index) {
-		_data.cart.splice(index, 1);
+		_cart.splice(index, 1);
+		subject.onNext(Array.from(_cart));
+	}
+	
+	function _clear() {
+		_cart = [];
+	}
+	
+	function _addItem(typeName, item) {
+		let itemCopy = angular.copy(item);
+		let cartItem = itemCopy.itemTypeId ? 
+						new _CartItem(itemCopy, typeName, 1) 
+					: 	new _CartItem(itemCopy, typeName, 0);
+		_cart.push(cartItem);
+		subject.onNext(Array.from(_cart));
+	}
+	
+	function _isEmpty() {
+		return _cart.length == 0;
+	}
+	
+	function _subscribe(o) {
+		return subject.subscribe(o);
 	}
 	
 	return {
 		remove: _remove,
-		getCart : function() {
-			return _data.cart;
-		},
-		clearCart : function() {
-			_data.cart = [];
-		},
-		addItem : function(typeName, item) {
-			var itemCopy = angular.copy(item);
-			var cartItem = itemCopy.itemTypeId ? 
-							new _CartItem(itemCopy, typeName, 1) 
-						: 	new _CartItem(itemCopy, typeName, 0);
-			_data.cart.push(cartItem);
-		},
-		getCartInfo : function() {
-			//TODO Do I need this?
-			var cartInfo = [];
-		},
+		subscribe: _subscribe,
+		clear: _clear,
+		addItem: _addItem,
 		getTotalQuantity: function() {
-			var i, len;
-			var total = 0;
-			var cart = _data.cart;
+			let i, len;
+			let total = 0;
+			let cart = _cart;
 			for(i=0, len=cart.length; i < len; i++) {
 				total = total + cart[i].quantity;
 			}
@@ -40,9 +48,7 @@ function cartService(APP_CONFIG, stringService) {
 		getTotalPrice: function() {
 			
 		},
-		isEmpty: function() {
-			return _data.cart.length == 0;
-		}
+		isEmpty: _isEmpty
 	};
 }
 

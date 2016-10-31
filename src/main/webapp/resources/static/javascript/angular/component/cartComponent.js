@@ -1,15 +1,23 @@
 let cartComponent = {
 	controller:
-		function cartViewCtrl(cartService, customerService, navigationService) {
-		let ctrl = this;
-		ctrl.selectedId = null;
+		function cartCtrl(cartService, customerService, navigationService) {
+		let ctrl = this,
+			cartSubscription,
+			_quantity = "quantity";
 		
-		ctrl.$doCheck = function() {
-			let cart = cartService.getCart();
-			if (cart)	this.cart = cart;
-			let currentCustomer = customerService.getCurrentCustomer();
-			if (currentCustomer)
-				this.cartInfo[0].name = currentCustomer.displayValue[0];
+		ctrl.$onInit = function() {
+			cartSubscription = cartService.subscribe(function(d) {
+				ctrl.cart = d;
+			})
+			
+			let customer = customerService.getCurrent();
+			if (customer)
+				ctrl.customer = customer;
+		}
+
+		ctrl.$onDestroy = function() {
+			if (cartSubscription)
+				cartSubscription.dispose();
 		}
 		
 		ctrl.cartInfo = [ {
@@ -31,8 +39,10 @@ let cartComponent = {
 			}
 		} ];
 		
-		ctrl.removeItem = function(index) {
-			cartService.remove(index);
+		ctrl.update = function(name, value, index) {
+			if (angular.equals(name, _quantity) && value == 0) {
+				cartService.remove(index);
+			}	
 		}
 	},
 	template:
@@ -42,36 +52,37 @@ let cartComponent = {
 		+		'<span class="col-xs-3" />'
 		+	'</div>'
 		
-		+ 	'<div class="col-xs-12 cart-item-list">'
-		+		'<div class="col-xs-12 cart-item" data-ng-repeat="cartItem in $ctrl.cart">'
-		+			'<cart-item item="cartItem" item-index="$index" remove="$ctrl.removeItem(index)"/>'
-		+		'</div>'
-		+ 	'</div>'
+		+	'<cart-item-list list="$ctrl.cart" on-update="$ctrl.update(name, value, index)" pref-page-size="7" />'
+}
+
+let cartItemListComponent = {
+	controller: editListComponentCtrl,
+	bindings: {
+		list: '<',
+		onUpdate: '&',
+		prefPageSize: '@'
+	},
+	template:		
+			'<div class="item col-xs-12 cart-item" data-ng-repeat="item in $ctrl.list | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
+		+		'<cart-item item="item" item-index="$index" on-update="$ctrl.update(name, value, index)" />'
+		+	'</div>'
+		+	'<pn-buttons update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'
+
 }
 
 let cartItemComponent = {
 	controller:
 		function() {
-			let ctrl = this,
-				_quantity = "quantity";
-			
-			ctrl.$onInit = function() {
-				
-			}
+			let ctrl = this;
 			
 			ctrl.update = function(name, value, index) {
-				if (angular.equals(name, _quantity) && value == 0) {
-					ctrl.remove({index: index});
-				}
-				
-				
-				console.log(name, value, index);
+				ctrl.onUpdate({name: name, value: value, index: index});
 			}
 		},
 	bindings: {
 		item: '<',
 		itemIndex: '<',
-		remove: '&'
+		onUpdate: '&'
 	},
 	template:
 			'<sw-input data-ng-if="$ctrl.item.hasQuantity" input-type="text" input-value="$ctrl.item.quantity" input-name="quantity" on-update="$ctrl.update(name, value, index)"' 

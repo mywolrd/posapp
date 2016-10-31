@@ -3,13 +3,16 @@ let editListComponentCtrl = function(utilsService) {
 		currentIndex = -1;
 				
 	ctrl.$onInit = function() {
-		ctrl.pageSize = 10;
+		if (!ctrl.prefPageSize)
+			ctrl.prefPageSize = 10;
+		
+		ctrl.pageSize = ctrl.prefPageSize;
 		ctrl.curPage = 0;
 				
 		ctrl.maxPageNum = utilsService.getMaxPageNum(ctrl.list, ctrl.pageSize);
 	}
 				
-	ctrl.$onChanges = function() {
+	ctrl.$onChanges = function(changesObj) {
 		ctrl.maxPageNum = utilsService.getMaxPageNum(ctrl.list, ctrl.pageSize);
 	}
 				

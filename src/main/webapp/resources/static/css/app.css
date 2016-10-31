@@ -2,14 +2,14 @@ body {
 	font-family: Courier New;
 }
 
+h2 {
+	font-weight: bold;
+}
+
 ul.navbar-nav li a {
 	font-size: 24px;
 	font-weight: bold;
 	cursor: pointer;
-}
-
-div[class^="no-padding"], div[class*=" no-padding"] {
-	padding: 0
 }
 
 div#content {
@@ -59,7 +59,8 @@ td .btn {
 	padding-left: 0;
 }
 
-.menu-container div, .menu, .menu-row {
+.menu-container div, .menu, .menu-row, .cart-container div, 
+.cart, div[class^="no-padding"], div[class*=" no-padding"]  {
 	padding: 0;
 }
 
@@ -75,7 +76,13 @@ td .btn {
 .menu-row sw-button span button {
 	height: 50px;
 	padding: 0;
-	/*line-height: 25px;*/
+	font-size: 130%;
+	font-weight: bold;
+	white-space: normal;
+}
+
+.input-form sw-button span button {
+	padding: 0;
 	font-size: 130%;
 	font-weight: bold;
 	white-space: normal;
@@ -84,10 +91,6 @@ td .btn {
 .cart-container {
 	padding-left: 30px;
 	padding-right:10px;
-}
-
-.cart-container div, .cart, .cart-item-list  {
-	padding: 0;
 }
 
 .cart-item span {
@@ -104,12 +107,19 @@ td .btn {
 }
 
 .cart-item {
-	height: 50px;
+	height: 40px;
 	border: none;
 	margin: 2px;
 	padding: 0;
 }
 
+sw-labeled-input label {
+	text-align: right;
+}
+
+.labeled-input-row {
+	margin-bottom: 15px;
+}
 
 .font-20 {
 	font-size: 20px;
@@ -129,8 +139,8 @@ input[type="text"]:focus {
 	margin-top: 20px;	
 }
 
-#itemTypeTable tbody {
-	display: block;
+#search-customer sw-button span {
+	padding-right: 30px;
 }
 
 .no-padding {

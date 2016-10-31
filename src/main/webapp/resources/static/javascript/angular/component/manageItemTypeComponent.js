@@ -67,7 +67,8 @@ let itemTypeListComponent = {
 	bindings: {
 		list: '<',
 		doClick: '&',
-		onUpdate: '&'	
+		onUpdate: '&',
+		prefPageSize: '@'
 	},
 	template: 
 			'<div class="item col-xs-12" data-ng-repeat="itemType in $ctrl.list | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'

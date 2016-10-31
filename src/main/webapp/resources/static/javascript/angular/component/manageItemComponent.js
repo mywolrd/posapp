@@ -96,15 +96,15 @@ let itemListComponent = {
 	controller: editListComponentCtrl,
 	bindings: {
 		list: '<',
-		doClick: '&',
-		onUpdate: '&'	
+		//doClick: '&',
+		onUpdate: '&'
+		//prefPageSize: '@'
 	},
 	template: 
 			'<div class="item col-xs-12" data-ng-repeat="item in $ctrl.list | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
 		+		'<item item="item" item-index="$index" do-click="$ctrl.select(index)" on-update="$ctrl.update(name, value, index)" />'
 		+	'</div>'
 		+	'<pn-buttons update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'
-
 }
 
 let editItemComponent = {

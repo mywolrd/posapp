@@ -1,11 +1,10 @@
 /**
  * Customer Service
  */
-function customerService(APP_CONFIG, $http, urlService, stringService, rx) {
+function customerService(APP_CONFIG, $http, urlService, stringService) {
 	let current,
-		previous,
-		subject = new rx.Subject();
-
+		previous;
+	
 	function _getSearchCustomerInputFields() {
 		return angular.copy(APP_CONFIG.SEARCH_CUSTOMER_INPUT);
 	}
@@ -27,7 +26,6 @@ function customerService(APP_CONFIG, $http, urlService, stringService, rx) {
 		if (customer) {
 			previous = current;
 			current = customer;
-			subject.onNext(current);
 		}
 	}
 	
@@ -53,7 +51,7 @@ function customerService(APP_CONFIG, $http, urlService, stringService, rx) {
 		update: _update,
 		search: _search,
 		setCurrentCustomer: _setCurrentCustomer,
-		getCurrentCustomer: _getCurrentCustomer,
+		getCurrent: _getCurrentCustomer,
 		clearCurrentCustomer: _clearCurrentCustomer,
 		subscribe: _subscribe
 	};

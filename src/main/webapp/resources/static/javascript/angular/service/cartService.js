@@ -14,6 +14,10 @@ function cartService(APP_CONFIG, stringService, rx) {
 		_cart = [];
 	}
 	
+	function _get() {
+		return Array.from(_cart);
+	}
+	
 	function _addItem(typeName, item) {
 		let itemCopy = angular.copy(item);
 		let cartItem = itemCopy.itemTypeId ? 
@@ -32,6 +36,7 @@ function cartService(APP_CONFIG, stringService, rx) {
 	}
 	
 	return {
+		get: _get,
 		remove: _remove,
 		subscribe: _subscribe,
 		clear: _clear,

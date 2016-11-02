@@ -10,6 +10,10 @@ let cartComponent = {
 				ctrl.cart = d;
 			})
 			
+			let cart = cartService.get();
+			if (cart)
+				ctrl.cart = cart;
+			
 			let customer = customerService.getCurrent();
 			if (customer)
 				ctrl.customer = customer;

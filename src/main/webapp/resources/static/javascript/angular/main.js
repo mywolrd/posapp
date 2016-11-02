@@ -191,7 +191,6 @@ let app =
 		.factory('utilsService', utilsService)
 		.factory('keyboardService', ['APP_CONFIG', keyboardService])
 		.component('navigation', navigationComponent)
-		.component('keyboardInput', keyboardInputComponent)
 		.component('newcustomer', newCustomerComponent)
 		.component('customersearch', searchCustomerComponent)
 		.component('menu', menuComponent)
@@ -212,6 +211,7 @@ let app =
 		.component('cartItem', cartItemComponent)
 		.component('cartItemList', cartItemListComponent)
 		.component('swLabeledInput', spanWrappedLabeledInputComponent)
+		.component('pForm', formComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

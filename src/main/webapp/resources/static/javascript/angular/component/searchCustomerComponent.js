@@ -1,26 +1,31 @@
-var searchCustomerComponent = {
+let searchCustomerComponent = {
 	controller:
-		function searchCustomerCtrl(customerService, navigationService) {
-			var ctrl = this;
+		function (customerService, navigationService) {
+			let ctrl = this;
 	
-			ctrl.title = 'Search';
-			ctrl.actionName = 'Search';
-			ctrl.idSelected = 0;
-			ctrl.inputObjs = customerService.getSearchCustomerInput();
-	
-			ctrl.action = 
-				function() {
-					customerService.search( ctrl.inputObjs[0].value,
-											function(res) {
-												ctrl.results = res.data;
-												ctrl.results.map(function(customer) {
-													customer.displayValue = formatString(customer);
-												});
-									}, function(res) {
-	
-									});
-				};
-	
+			ctrl.$onInit = function() {
+				ctrl.search_customer_input = [
+					{label: 'Last Name', id: "lastName", value: null, required: true}];
+						
+				ctrl.title = 'Search Customer';
+			}
+			
+			ctrl.update = function(name, value, index) {
+				ctrl.search_customer_input[index].value = value;
+			};
+			
+			ctrl.search = function() {
+				customerService.search(ctrl.search_customer_input[0].value, function(res) {
+					ctrl.results = res.data;
+					ctrl.results.map(function(customer) {
+						customer.displayValue = formatString(customer);
+					});
+					_reset();
+				}, function(res) {
+
+				});
+			}
+			
 			ctrl.rowClickAction = 
 				function(customer) {
 					// this.idSelected = customer.id;
@@ -29,7 +34,7 @@ var searchCustomerComponent = {
 				};
 	
 			function formatString(customer) {
-				var displayValue = [];
+				let displayValue = [];
 				displayValue.push(customer.lastName);
 	
 				if (customer.firstName) {
@@ -43,20 +48,16 @@ var searchCustomerComponent = {
 				return displayValue;
 			};
 	
-			function reset() {
-				ctrl.inputObjs = customerService.getSearchCustomerInput();
+			function _reset() {
+				ctrl.search_customer_input[0].value = null;
 			};
 		},
-	template:'<form class="input-form">'
-		+		'<div class="row">'
-		+ 			'<div class="col-xs-1"></div>'
-		+ 			'<div class="col-xs-4">'
-		+ 				'<h1>{{title}}</h1><br/>'
-		+ 				'<keyboard-input input-objs="$ctrl.inputObjs"></keyboard-input><br/>'
-		+ 				'<div class="row">'
-		+ 					'<button class="btn btn-primary btn-lg btn-block" data-ng-click="$ctrl.action()">{{$ctrl.actionName}}</button>'
-		+ 				'</div>'
-		+ 			'</div>'
+	template:
+			'<p-form form-input="$ctrl.search_customer_input" title="{{$ctrl.title}}" button-name="Find"'
+		+		'on-update="$ctrl.update(name, value, index)" submit="$ctrl.search()" />'
+		
+		
+		+	'<form class="input-form">'
 		+ 			'<div class="col-xs-6">'
 		+ 				'<br/><br/>'
 		+ 				'<table class="table">'
@@ -65,7 +66,7 @@ var searchCustomerComponent = {
 		+ 							'<td>{{$index+1}}</td>'
 		+ 							'<td data-ng-repeat="str in ::row.displayValue">{{::str}}</td>'
 		+ 						'</tr>'
-		+ 					'</tbody>' 
+		+ 					'</tbody>'
 		+ 				'</table>'
 		+ 			'</div>'
 		+ 			'<div class="col-xs-1"></div>'

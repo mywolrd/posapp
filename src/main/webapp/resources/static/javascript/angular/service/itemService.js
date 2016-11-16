@@ -77,6 +77,19 @@ function itemService(APP_CONFIG, $http, urlService) {
 		});
 	}
 	
+	function _saveOrUpdateAddonItem(addonItem, fn) {
+		let _addonItem = new _AddonItemRequestBody(addonItem);
+		$http.post(urlService.item + '/addonitem', _addonItem)
+		.then(function success(res){
+			let _addonItems = res.data;
+			_addonItems.sort(_sortByWeight);
+			_data.addonItems = _addonItems;
+			fn();
+		}, function error() {
+	
+		});
+	}
+	
 	function _setItemTypes(itemTypes) {
 		_data.itemTypes = null;
 		if (angular.isArray(itemTypes)) {
@@ -90,6 +103,14 @@ function itemService(APP_CONFIG, $http, urlService) {
 			
 		if (angular.isArray(items)) {
 			_data.items = _groupItemsByType(items);
+		}
+	}
+	
+	function _setAddonItems(addonItems) {
+		_data.addonItems = null;
+		if (angular.isArray(addonItems)) {
+			addonItems.sort(_sortByWeight);
+			_data.addonItems = addonItems;
 		}
 	}
 	
@@ -114,6 +135,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 		
 		saveOrUpdateItemType: _saveOrUpdateItemType,
 		saveOrUpdateItem: _saveOrUpdateItem,
+		saveOrUpdateAddonItem: _saveOrUpdateAddonItem,
 		getItemsGroupedByType: function() {
 			if (!_data.itemsGroupedByType)	return null;
 			
@@ -121,6 +143,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 		},
 		setItems: _setItems,
 		setItemTypes: _setItemTypes,
+		setAddonItems: _setAddonItems,
 		getItems: function() {
 			if (!_data.items)	return null;
 			
@@ -131,11 +154,11 @@ function itemService(APP_CONFIG, $http, urlService) {
 			
 			return _data.itemTypes;
 		},
-		getAddOnItems: function() {
-			if (!_data.addonitems) {
+		getAddonItems: function() {
+			if (!_data.addonItems) {
 				return null;
 			}			
-			return _data.addonitems;
+			return _data.addonItems;
 		}
 	};
 }
@@ -155,6 +178,17 @@ class _ItemRequestBody {
 class _ItemTypeRequestBody {
 	constructor(options) {
 		this.name = angular.isDefined(options.name) ? options.name:null;
+		this.weight = angular.isDefined(options.weight) ? options.weight:0;
+		this.active = angular.isDefined(options.active) ? options.active:true;
+		this.id = angular.isDefined(options.id) ? options.id:0;
+	}
+}
+
+class _AddonItemRequestBody {
+	constructor(options) {
+		this.name = angular.isDefined(options.name) ? options.name : null;
+		this.dollar = angular.isDefined(options.dollar) ? options.dollar:0;
+		this.cent = angular.isDefined(options.cent) ? options.cent:0;
 		this.weight = angular.isDefined(options.weight) ? options.weight:0;
 		this.active = angular.isDefined(options.active) ? options.active:true;
 		this.id = angular.isDefined(options.id) ? options.id:0;

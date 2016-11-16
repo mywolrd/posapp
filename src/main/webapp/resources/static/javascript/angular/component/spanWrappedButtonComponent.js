@@ -25,6 +25,6 @@ let spanWrappedButtonComponent = {
 	},
 	template:
 			'<span class="no-padding" data-ng-class="$ctrl.span_class">'
-		+		'<button type="$ctrl.type" data-ng-class="$ctrl.button_class" class="btn btn-block form-control" data-ng-click="$ctrl.doClick()">{{$ctrl.buttonName}}</button>'
+		+		'<button type="$ctrl.type" data-ng-class="$ctrl.button_class" class="btn form-control" data-ng-click="$ctrl.doClick()">{{$ctrl.buttonName}}</button>'
 		+	'</span>'
 }

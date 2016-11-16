@@ -9,11 +9,11 @@ let editListComponentCtrl = function(utilsService) {
 		ctrl.pageSize = ctrl.prefPageSize;
 		ctrl.curPage = 0;
 				
-		ctrl.maxPageNum = utilsService.getMaxPageNum(ctrl.list, ctrl.pageSize);
+		ctrl.maxPageNum = getMaxPageNum(ctrl.list, ctrl.pageSize);
 	}
 				
 	ctrl.$onChanges = function(changesObj) {
-		ctrl.maxPageNum = utilsService.getMaxPageNum(ctrl.list, ctrl.pageSize);
+		ctrl.maxPageNum = getMaxPageNum(ctrl.list, ctrl.pageSize);
 	}
 				
 	ctrl.changePageNum = function(curPage) {
@@ -33,7 +33,19 @@ let editListComponentCtrl = function(utilsService) {
 	
 		ctrl.doClick({index: currentIndex});
 	}
-			
+	
+	function getMaxPageNum(array, pageSize) {
+		if (angular.isDefined(array) && angular.isObject(array)) {
+			let len = array.length,
+				div = Math.floor(len / pageSize),
+				rem = len % pageSize;
+			if (rem > 0) div++;
+			div--;
+			return div;
+		}
+		return 0;
+	}
+	
 	function getTrueIndex(index) {
 		return (ctrl.pageSize * ctrl.curPage) + index;
 	}

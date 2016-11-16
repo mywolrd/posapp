@@ -31,20 +31,34 @@ let formComponent = {
 
 let selectListComponent = {
 	controller: 
-		function() {
-		
+		function(utilsService) {
+			let ctrl = this;
+			
+			ctrl.$onInit = function() {
+				let totalWidth = 11;
+				let singleSpanWidth = 2;
+				if (ctrl.col)
+					singleSpanWidth = Math.trunc(totalWidth/ctrl.col);
+				
+				ctrl.span_class = [];
+				ctrl.span_class.push(utilsService.getCSScolxs() + singleSpanWidth);
+			}
+			
+			ctrl.select = function(entry) {
+				ctrl.doClick({selected: entry});
+			}
 	},
 	bindings: {
 		list: '<',
+		col: '<',
 		doClick: '&'
 	},
 	template:
 			'<div class="col-xs-6">'
 		+		'<div class="col-xs-12 cursor-pointer" data-ng-repeat="entry in $ctrl.list"'
-		+			'data-ng-click="$ctrl.doClick(entry)">'
-		+			'<span> </span>'
-		+			'<span> </span>'
-		+			'<span> </span>'
+		+			'data-ng-click="$ctrl.select(entry)">'
+		+			'<span class="col-xs-1">{{$index + 1}}</span>'
+		+			'<span data-ng-class="$ctrl.span_class" data-ng-repeat="out in entry.displayValue">{{out}}</span>'
 		+		'</div>'
 		+	'</div>'
 };

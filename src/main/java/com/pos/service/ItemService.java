@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.pos.dao.AddonItemDao;
 import com.pos.dao.ItemDao;
 import com.pos.dao.ItemTypeDao;
+import com.pos.model.application.AddonItem;
 import com.pos.model.application.Item;
 import com.pos.model.application.ItemType;
 
@@ -21,12 +23,16 @@ public class ItemService {
     @Autowired
     private ItemTypeDao itemTypeDao;
 
+    @Autowired
+    private AddonItemDao addonItemDao;
+
     @Transactional(readOnly = true)
     public List<Item> listItems() {
         List<Item> items = itemDao.listItems();
         return this.listActiveItems(items);
     }
 
+    @Transactional(readOnly = true)
     public List<Item> listItemsByType(long itemTypeId) {
         List<Item> items = itemDao.listItemsByType(itemTypeId);
         return this.listActiveItems(items);
@@ -41,6 +47,7 @@ public class ItemService {
         return activeItems;
     }
 
+    @Transactional(readOnly = true)
     public List<ItemType> listItemTypes() {
         List<ItemType> itemTypes = itemTypeDao.listItemTypes();
         return this.listActiveItemType(itemTypes);
@@ -55,6 +62,22 @@ public class ItemService {
         return activeItems;
     }
 
+    @Transactional(readOnly = true)
+    public List<AddonItem> listAddonItems() {
+        List<AddonItem> addonItems = this.addonItemDao.listAddonItems();
+        return this.listActiveAddonItems(addonItems);
+    }
+
+    public List<AddonItem> listActiveAddonItems(List<AddonItem> addonItems) {
+        List<AddonItem> active = new LinkedList<>();
+        for (AddonItem item : addonItems) {
+            if (item.isActive())
+                active.add(item);
+        }
+        return active;
+    }
+
+    @Transactional(readOnly = false)
     public void saveOrUpdateItem(Item item) {
         if (0 == item.getId()) {
             this.saveItem(item);
@@ -63,11 +86,21 @@ public class ItemService {
         }
     }
 
+    @Transactional(readOnly = false)
     public void saveOrUpdateItemType(ItemType itemType) {
         if (0 == itemType.getId()) {
             this.saveItemType(itemType);
         } else {
             this.updateItemType(itemType);
+        }
+    }
+
+    @Transactional(readOnly = false)
+    public void saveOrUpdateAddonItem(AddonItem addonItem) {
+        if (0 == addonItem.getId()) {
+            saveAddonItem(addonItem);
+        } else {
+            this.updateAddonItem(addonItem);
         }
     }
 
@@ -104,5 +137,20 @@ public class ItemService {
 
     private void updateItemType(ItemType itemType) {
         this.itemTypeDao.update(itemType);
+    }
+
+    private void saveAddonItem(AddonItem addonItem) {
+        int weight = this.addonItemDao.getMaxWeight();
+
+        if (Integer.MIN_VALUE != weight) {
+            weight++;
+            AddonItem _addonItem = new AddonItem.AddonItemBuilder(addonItem)
+                    .weight(weight).build();
+            this.addonItemDao.save(_addonItem);
+        }
+    }
+
+    private void updateAddonItem(AddonItem addonItem) {
+        this.addonItemDao.update(addonItem);
     }
 }

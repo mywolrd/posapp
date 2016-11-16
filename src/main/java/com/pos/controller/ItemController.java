@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.pos.model.application.AddonItem;
 import com.pos.model.application.Item;
 import com.pos.model.application.ItemType;
+import com.pos.model.parameter.AddonItemParameter;
 import com.pos.model.parameter.ItemParameter;
 import com.pos.model.parameter.ItemTypeParameter;
 import com.pos.service.ItemService;
@@ -77,4 +79,29 @@ public class ItemController {
         List<ItemType> itemTypes = itemService.listItemTypes();
         return new ResponseEntity<>(itemTypes, HttpStatus.CREATED);
     }
+
+    @RequestMapping(value = "/addonitem/list", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<List<AddonItem>> listAddonItems() {
+        List<AddonItem> items = this.itemService.listAddonItems();
+        return new ResponseEntity<>(items, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/addonitem", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<List<AddonItem>> saveOrUpdateAddonItem(
+            @RequestBody AddonItemParameter addonItem) {
+
+        if (null == addonItem.getName() || addonItem.getName().isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        AddonItem _addonItem = new AddonItem.AddonItemBuilder(addonItem)
+                .build();
+        itemService.saveOrUpdateAddonItem(_addonItem);
+
+        List<AddonItem> addonItems = itemService.listAddonItems();
+        return new ResponseEntity<>(addonItems, HttpStatus.OK);
+    }
+
 }

@@ -26,12 +26,10 @@ let searchCustomerComponent = {
 				});
 			}
 			
-			ctrl.rowClickAction = 
-				function(customer) {
-					// this.idSelected = customer.id;
-					customerService.setCurrentCustomer(customer);
-					navigationService.back();
-				};
+			ctrl.select = function(selected) {
+				customerService.setCurrentCustomer(selected);
+				navigationService.back();
+			};
 	
 			function formatString(customer) {
 				let displayValue = [];
@@ -56,20 +54,5 @@ let searchCustomerComponent = {
 			'<p-form form-input="$ctrl.search_customer_input" title="{{$ctrl.title}}" button-name="Find"'
 		+		'on-update="$ctrl.update(name, value, index)" submit="$ctrl.search()" />'
 		
-		
-		+	'<form class="input-form">'
-		+ 			'<div class="col-xs-6">'
-		+ 				'<br/><br/>'
-		+ 				'<table class="table">'
-		+ 					'<tbody>'
-		+ 						'<tr class="cursor-pointer" data-ng-click="$ctrl.rowClickAction(row)" data-ng-repeat="row in $ctrl.results" data-ng-class="row.id === $ctrl.idSelected ?' + "'selected' : ''" + '">'
-		+ 							'<td>{{$index+1}}</td>'
-		+ 							'<td data-ng-repeat="str in ::row.displayValue">{{::str}}</td>'
-		+ 						'</tr>'
-		+ 					'</tbody>'
-		+ 				'</table>'
-		+ 			'</div>'
-		+ 			'<div class="col-xs-1"></div>'
-		+ 		'</div>'
-		+	'</form>'
+		+	'<select-list list="$ctrl.results" col="2" do-click="$ctrl.select(selected)"/>'
 }

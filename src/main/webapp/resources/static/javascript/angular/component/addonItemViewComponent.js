@@ -1,56 +1,53 @@
-var addonItemViewComponent = {
+let addonItemsComponent = {
 	controller:
-		function addonItemMenuCtrl(itemService, cartService, menuService) {
-			var ctrl = this;
-			
-			ctrl.addonItems = null;
-			ctrl.numberOfButtons = 4;
-			ctrl.begin = 0;
-			
+		function addonItemMenuCtrl(itemService, cartService) {
+			let ctrl = this,
+				_numberOfButtons = 4,
+				_begin = 0;
+						
 			ctrl.$onInit = function() {
-				ctrl.addonItems = menuService.getAddonItemMenu();					
+				ctrl.addonItems = itemService.getAddonItems();					
 				setCurrentAddonItems();
 			}
 	
-			ctrl.itembuttonAction = function(addonItem) {
+			ctrl.click = function(addonItem) {
 				if (!cartService.isEmpty()) {
-					cartService.addItem(addonItem);
+					cartService.addItem(null, addonItem);
 				}
 			}
 			
 			ctrl.moveLeft = function() {
-				if (ctrl.begin > 0) {
-					ctrl.begin -= 1;
+				if (_begin > 0) {
+					_begin -= _numberOfButtons;
 	
 					setCurrentAddonItems();
 				}
 			}
 	
 			ctrl.moveRight = function() {
-				var end = ctrl.begin + ctrl.numberOfButtons;
+				let end = _begin + _numberOfButtons;
 				if (end < ctrl.addonItems.length) {
-					ctrl.begin += 1;
+					_begin += _numberOfButtons;
 	
 					setCurrentAddonItems();
 				}
 			}
 			
 			function setCurrentAddonItems() {
-				ctrl.addonItemsCurrent = ctrl.addonItems.slice(ctrl.begin, ctrl.begin + ctrl.numberOfButtons);
+				ctrl.currentAddonItems = ctrl.addonItems.slice(_begin, _begin + _numberOfButtons);
 			}
 		},
-	template:'<table class="table borderless">'
-		+		'<tbody>'
-		+ 			'<tr>'
-		+ 				'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveLeft()"><</button></td>'
-		+ 				'<td class="col-xs-1"></td>'
-		+ 				'<td class="col-xs-2" data-ng-repeat="addonItem in $ctrl.addonItemsCurrent">'
-		+ 					'<button class="btn-block" data-ng-click="$ctrl.itembuttonAction(addonItem)">{{addonItem.itemName}}</button>'
-		+ 				'</td>'
-		+ 				'<td class="col-xs-1"></td>'
-		+ 				'<td class="col-xs-1"><button class="btn-block" data-ng-click="$ctrl.moveRight()">></button></td>'
-		+ 			'<tr>'
-		+		'</tbody>'
-		+ 	'</table>'
+	template:
+			'<div class="col-xs-12 addon-item-row">'
+		+		'<div class="col-xs-3 addon-item-nav">'
+		+			'<sw-button button-class="btn-primary" span-width="12" do-click="$ctrl.moveLeft()" button-name="<"/>'
+		+		'</div>'
+		+		'<div class="col-xs-6 addon-item-menu">'
+		+			'<sw-button data-ng-repeat="addonItem in $ctrl.currentAddonItems" button-class="btn-default" span-width="6" do-click="$ctrl.click(addonItem)" button-name="{{addonItem.name}}"/>'
+		+		'</div>'
+		+		'<div class="col-xs-3 addon-item-nav">'
+		+			'<sw-button button-class="btn-primary" span-width="12" do-click="$ctrl.moveRight()" button-name=">"/>'
+		+		'</div>'
+		+	'</div>'
 
 }

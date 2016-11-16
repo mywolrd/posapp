@@ -10,7 +10,8 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 
 				itemService.setItemTypes(res[0].data);
 				itemService.setItems(res[1].data);
-
+				itemService.setAddonItems(res[2].data);
+				
 				_buildItemMenu();
 				
 				navigationService.setReady(true);

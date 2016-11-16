@@ -42,5 +42,5 @@ let menuComponent = {
 		+		'<sw-button button-class="btn-default" span-width="3" data-ng-repeat="item in row" '
 		+			'do-click="$ctrl.click(item)" button-name="{{item.name}}"/>'
 		+	'</div>'
-		//+ 	'<addonitemview></addonitemview>'
+		+ 	'<addonitems/>'
 }

@@ -68,8 +68,7 @@ let app =
 										link: "managemenu"
 									}],
 									customer : false
-			              }
-			              
+			              },
 			              ],
 			
 		    NEW_CUSTOMER_INPUT:	[{
@@ -106,7 +105,7 @@ let app =
 			MANAGE_MENU_DEFAULT_NUMBER_OF_ITEMS : 10,
 			
 			// menu configs
-			SHOW_ADD_ON_ITEMS : false,
+			SHOW_ADD_ON_ITEMS : true,
 			NUMBER_OF_ADDON_ITEM_BUTTONS : 4,
 			NUMBER_OF_BUTTONS_PER_ROW : 4,
 			
@@ -175,8 +174,7 @@ let app =
 							}).state('managemenu', {
 								url: '/app/manage_menu',
 								template: '<managemenu></managemenu>'
-							});
-
+							})
 						} ])
 						
 		.provider('spinnerModal', spinnerModalProvider)
@@ -194,7 +192,7 @@ let app =
 		.component('newcustomer', newCustomerComponent)
 		.component('customersearch', searchCustomerComponent)
 		.component('menu', menuComponent)
-		.component('addonitemview', addonItemViewComponent)
+		.component('addonitems', addonItemsComponent)
 		.component('cart', cartComponent)
 		.component('neworder', newOrderComponent)
 		.component('managemenu', manageMenuComponent)
@@ -212,6 +210,8 @@ let app =
 		.component('cartItemList', cartItemListComponent)
 		.component('swLabeledInput', spanWrappedLabeledInputComponent)
 		.component('pForm', formComponent)
+		.component('selectList', selectListComponent)
+		.component('manageaddon', manageAddonItemComponent)
 .run(['$templateCache', 'menuService', function($templateCache, menuService) {
 	menuService.initMenu();
 }]);

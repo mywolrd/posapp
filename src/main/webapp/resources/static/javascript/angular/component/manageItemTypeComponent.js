@@ -59,7 +59,7 @@ let manageItemTypeComponent = {
 		+		'<span class="col-xs-1" />'
 		+	'</div>'
 		
-		+	'<item-type-list list="$ctrl.itemTypes" on-update="$ctrl.update(name, value, index)" do-click="$ctrl.selectItemType(index)" />'
+		+	'<item-type-list list="$ctrl.itemTypes" pref-page-size="7" on-update="$ctrl.update(name, value, index)" do-click="$ctrl.selectItemType(index)" />'
 };
 
 let itemTypeListComponent = {
@@ -72,7 +72,7 @@ let itemTypeListComponent = {
 	},
 	template: 
 			'<div class="item col-xs-12" data-ng-repeat="itemType in $ctrl.list | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
-		+		'<itemtype item-type="itemType" item-index="$index" do-click="$ctrl.select(index)" on-update="$ctrl.update(name, value, index)" />'
+		+		'<itemtype class="item-type" item-type="itemType" item-index="$index" do-click="$ctrl.select(index)" on-update="$ctrl.update(name, value, index)" />'
 		+	'</div>'
 		+	'<pn-buttons update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'
 };

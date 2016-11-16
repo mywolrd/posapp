@@ -72,7 +72,7 @@ let manageItemComponent = {
 	},
 	template:
 			'<div class="form-group col-xs-12">'
-		
+		+		'<span class="col-xs-12">{{$ctrl.itemType.name}}</span>'
 		+		'<sw-input input-type="text" input-value="$ctrl.newItemName" input-name="name" on-update="$ctrl.saveItem(name, value, index)"' 
 		+			'span-width="4" font-size="20" keyboard-config="$ctrl.keyboardConfig" place-holder="New Item" />'
 		
@@ -96,9 +96,9 @@ let itemListComponent = {
 	controller: editListComponentCtrl,
 	bindings: {
 		list: '<',
-		//doClick: '&',
-		onUpdate: '&'
-		//prefPageSize: '@'
+		doClick: '&',
+		onUpdate: '&',
+		prefPageSize: '@'
 	},
 	template: 
 			'<div class="item col-xs-12" data-ng-repeat="item in $ctrl.list | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'

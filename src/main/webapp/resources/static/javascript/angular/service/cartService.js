@@ -23,7 +23,17 @@ function cartService(APP_CONFIG, stringService, rx) {
 		let cartItem = itemCopy.itemTypeId ? 
 						new _CartItem(itemCopy, typeName, 1) 
 					: 	new _CartItem(itemCopy, typeName, 0);
-		_cart.push(cartItem);
+		
+		//For addon items
+		if (! cartItem.hasQuantity) {
+			let _cartItem = _cart[_cart.length - 1];
+			if (! _cartItem.addonItems) {
+				_cartItem.addonItems = [];
+			}
+			_cartItem.addonItems.push(cartItem);
+		} else {
+			_cart.push(cartItem);
+		}
 		subject.onNext(Array.from(_cart));
 	}
 	
@@ -66,10 +76,12 @@ class _CartItem {
 		this.oldprice = angular.copy(item.price);
 		
 		this.quantity = quantity;
-		this.hasQuantity = quantity === 1 ? true : false;
+		this.hasQuantity = quantity === 1;
 	}
 	
 	get itemName() {
-		return this.typeName.concat(" ", this.item.name);
+		if (this.typeName)
+			return this.typeName.concat(" ", this.item.name);
+		return this.item.name;
 	}	
 }

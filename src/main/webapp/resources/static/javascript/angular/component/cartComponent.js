@@ -7,12 +7,12 @@ let cartComponent = {
 		
 		ctrl.$onInit = function() {
 			cartSubscription = cartService.subscribe(function(d) {
-				ctrl.cart = d;
+				ctrl.cart = flattenCart(d);
 			})
 			
 			let cart = cartService.get();
 			if (cart)
-				ctrl.cart = cart;
+				ctrl.cart = flattenCart(cart);
 			
 			let customer = customerService.getCurrent();
 			if (customer)
@@ -48,6 +48,21 @@ let cartComponent = {
 				cartService.remove(index);
 			}	
 		}
+		
+		function flattenCart(cartArray) {
+			let newCart = [];
+			
+			for (var i = 0; i < cartArray.length; i++) {
+				newCart.push(cartArray[i]);
+				
+				let addonItems = cartArray[i].addonItems;
+				if (addonItems) {
+					newCart = newCart.concat(addonItems);
+				}
+			}
+			return newCart;
+		}
+		
 	},
 	template:
 			'<div class="col-xs-12 font-18 cart-info" data-ng-repeat="info in $ctrl.cartInfo">'
@@ -91,8 +106,8 @@ let cartItemComponent = {
 	template:
 			'<sw-input data-ng-if="$ctrl.item.hasQuantity" input-type="text" input-value="$ctrl.item.quantity" input-name="quantity" on-update="$ctrl.update(name, value, index)"' 
 		+		'item-index="$ctrl.itemIndex" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" />'
-		
-		+	'<span class="col-xs-2" data-ng-if="! $ctrl.item.hasQuantity"/>'
+		+	'<sw-button data-ng-if="! $ctrl.item.hasQuantity" button-class="btn-primary" button-name="-"' 
+		+		'span-width="2"  do-click=""/>'
 		
 		+	'<span class="col-xs-6 font-18">{{$ctrl.item.itemName}}</span>'
 		

@@ -24,13 +24,6 @@ span:empty::before {
 	background-color: #B0C4DE;
 }
 
-.table tbody tr td {
-	font-size: 19px;
-	font-weight: bold;
-	line-height: 1.5;
-	border: none;
-}
-
 .cursor-pointer {
 	cursor: pointer;
 }
@@ -47,13 +40,6 @@ span:empty::before {
 	margin-bottom: 0
 }
 
-td .btn {
-	font-size: 19px;
-	font-weight: bold;
-	line-height: 1.5;
-	background-color: aliceblue;
-}
-
 .menu-container {
 	padding-right: 20px;
 	padding-left: 0;
@@ -68,15 +54,48 @@ td .btn {
 	margin-bottom: 10px;
 }
 
-.menu-row sw-button span {
+.menu-row sw-button span, .addon-item-row sw-button span {
 	padding-left: 10px;
 	padding-right: 10px;
 }
 
-.menu-row sw-button span button {
+.item-type sw-button span button {
+	padding: 0;
+	font-size: 130%;
+	font-weight: bold;
+	white-space: normal;
+}
+
+.manage-menu-buttons sw-button span button {
+	height: 40px;
+	padding: 0;
+	font-size: 130%;
+	font-weight: bold;
+	white-space: normal;
+}
+
+.menu-row sw-button span button, select-list div div span,
+.addon-item-menu sw-button span button, .addon-item-nav sw-button span button {
 	height: 50px;
 	padding: 0;
 	font-size: 130%;
+	font-weight: bold;
+	white-space: normal;
+}
+
+.addon-item-row {
+	margin-top: 25px;
+	margin-botton: 15px;
+}
+
+.addon-item-row sw-button span {
+	margin-bottom: 10px;
+}
+
+manageitem div span {
+	height: 50px;
+	padding: 0;
+	font-size: 20px;
 	font-weight: bold;
 	white-space: normal;
 }
@@ -95,6 +114,10 @@ td .btn {
 
 .cart-item span {
 	padding-left: 0;
+}
+
+.cart-item sw-button span {
+	padding-right: 15px;
 }
 
 .cart-info {

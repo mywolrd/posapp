@@ -34,6 +34,16 @@ function cartService(APP_CONFIG, stringService, rx) {
 		}
 	}
 
+	function _update(name, value, index, parentIndex) {
+		let item = _cart[index];
+		if (angular.isDefined(parentIndex)) {
+			let parentIndex = _cart[parentIndex]
+			item = parentIndex.addonItems[index];
+		}
+		item[name] = value;
+		subject.onNext(Array.from(_cart));
+	}
+	
 	function _clear() {
 		_cart = [];
 	}
@@ -79,6 +89,7 @@ function cartService(APP_CONFIG, stringService, rx) {
 		subscribe: _subscribe,
 		clear: _clear,
 		addItem: _addItem,
+		update: _update,
 		getTotalQuantity: function() {
 			let i, len;
 			let total = 0;
@@ -100,8 +111,8 @@ class _CartItem {
 		this.item = item;
 		this.typeName = typeName;
 		
-		this.newprice = angular.copy(item.price);
-		this.oldprice = angular.copy(item.price);
+		this.dollar = item.price.dollar;
+		this.cent = item.price.cent;
 		
 		this.quantity = quantity;
 		this.hasQuantity = quantity === 1;

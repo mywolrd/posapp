@@ -3,7 +3,10 @@ let cartComponent = {
 		function cartCtrl(cartService, customerService, navigationService) {
 		let ctrl = this,
 			cartSubscription,
-			_quantity = "quantity";
+			_quantity = "quantity",
+			_price = "newprice",
+			_cent = "cent",
+			_dollar = "dollar";
 		
 		ctrl.$onInit = function() {
 			cartSubscription = cartService.subscribe(function(d) {
@@ -47,17 +50,15 @@ let cartComponent = {
 			let cartItem = ctrl.cart[index];
 
 			// Remove item
-			if (cartItem.hasQuantity 
-					&& angular.equals(name, _quantity) 
-					&& value == 0) {
-				cartService.remove(cartItem.index);
+			if (angular.equals(name, _quantity) && value == 0) {
+				if (cartItem.hasQuantity) {
+					cartService.remove(cartItem.index);
+				} else {
+					cartService.remove(cartItem.index, cartItem.parentIndex);
+				}
+			} else {
+				cartService.update(name, value, cartItem.index, cartItem.parentIndex);
 			}
-			
-			//Remove addon item
-			if (!cartItem.hasQuantity && angular.equals(name, _quantity)) {
-				cartService.remove(cartItem.index, cartItem.parentIndex);
-			}
-			
 		}
 		
 		function flattenCart(cartArray) {
@@ -110,7 +111,7 @@ let cartItemComponent = {
 			}
 			
 			ctrl.removeAddon = function() {
-				ctrl.onUpdate({name: 'quantity', value: null, index: ctrl.itemIndex});
+				ctrl.onUpdate({name: 'quantity', value: 0, index: ctrl.itemIndex});
 			}
 		},
 	bindings: {
@@ -127,9 +128,9 @@ let cartItemComponent = {
 		
 		+	'<span class="col-xs-6 font-18">{{$ctrl.item.itemName}}</span>'
 		
-		+	'<sw-input input-type="text" input-value="$ctrl.item.newprice.dollar" input-name="dollar" on-update="$ctrl.update(name, value, index)"' 
+		+	'<sw-input input-type="text" input-value="$ctrl.item.dollar" input-name="dollar" on-update="$ctrl.update(name, value, index)"' 
 		+		'item-index="$ctrl.itemIndex" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" />'
 		
-		+	'<sw-input input-type="text" input-value="$ctrl.item.newprice.cent" input-name="cent" on-update="$ctrl.update(name, value, index)"' 
+		+	'<sw-input input-type="text" input-value="$ctrl.item.cent" input-name="cent" on-update="$ctrl.update(name, value, index)"' 
 		+		'item-index="$ctrl.itemIndex" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" />'
 };

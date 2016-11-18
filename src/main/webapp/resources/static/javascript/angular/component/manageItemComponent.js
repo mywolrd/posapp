@@ -89,7 +89,7 @@ let manageItemComponent = {
 
 		+	'<div data-ng-if="!$ctrl.items"><span>No Items for {{$ctrl.itemType.name}}</span></div>'
 		
-		+	'<item-list list="$ctrl.items" on-update="$ctrl.update(name, value, index)" />'
+		+	'<item-list list="$ctrl.items" pref-page-size="7" on-update="$ctrl.update(name, value, index)" />'
 };
 
 let itemListComponent = {
@@ -104,7 +104,7 @@ let itemListComponent = {
 			'<div class="item col-xs-12" data-ng-repeat="item in $ctrl.list | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
 		+		'<item item="item" item-index="$index" do-click="$ctrl.select(index)" on-update="$ctrl.update(name, value, index)" />'
 		+	'</div>'
-		+	'<pn-buttons update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'
+		+	'<pn-buttons cur-page="$ctrl.curPage" update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'
 }
 
 let editItemComponent = {

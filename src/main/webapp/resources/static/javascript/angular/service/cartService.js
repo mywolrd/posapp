@@ -5,11 +5,35 @@ function cartService(APP_CONFIG, stringService, rx) {
 	let _cart = [],
 		subject = new rx.Subject();
 	
-	function _remove(index) {
-		_cart.splice(index, 1);
+	function _remove(index, parentIndex) {
+		if (angular.isUndefined(parentIndex)) {
+			_cart.splice(index, 1);
+			reindex();
+		} else {
+			_cart[parentIndex].addonItems.splice(index, 1);
+			reindex(parentIndex)
+		}
 		subject.onNext(Array.from(_cart));
 	}
 	
+	function reindex(parentIndex) {
+		let listToIndex = _cart;
+		if (angular.isDefined(parentIndex)) {
+			listToIndex = _cart[parentIndex].addonItems;
+		}
+		
+		for (var i = 0; i < listToIndex.length; i++) {
+			listToIndex[i].index = i;
+			let addonItems = listToIndex[i].addonItems;
+
+			if (angular.isUndefined(parentIndex) && addonItems) {
+				for (var j = 0; j < addonItems.length; j++) {
+					addonItems[j].parentIndex = i;
+				}
+			}
+		}
+	}
+
 	function _clear() {
 		_cart = [];
 	}
@@ -26,12 +50,16 @@ function cartService(APP_CONFIG, stringService, rx) {
 		
 		//For addon items
 		if (! cartItem.hasQuantity) {
-			let _cartItem = _cart[_cart.length - 1];
-			if (! _cartItem.addonItems) {
-				_cartItem.addonItems = [];
+			let _parentItem = _cart[_cart.length - 1];
+			if (! _parentItem.addonItems) {
+				_parentItem.addonItems = [];
 			}
-			_cartItem.addonItems.push(cartItem);
+			
+			cartItem.parentIndex = _cart.length - 1;
+			cartItem.index = _parentItem.addonItems.length;
+			_parentItem.addonItems.push(cartItem);
 		} else {
+			cartItem.index = _cart.length;
 			_cart.push(cartItem);
 		}
 		subject.onNext(Array.from(_cart));

@@ -13,7 +13,12 @@ let editListComponentCtrl = function(utilsService) {
 	}
 				
 	ctrl.$onChanges = function(changesObj) {
-		ctrl.maxPageNum = getMaxPageNum(ctrl.list, ctrl.pageSize);
+		let newMaxPageNum = getMaxPageNum(ctrl.list, ctrl.pageSize);
+		
+		if (newMaxPageNum !== ctrl.maxPageNum) {
+			ctrl.maxPageNum = newMaxPageNum;
+			ctrl.curPage = ctrl.maxPageNum;
+		}
 	}
 				
 	ctrl.changePageNum = function(curPage) {

@@ -1,29 +1,24 @@
-var prevNextButtonsComponent = {
+let prevNextButtonsComponent = {
 	controller:
 		function prevNextButtonsCtrl() {
-			var ctrl = this;
-			
-			ctrl.$onInit = function() {
-				ctrl.curPage = 0;
-			}
+			let ctrl = this;
 			
 			ctrl.prevPage = function() {
 				if (0 !== ctrl.curPage) {
-					ctrl.curPage--;
-					ctrl.updateCurrentPage({curPage: ctrl.curPage})
+					ctrl.updateCurrentPage({curPage: ctrl.curPage - 1})
 				}
 			}
 			
 			ctrl.nextPage = function() {
 				if (ctrl.curPage !== ctrl.maxPage) {
-					ctrl.curPage++;
-					ctrl.updateCurrentPage({curPage: ctrl.curPage})
+					ctrl.updateCurrentPage({curPage: ctrl.curPage + 1})
 				}
 			}
 		},
 	bindings: {
 		updateCurrentPage: '&',
-		maxPage: '<'
+		maxPage: '<',
+		curPage: '<'
 	},
 	template:
 			'<div class="col-xs-12 pn-buttons-container" data-ng-show="$ctrl.maxPage > 0">'

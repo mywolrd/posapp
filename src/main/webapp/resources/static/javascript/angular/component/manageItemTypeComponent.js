@@ -74,7 +74,7 @@ let itemTypeListComponent = {
 			'<div class="item col-xs-12" data-ng-repeat="itemType in $ctrl.list | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
 		+		'<itemtype class="item-type" item-type="itemType" item-index="$index" do-click="$ctrl.select(index)" on-update="$ctrl.update(name, value, index)" />'
 		+	'</div>'
-		+	'<pn-buttons update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'
+		+	'<pn-buttons cur-page="$ctrl.curPage" update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'
 };
 
 let editItemTypeComponent = {

@@ -44,9 +44,20 @@ let cartComponent = {
 		} ];
 		
 		ctrl.update = function(name, value, index) {
-			if (angular.equals(name, _quantity) && value == 0) {
-				cartService.remove(index);
-			}	
+			let cartItem = ctrl.cart[index];
+
+			// Remove item
+			if (cartItem.hasQuantity 
+					&& angular.equals(name, _quantity) 
+					&& value == 0) {
+				cartService.remove(cartItem.index);
+			}
+			
+			//Remove addon item
+			if (!cartItem.hasQuantity && angular.equals(name, _quantity)) {
+				cartService.remove(cartItem.index, cartItem.parentIndex);
+			}
+			
 		}
 		
 		function flattenCart(cartArray) {
@@ -85,7 +96,7 @@ let cartItemListComponent = {
 			'<div class="item col-xs-12 cart-item" data-ng-repeat="item in $ctrl.list | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
 		+		'<cart-item item="item" item-index="$index" on-update="$ctrl.update(name, value, index)" />'
 		+	'</div>'
-		+	'<pn-buttons update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'
+		+	'<pn-buttons cur-page="$ctrl.curPage" update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'
 
 }
 
@@ -97,6 +108,10 @@ let cartItemComponent = {
 			ctrl.update = function(name, value, index) {
 				ctrl.onUpdate({name: name, value: value, index: index});
 			}
+			
+			ctrl.removeAddon = function() {
+				ctrl.onUpdate({name: 'quantity', value: null, index: ctrl.itemIndex});
+			}
 		},
 	bindings: {
 		item: '<',
@@ -106,8 +121,9 @@ let cartItemComponent = {
 	template:
 			'<sw-input data-ng-if="$ctrl.item.hasQuantity" input-type="text" input-value="$ctrl.item.quantity" input-name="quantity" on-update="$ctrl.update(name, value, index)"' 
 		+		'item-index="$ctrl.itemIndex" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" />'
+		
 		+	'<sw-button data-ng-if="! $ctrl.item.hasQuantity" button-class="btn-primary" button-name="-"' 
-		+		'span-width="2"  do-click=""/>'
+		+		'span-width="2"  do-click="$ctrl.removeAddon()"/>'
 		
 		+	'<span class="col-xs-6 font-18">{{$ctrl.item.itemName}}</span>'
 		

@@ -3,6 +3,8 @@ package com.pos.dao.jdbc;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -12,13 +14,17 @@ import org.springframework.stereotype.Repository;
 import com.pos.dao.AddonItemDao;
 import com.pos.dao.jdbc.mapper.AddonItemRowMapper;
 import com.pos.model.application.AddonItem;
+import com.pos.utils.POSDatabaseException;
 
 @Repository
 public class JdbcAddonItemDao extends JdbcBaseDao implements AddonItemDao {
     private final static String insertAddonItem = "insert into ADDON_ITEMS (name, dollar, cent, weight, active) values (:name, :dollar, :cent, :weight, :active)";
     private final static String listAll = "SELECT * from ADDON_ITEMS";
-    private final static String updateAddonItem = "update ADDON_ITEMS set name = :name, dollar = :dollar, cent = :cent, active = :active, weight = :weight where ADDON_ITEMS.id = :id ";
     private final static String maxWeight = "SELECT MAX(WEIGHT) from ADDON_ITEMS where ADDON_ITEMS.ACTIVE = :active";
+    private final static String updateActive = "update ADDON_ITEMS set active = :active where ADDON_ITEMS.id = :id";
+
+    private final static Logger logger = LogManager
+            .getLogger(JdbcAddonItemDao.class);
 
     @Autowired
     private AddonItemRowMapper rowMapper;
@@ -43,23 +49,26 @@ public class JdbcAddonItemDao extends JdbcBaseDao implements AddonItemDao {
         try {
             this.namedParameterJdbcTemplate.update(insertAddonItem, parameter);
         } catch (DataAccessException e) {
-
+            logger.error("Error saving AddonItem : " + item.toString(), e);
+            throw new POSDatabaseException(
+                    "Error saving AddonItem : " + item.toString(), e);
         }
     }
 
     @Override
-    public void update(AddonItem item) {
+    public void deactivate(long addonItemId) {
         SqlParameterSource parameter = new MapSqlParameterSource()
-                .addValue(DBNames.NAME, item.getName())
-                .addValue(DBNames.DOLLAR, item.getPrice().getDollar())
-                .addValue(DBNames.CENT, item.getPrice().getCent())
-                .addValue(DBNames.ACTIVE, item.isActive())
-                .addValue(DBNames.WEIGHT, item.getWeight())
-                .addValue(DBNames.ID, item.getId());
+                .addValue(DBNames.ACTIVE, false)
+                .addValue(DBNames.ID, addonItemId);
         try {
-            this.namedParameterJdbcTemplate.update(updateAddonItem, parameter);
+            this.namedParameterJdbcTemplate.update(updateActive, parameter);
         } catch (DataAccessException e) {
-
+            logger.error("Error deactivating Item : { addonItemId="
+                    + addonItemId + " }", e);
+            throw new POSDatabaseException(
+                    "Error deactivating Item : { addonItemId=" + addonItemId
+                            + " }",
+                    e);
         }
     }
 
@@ -75,8 +84,8 @@ public class JdbcAddonItemDao extends JdbcBaseDao implements AddonItemDao {
 
             return weight;
         } catch (DataAccessException e) {
-            return Integer.MIN_VALUE;
+            logger.error("Error getting maxWeight from table AddonItem", e);
+            throw new POSDatabaseException(e);
         }
     }
-
 }

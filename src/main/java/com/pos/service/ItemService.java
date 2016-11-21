@@ -13,6 +13,7 @@ import com.pos.dao.ItemTypeDao;
 import com.pos.model.application.AddonItem;
 import com.pos.model.application.Item;
 import com.pos.model.application.ItemType;
+import com.pos.utils.POSDatabaseException;
 
 @Service
 public class ItemService {
@@ -77,80 +78,83 @@ public class ItemService {
         return active;
     }
 
+    /*
+     * SaveOrUpdate methods. Older orders may require unmodified ItemType, Item,
+     * AddonItem. This method changes the active flag to false in the database
+     * when updating an existing record, and inserts a record.
+     */
     @Transactional(readOnly = false)
-    public void saveOrUpdateItem(Item item) {
-        if (0 == item.getId()) {
-            this.saveItem(item);
-        } else {
-            this.updateItem(item);
+    public void saveOrUpdateItem(Item item) throws POSDatabaseException {
+
+        if (0 != item.getId()) {
+            this.itemDao.deactivate(item.getId());
+        }
+
+        if (item.isActive()) {
+            Item _item = new Item.ItemBuilder(item).id(0).build();
+            this.saveItem(_item);
         }
     }
 
     @Transactional(readOnly = false)
-    public void saveOrUpdateItemType(ItemType itemType) {
-        if (0 == itemType.getId()) {
-            this.saveItemType(itemType);
-        } else {
-            this.updateItemType(itemType);
+    public void saveOrUpdateItemType(ItemType itemType)
+            throws POSDatabaseException {
+
+        if (0 != itemType.getId()) {
+            this.itemTypeDao.deactivate(itemType.getId());
+        }
+
+        if (itemType.isActive()) {
+            ItemType _itemType = new ItemType.ItemTypeBuilder(itemType).id(0)
+                    .build();
+            this.saveItemType(_itemType);
         }
     }
 
     @Transactional(readOnly = false)
-    public void saveOrUpdateAddonItem(AddonItem addonItem) {
-        if (0 == addonItem.getId()) {
-            saveAddonItem(addonItem);
-        } else {
-            this.updateAddonItem(addonItem);
+    public void saveOrUpdateAddonItem(AddonItem addonItem)
+            throws POSDatabaseException {
+        if (0 != addonItem.getId()) {
+            this.addonItemDao.deactivate(addonItem.getId());
+        }
+
+        if (addonItem.isActive()) {
+            AddonItem _addonItem = new AddonItem.AddonItemBuilder(addonItem)
+                    .id(0).build();
+            this.saveAddonItem(_addonItem);
         }
     }
 
     private void saveItem(Item item) {
-        int weight = this.itemDao.getMaxWeight(item.getItemTypeId());
+        int weight = item.getWeight() == 0
+                ? this.itemDao.getMaxWeight(item.getItemTypeId()) + 1
+                : item.getWeight();
         // TODO
         // Throw an exception in Dao and catch in controller
-        if (Integer.MIN_VALUE != weight) {
-            weight++;
-
-            Item _newItem = new Item.ItemBuilder(item).weight(weight).build();
-            this.itemDao.save(_newItem);
-        }
-    }
-
-    private void updateItem(Item item) {
-        this.itemDao.update(item);
+        Item _newItem = new Item.ItemBuilder(item).weight(weight).build();
+        this.itemDao.save(_newItem);
     }
 
     private void saveItemType(ItemType itemType) {
         // TODO
         // What should happen when there are two save operations, each from a
         // different instances of the same app?
-        int weight = this.itemTypeDao.getMaxWeight();
+        int weight = itemType.getWeight() == 0
+                ? this.itemTypeDao.getMaxWeight() + 1 : itemType.getWeight();
         // TODO
         // Throw an exception in Dao and catch in controller
-        if (Integer.MIN_VALUE != weight) {
-            weight++;
-            ItemType newItemType = new ItemType.ItemTypeBuilder(itemType)
-                    .weight(weight).build();
-            this.itemTypeDao.save(newItemType);
-        }
-    }
-
-    private void updateItemType(ItemType itemType) {
-        this.itemTypeDao.update(itemType);
+        ItemType newItemType = new ItemType.ItemTypeBuilder(itemType)
+                .weight(weight).build();
+        this.itemTypeDao.save(newItemType);
     }
 
     private void saveAddonItem(AddonItem addonItem) {
-        int weight = this.addonItemDao.getMaxWeight();
+        int weight = addonItem.getWeight() == 0
+                ? this.addonItemDao.getMaxWeight() + 1 : addonItem.getWeight();
 
-        if (Integer.MIN_VALUE != weight) {
-            weight++;
-            AddonItem _addonItem = new AddonItem.AddonItemBuilder(addonItem)
-                    .weight(weight).build();
-            this.addonItemDao.save(_addonItem);
-        }
-    }
+        AddonItem _addonItem = new AddonItem.AddonItemBuilder(addonItem)
+                .weight(weight).build();
+        this.addonItemDao.save(_addonItem);
 
-    private void updateAddonItem(AddonItem addonItem) {
-        this.addonItemDao.update(addonItem);
     }
 }

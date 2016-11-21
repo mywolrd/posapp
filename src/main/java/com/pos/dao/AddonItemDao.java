@@ -10,7 +10,7 @@ public interface AddonItemDao {
 
     void save(AddonItem item);
 
-    void update(AddonItem item);
+    void deactivate(long addonItemId);
 
     int getMaxWeight();
 }

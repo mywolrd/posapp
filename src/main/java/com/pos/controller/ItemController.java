@@ -2,6 +2,8 @@ package com.pos.controller;
 
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +21,14 @@ import com.pos.model.parameter.AddonItemParameter;
 import com.pos.model.parameter.ItemParameter;
 import com.pos.model.parameter.ItemTypeParameter;
 import com.pos.service.ItemService;
+import com.pos.utils.POSDatabaseException;
 
 @Controller
 @RequestMapping("/item")
 public class ItemController {
+
+    private static final Logger logger = LogManager
+            .getLogger(ItemController.class);
 
     @Autowired
     private ItemService itemService;
@@ -58,8 +64,12 @@ public class ItemController {
         }
 
         Item _item = new Item.ItemBuilder(item).build();
-        itemService.saveOrUpdateItem(_item);
-
+        try {
+            itemService.saveOrUpdateItem(_item);
+        } catch (POSDatabaseException e) {
+            logger.error("Could not saveOrUpdate Item.");
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         List<Item> items = itemService.listItemsByType(_item.getItemTypeId());
         return new ResponseEntity<>(items, HttpStatus.OK);
     }
@@ -74,8 +84,12 @@ public class ItemController {
         }
 
         ItemType _itemType = new ItemType.ItemTypeBuilder(itemType).build();
-        itemService.saveOrUpdateItemType(_itemType);
-
+        try {
+            itemService.saveOrUpdateItemType(_itemType);
+        } catch (POSDatabaseException e) {
+            logger.error("Could not saveOrUpdate ItemType.");
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         List<ItemType> itemTypes = itemService.listItemTypes();
         return new ResponseEntity<>(itemTypes, HttpStatus.CREATED);
     }
@@ -98,8 +112,12 @@ public class ItemController {
 
         AddonItem _addonItem = new AddonItem.AddonItemBuilder(addonItem)
                 .build();
-        itemService.saveOrUpdateAddonItem(_addonItem);
-
+        try {
+            itemService.saveOrUpdateAddonItem(_addonItem);
+        } catch (POSDatabaseException e) {
+            logger.error("Could not saveOrUpdate AddonItem.");
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         List<AddonItem> addonItems = itemService.listAddonItems();
         return new ResponseEntity<>(addonItems, HttpStatus.OK);
     }

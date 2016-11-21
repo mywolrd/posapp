@@ -48,6 +48,14 @@ public class AddonItem {
     }
 
     @Override
+    public String toString() {
+        return new StringBuilder().append("AddonItem {").append(" id=" + id)
+                .append(" name=" + name).append(" price=" + price.toString())
+                .append(" active=" + active).append(" weight=" + weight)
+                .toString();
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hashCode(this.id, this.name, this.price, this.active);
     }

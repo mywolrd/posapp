@@ -37,14 +37,13 @@ public class Item {
         }
 
         public ItemBuilder(Item item) {
-            this.id = item.getId();
-            this.itemTypeId = item.getItemTypeId();
-            this.price = new Price.PriceBuilder()
-                    .dollar(item.getPrice().getDollar())
-                    .cent(item.getPrice().getCent()).build();
-            this.name = item.getName();
-            this.weight = item.getWeight();
-            this.active = item.isActive();
+            this.id = item.id;
+            this.itemTypeId = item.itemTypeId;
+            this.price = new Price.PriceBuilder().dollar(item.price.getDollar())
+                    .cent(item.price.getCent()).build();
+            this.name = item.name;
+            this.weight = item.weight;
+            this.active = item.active;
         }
 
         public ItemBuilder name(String name) {
@@ -103,6 +102,15 @@ public class Item {
 
     public int getWeight() {
         return this.weight;
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuilder().append("Item {").append(" id=" + id)
+                .append(" itemTypeId=" + itemTypeId).append(" name=" + name)
+                .append(" price=" + price.toString())
+                .append(" active=" + active).append(" weight=" + weight)
+                .append(" }").toString();
     }
 
     @Override

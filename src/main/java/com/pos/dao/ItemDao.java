@@ -14,11 +14,7 @@ public interface ItemDao {
 
     void save(Item item);
 
-    void update(Item item);
-
-    void deactivateById(long id);
-
-    void deactivate(Item item);
+    void deactivate(long itemId);
 
     int getMaxWeight(long itemTypeId);
 }

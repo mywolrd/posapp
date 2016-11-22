@@ -3,9 +3,11 @@ package com.pos.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.pos.model.parameter.OrderParameter;
 import com.pos.service.OrderService;
 
 @Controller
@@ -26,8 +28,8 @@ public class OrderController {
     }
 
     @RequestMapping(value = "/save", method = RequestMethod.POST)
-    public void saveNewOrder() {
-        this.orderService.save();
+    public void saveNewOrder(@RequestBody OrderParameter order) {
+        this.orderService.saveOrUpdateOrder();
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)

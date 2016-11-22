@@ -165,32 +165,36 @@ function itemService(APP_CONFIG, $http, urlService) {
 
 class _ItemRequestBody {
 	constructor(options) {
-		this.id = angular.isDefined(options.id) ? options.id:0;
 		this.itemTypeId = options.itemTypeId;
 		this.name = options.name;
-		this.dollar = angular.isDefined(options.dollar) ? options.dollar:0;
-		this.cent = angular.isDefined(options.cent) ? options.cent:0;
-		this.weight = angular.isDefined(options.weight) ? options.weight:0;
+		
+		this.id = options.id || 0;
+		this.dollar = options.dollar || 0;
+		this.cent = options.cent || 0;
+		this.weight = options.weight || 0;
+		
 		this.active = angular.isDefined(options.active) ? options.active:true;
 	}
 }
 
 class _ItemTypeRequestBody {
 	constructor(options) {
-		this.name = angular.isDefined(options.name) ? options.name:null;
-		this.weight = angular.isDefined(options.weight) ? options.weight:0;
+		this.id = options.id || 0;
+		this.name = options.name || null;
+		this.weight = options.weight || 0;
+		
 		this.active = angular.isDefined(options.active) ? options.active:true;
-		this.id = angular.isDefined(options.id) ? options.id:0;
 	}
 }
 
 class _AddonItemRequestBody {
 	constructor(options) {
-		this.name = angular.isDefined(options.name) ? options.name : null;
-		this.dollar = angular.isDefined(options.dollar) ? options.dollar:0;
-		this.cent = angular.isDefined(options.cent) ? options.cent:0;
-		this.weight = angular.isDefined(options.weight) ? options.weight:0;
+		this.id = options.id || 0;
+		this.name = options.name || null;
+		this.dollar = options.dollar || 0;
+		this.cent = options.cent || 0;
+		this.weight = options.weight || 0;
+		
 		this.active = angular.isDefined(options.active) ? options.active:true;
-		this.id = angular.isDefined(options.id) ? options.id:0;
 	}
 }

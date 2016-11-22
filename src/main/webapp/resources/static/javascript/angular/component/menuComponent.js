@@ -26,6 +26,10 @@ let menuComponent = {
 				_showMainItems()
 			}
 			
+			ctrl.saveOrUpdateOrder = function() {
+				cartService.saveOrUpdateOrder();
+			}
+			
 			function _showMainItems() {
 				if (ctrl.items !== ctrl.mainItems)				
 					ctrl.items = ctrl.mainItems;
@@ -36,7 +40,7 @@ let menuComponent = {
 		+		'<sw-button button-class="btn-primary" do-click="$ctrl.showMainitems()" span-width="3" button-name="Back"/>'
 		+		'<span class="col-xs-3" />'
 		+		'<span class="col-xs-3" />'
-		+		'<sw-button button-class="btn-primary" span-width="3" button-name="Order"/>'		
+		+		'<sw-button button-class="btn-primary" do-click="$ctrl.saveOrUpdateOrder()" span-width="3" button-name="Order"/>'		
 		+	'</div>'
 		+	'<div class="col-xs-12 menu-row" data-ng-repeat="row in $ctrl.items">'
 		+		'<sw-button button-class="btn-default" span-width="3" data-ng-repeat="item in row" '

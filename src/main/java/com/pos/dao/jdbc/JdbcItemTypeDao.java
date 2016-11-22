@@ -47,7 +47,6 @@ public class JdbcItemTypeDao extends JdbcBaseDao implements ItemTypeDao {
             Integer weight = this.namedParameterJdbcTemplate
                     .queryForObject(maxWeight, parameter, Integer.class);
             if (null == weight) {
-                System.out.println("Here");
                 return 0;
             }
             return weight;

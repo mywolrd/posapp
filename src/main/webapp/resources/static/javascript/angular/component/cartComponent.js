@@ -56,7 +56,7 @@ let cartComponent = {
 				} else {
 					cartService.remove(cartItem.index, cartItem.parentIndex);
 				}
-			} else {
+			} else {				
 				cartService.update(name, value, cartItem.index, cartItem.parentIndex);
 			}
 		}
@@ -64,7 +64,7 @@ let cartComponent = {
 		function flattenCart(cartArray) {
 			let newCart = [];
 			
-			for (var i = 0; i < cartArray.length; i++) {
+			for (let i = 0; i < cartArray.length; i++) {
 				newCart.push(cartArray[i]);
 				
 				let addonItems = cartArray[i].addonItems;

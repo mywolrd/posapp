@@ -9,3 +9,4 @@ build/
 gradle/
 gradlew
 gradlew.bat
+/TESTS-PhantomJS_2.1.1_(Linux_0.0.0).xml

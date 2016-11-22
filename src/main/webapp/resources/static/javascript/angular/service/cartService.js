@@ -1,7 +1,7 @@
 /**
  * Cart Service
  */
-function cartService(APP_CONFIG, stringService, rx) {
+function cartService(APP_CONFIG, orderService, rx) {
 	let _cart = [],
 		subject = new rx.Subject();
 	
@@ -22,12 +22,12 @@ function cartService(APP_CONFIG, stringService, rx) {
 			listToIndex = _cart[parentIndex].addonItems;
 		}
 		
-		for (var i = 0; i < listToIndex.length; i++) {
+		for (let i = 0; i < listToIndex.length; i++) {
 			listToIndex[i].index = i;
 			let addonItems = listToIndex[i].addonItems;
 
 			if (angular.isUndefined(parentIndex) && addonItems) {
-				for (var j = 0; j < addonItems.length; j++) {
+				for (let j = 0; j < addonItems.length; j++) {
 					addonItems[j].parentIndex = i;
 				}
 			}
@@ -37,8 +37,7 @@ function cartService(APP_CONFIG, stringService, rx) {
 	function _update(name, value, index, parentIndex) {
 		let item = _cart[index];
 		if (angular.isDefined(parentIndex)) {
-			let parentIndex = _cart[parentIndex]
-			item = parentIndex.addonItems[index];
+			item = _cart[parentIndex].addonItems[index];
 		}
 		item[name] = value;
 		subject.onNext(Array.from(_cart));
@@ -83,6 +82,10 @@ function cartService(APP_CONFIG, stringService, rx) {
 		return subject.subscribe(o);
 	}
 	
+	function _saveOrUpdateOrder() {
+		orderService.saveOrUpdateOrder(_cart);
+	}
+	
 	return {
 		get: _get,
 		remove: _remove,
@@ -90,6 +93,7 @@ function cartService(APP_CONFIG, stringService, rx) {
 		clear: _clear,
 		addItem: _addItem,
 		update: _update,
+		saveOrUpdateOrder: _saveOrUpdateOrder,
 		getTotalQuantity: function() {
 			let i, len;
 			let total = 0;

@@ -3,15 +3,6 @@ String.prototype.repeat = String.prototype.repeat || function(n){
     return n<=1 ? this : (this + this.repeat(n-1)); 
 }
 
-/** TODO
- * Order Service 
-**/
-function orderService() {
-	return  {
-		
-	};
-}
-
 function messageService(APP_CONFIG) {
 	let _data = {};
 	
@@ -180,10 +171,10 @@ let app =
 		.provider('spinnerModal', spinnerModalProvider)
 		.factory('stringService', stringService)
 		.factory('urlService', urlService)
-		.factory('cartService', [ 'APP_CONFIG', 'stringService', 'rx', cartService ])
+		.factory('orderService', [ 'APP_CONFIG', '$http', 'urlService', orderService ])
+		.factory('cartService', [ 'APP_CONFIG', 'orderService', 'rx', cartService ])
 		.factory('customerService', [ 'APP_CONFIG', '$http', 'urlService', 'stringService', customerService ])
 		.factory('navigationService', [ 'APP_CONFIG', '$state', navigationService ])
-		.factory('orderService', [ '$http', 'urlService', 'stringService', orderService ])
 		.factory('itemService', [ 'APP_CONFIG', '$http', 'urlService', itemService])
 		.factory('menuService', ['APP_CONFIG', '$q', 'navigationService', 'itemService', menuService])
 		.factory('utilsService', utilsService)

@@ -38,7 +38,8 @@ class _OrderDetailRequestBody {
 		this.itemId = options.item.id;
 		this.quantity = options.quantity;
 		
-		this.orderDetailAddonItems = orderDetailAddonItems;
+		if (angular.isArray(orderDetailAddonItems))
+			this.orderDetailAddonItems = orderDetailAddonItems;
 		
 		if (options.item.price.dollar !== options.dollar ||
 				options.item.price.cent !== options.cent) {
@@ -49,7 +50,7 @@ class _OrderDetailRequestBody {
 	equals(other) {
 		return angular.equals(this.itemId, other.itemId)
 			&& angular.equals(this.newPrice, other.newPrice)
-			&& angular.equals(this.orderDetailsAddonItems, other.orderDetailsAddonItems);
+			&& angular.equals(this.orderDetailAddonItems, other.orderDetailAddonItems);
 	}
 }
 

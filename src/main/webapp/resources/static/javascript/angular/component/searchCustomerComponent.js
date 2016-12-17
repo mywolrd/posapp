@@ -1,11 +1,11 @@
 let searchCustomerComponent = {
 	controller:
-		function (customerService, navigationService) {
+		function (customerService, navigationService, keyboardService) {
 			let ctrl = this;
 	
 			ctrl.$onInit = function() {
 				ctrl.search_customer_input = [
-					{label: 'Last Name', id: "lastName", value: null, required: true}];
+					{label: 'Last Name', id: "lastName", value: null, required: true, keyboardConfig: keyboardService.getKeyboard()}];
 						
 				ctrl.title = 'Search Customer';
 			}
@@ -18,6 +18,7 @@ let searchCustomerComponent = {
 				customerService.search(ctrl.search_customer_input[0].value, function(res) {
 					ctrl.results = res.data;
 					ctrl.results.map(function(customer) {
+						customer.name = customer.lastName + ', ' + customer.firstName; 
 						customer.displayValue = formatString(customer);
 					});
 					_reset();
@@ -54,5 +55,5 @@ let searchCustomerComponent = {
 			'<p-form form-input="$ctrl.search_customer_input" title="{{$ctrl.title}}" button-name="Find"'
 		+		'on-update="$ctrl.update(name, value, index)" submit="$ctrl.search()" />'
 		
-		+	'<select-list list="$ctrl.results" col="2" do-click="$ctrl.select(selected)"/>'
+		+	'<select-list list="$ctrl.results" col="3" do-click="$ctrl.select(selected)"/>'
 }

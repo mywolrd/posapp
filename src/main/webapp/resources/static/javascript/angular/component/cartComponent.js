@@ -11,15 +11,33 @@ let cartComponent = {
 		ctrl.$onInit = function() {
 			cartSubscription = cartService.subscribe(function(d) {
 				ctrl.cart = flattenCart(d);
+				calculateTotal();
 			})
 			
 			let cart = cartService.get();
-			if (cart)
+			if (cart) {
 				ctrl.cart = flattenCart(cart);
+				calculateTotal();
+			}
 			
-			let customer = customerService.getCurrent();
-			if (customer)
-				ctrl.customer = customer;
+			ctrl.customer = customerService.getCurrentCustomer();
+			
+			ctrl.dateOptions = {
+				dateDisabled: disabled,
+				maxDate: new Date(2030, 5, 22),
+				minDate: new Date(),
+				startingDay: 1,
+				showWeeks: false
+			};
+
+			ctrl.dt = cartService.defaultReadyDate();
+			ctrl.dateFormat = 'EEE dd';
+				
+			ctrl.openDateWindow = function() {
+			    ctrl.opened = true;
+			};
+				
+			ctrl.opened = false;
 		}
 
 		ctrl.$onDestroy = function() {
@@ -27,24 +45,23 @@ let cartComponent = {
 				cartSubscription.dispose();
 		}
 		
-		ctrl.cartInfo = [ {
+		ctrl.changeDate = function() {
+			cartService.setReadyDate(ctrl.dt);
+		}
+		
+		ctrl.customerInfo = {
 			name : "Customer",
 			enabled : true,
 			action : function() {
 				navigationService.setRoute('searchcustomer');
 				navigationService.go();
 			}
-		}, {
-			name : "today's date",
-			enabled : true,
-			action : function() {
-			}
-		}, {
-			name : "ready date",
-			enabled : true,
-			action : function() {
-			}
-		} ];
+		};
+
+		function disabled(data) {
+			let date = data.date, mode = data.mode;
+			return mode === 'day' && date.getDay() === 0;
+		}
 		
 		ctrl.update = function(name, value, index) {
 			let cartItem = ctrl.cart[index];
@@ -59,6 +76,32 @@ let cartComponent = {
 			} else {				
 				cartService.update(name, value, cartItem.index, cartItem.parentIndex);
 			}
+		}
+		
+		function calculateTotal() {
+			let quantity = 0, cent = 0, dollar = 0;
+			for (let i = 0, n = ctrl.cart.length; i < n; i++) {
+				let cartItem = ctrl.cart[i];
+				let c = Number(cartItem.cent), d = Number(cartItem.dollar);
+				
+				if (cartItem.hasQuantity) {
+					let q = Number(cartItem.quantity);
+					quantity += q;
+					
+					c *= q;
+					d *= q;
+				}
+				cent += c;
+				dollar += d;
+			}
+			
+			let rem = cent % 100;
+			dollar += ((cent - rem) / 100);
+			cent = rem;
+			
+			ctrl.tQ = quantity;
+			ctrl.tDollar = dollar;
+			ctrl.tCent = cent;
 		}
 		
 		function flattenCart(cartArray) {
@@ -77,10 +120,24 @@ let cartComponent = {
 		
 	},
 	template:
-			'<div class="col-xs-12 font-18 cart-info" data-ng-repeat="info in $ctrl.cartInfo">'
-		+		'<span class="col-xs-3" />'
-		+		'<sw-button data-ng-if="info.enabled" span-width="6" button-name="{{info.name}}" button-class="btn-primary" do-click="info.action()"/>'
-		+		'<span class="col-xs-3" />'
+			'<div class="col-xs-12 cart-info">'
+		+		'<span class="col-xs-1" />'
+		+		'<sw-button data-ng-if="$ctrl.customerInfo.enabled" span-width="6" button-name="{{ $ctrl.customer ? $ctrl.customer.name:$ctrl.customerInfo.name }}" button-class="btn-primary" do-click="$ctrl.customerInfo.action()"/>'
+		+		'<span class="col-xs-1" />'
+		+		'<div class="col-xs-3">'
+        +			'<p class="input-group">'
+        + 				'<input type="text" class="form-control" data-ng-change="$ctrl.changeDate()" uib-datepicker-popup="{{$ctrl.dateFormat}}" data-ng-model="$ctrl.dt" is-open="$ctrl.opened" datepicker-options="$ctrl.dateOptions" ng-required="true" close-text="Close"/>'
+        +  				'<span class="input-group-btn">'
+        +    				'<button type="button" class="btn btn-default" data-ng-click="$ctrl.openDateWindow()"><i class="glyphicon glyphicon-calendar"></i></button>'
+        +	  			'</span>'
+        +			'</p>'
+        +		'</div>'
+		+		'<span class="col-xs-1" />'
+		+	'</div>'
+		
+	    +	'<div class="col-xs-12 cart-info">'
+		+		'<span class="col-xs-6">Total Quantity : {{$ctrl.tQ}}</span>'
+		+		'<span class="col-xs-6">Total Price : {{$ctrl.tDollar}}.{{$ctrl.tCent}}</span>'
 		+	'</div>'
 		
 		+	'<cart-item-list list="$ctrl.cart" on-update="$ctrl.update(name, value, index)" pref-page-size="7" />'
@@ -103,8 +160,9 @@ let cartItemListComponent = {
 
 let cartItemComponent = {
 	controller:
-		function() {
+		function(keyboardService) {
 			let ctrl = this;
+			ctrl.keyboardConfig = keyboardService.getNumberPad();
 			
 			ctrl.update = function(name, value, index) {
 				ctrl.onUpdate({name: name, value: value, index: index});
@@ -121,7 +179,7 @@ let cartItemComponent = {
 	},
 	template:
 			'<sw-input data-ng-if="$ctrl.item.hasQuantity" input-type="text" input-value="$ctrl.item.quantity" input-name="quantity" on-update="$ctrl.update(name, value, index)"' 
-		+		'item-index="$ctrl.itemIndex" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" />'
+		+		'item-index="$ctrl.itemIndex" span-width="2" font-size="20" keyboard-config="$ctrl.keyboardConfig" />'
 		
 		+	'<sw-button data-ng-if="! $ctrl.item.hasQuantity" button-class="btn-primary" button-name="-"' 
 		+		'span-width="2"  do-click="$ctrl.removeAddon()"/>'
@@ -129,8 +187,8 @@ let cartItemComponent = {
 		+	'<span class="col-xs-6 font-18">{{$ctrl.item.itemName}}</span>'
 		
 		+	'<sw-input input-type="text" input-value="$ctrl.item.dollar" input-name="dollar" on-update="$ctrl.update(name, value, index)"' 
-		+		'item-index="$ctrl.itemIndex" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" />'
+		+		'item-index="$ctrl.itemIndex" span-width="2" font-size="20" keyboard-config="$ctrl.keyboardConfig" />'
 		
 		+	'<sw-input input-type="text" input-value="$ctrl.item.cent" input-name="cent" on-update="$ctrl.update(name, value, index)"' 
-		+		'item-index="$ctrl.itemIndex" span-width="2" font-size="20" keyboard-config="$ctrl.numberPadConfig" />'
+		+		'item-index="$ctrl.itemIndex" span-width="2" font-size="20" keyboard-config="$ctrl.keyboardConfig" />'
 };

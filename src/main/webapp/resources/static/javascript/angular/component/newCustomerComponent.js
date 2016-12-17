@@ -1,13 +1,13 @@
 let newCustomerComponent = {
 	controller:
-		function newCustomerCtrl(customerService) {
+		function newCustomerCtrl(customerService, keyboardService) {
 			let ctrl = this;
 			
 			ctrl.$onInit = function() {
 				ctrl.new_customer_info = [
-					{label: 'Last Name', id: "lastName", value: null, required: true}, 
-					{label: 'First Name', id: "firstName", value: null, required: false}, 
-					{label: 'Phone Number',id: "phoneNumber", value: null, required: false}];
+					{label: 'Last Name', id: "lastName", value: null, required: true, keyboardConfig: keyboardService.getKeyboard()}, 
+					{label: 'First Name', id: "firstName", value: null, required: false, keyboardConfig: keyboardService.getKeyboard()}, 
+					{label: 'Phone Number',id: "phoneNumber", value: null, required: false, keyboardConfig: keyboardService.getNumberPad()}];
 						
 				ctrl.title = 'New Customer';
 			}

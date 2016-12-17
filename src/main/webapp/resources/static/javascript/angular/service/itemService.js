@@ -115,9 +115,9 @@ function itemService(APP_CONFIG, $http, urlService) {
 	}
 	
 	return {
-		groupItemsByType: function(itemTypes, items) {
-			return _groupItemsByType(itemTypes, items);
-		},
+		//groupItemsByType: function(itemTypes, items) {
+		//	return _groupItemsByType(itemTypes, items);
+		//},
 		getAJAXItemPromises: function() {
 			let promises = [];
 			

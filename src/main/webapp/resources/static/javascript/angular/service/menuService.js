@@ -26,13 +26,15 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 		
 		for (let i=0, len=items.length; i < len; i++) {
 			let item = items[i];
-			row.push(item);
-
-			if (((i + 1) % numberOfItems) == 0 || i == (len - 1)) {
-				itemMenu.push(row);
-				row = [];
-			}			
+			if ((angular.isDefined(item.active) && item.active) || angular.isUndefined(item.active)) {
+				row.push(item);		
+				if (row.length == numberOfItems) {
+					itemMenu.push(row);
+					row = [];
+				}	
+			}
 		}
+		itemMenu.push(row);
 		return itemMenu;
 	}
 	
@@ -43,12 +45,12 @@ function menuService(APP_CONFIG, $q, navigationService, itemService) {
 		
 		for (let i=0, len=itemTypes.length; i < len; i++) {
 			let _itemsByType = items.get(itemTypes[i].id);
-			if (_itemsByType) {
+			if (_itemsByType && itemTypes[i].active) {
 				itemMenu.push({	name: itemTypes[i].name, 
 								submenu: _buildItemMenuGrid(_itemsByType, APP_CONFIG.NUMBER_OF_BUTTONS_PER_ROW)});				
 			}
 		}
-		
+
 		let mainItemMenu = _buildItemMenuGrid(itemMenu, APP_CONFIG.NUMBER_OF_BUTTONS_PER_ROW);
 		_data.mainItemMenu = mainItemMenu;
 	}

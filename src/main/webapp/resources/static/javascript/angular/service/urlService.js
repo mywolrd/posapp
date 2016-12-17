@@ -11,6 +11,6 @@ function urlService() {
 		main : base + '/main',
 		item : base + '/item',
 		order : base + '/order',
-		customer : base + '/customer',
+		customer : base + '/customer'
 	}
 }

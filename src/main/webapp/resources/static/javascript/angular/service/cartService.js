@@ -3,7 +3,8 @@
  */
 function cartService(APP_CONFIG, orderService, rx) {
 	let _cart = [],
-		subject = new rx.Subject();
+		subject = new rx.Subject(),
+		_readyDate = null;
 	
 	function _remove(index, parentIndex) {
 		if (angular.isUndefined(parentIndex)) {
@@ -34,6 +35,19 @@ function cartService(APP_CONFIG, orderService, rx) {
 		}
 	}
 
+	function _setReadyDate(date) {
+		_readyDate = date;
+	}
+
+	function _defaultReadyDate() {
+		_readyDate = new Date();
+		_readyDate.setDate(_readyDate.getDate() + 3);
+		if (_readyDate.getDay() == 0) {
+			_readyDate.setDate(_readyDate.getDate() + 1);
+		}
+		return _readyDate;
+	}
+	
 	function _update(name, value, index, parentIndex) {
 		let item = _cart[index];
 		if (angular.isDefined(parentIndex)) {
@@ -45,6 +59,7 @@ function cartService(APP_CONFIG, orderService, rx) {
 	
 	function _clear() {
 		_cart = [];
+		subject.onNext(Array.from(_cart));
 	}
 	
 	function _get() {
@@ -83,7 +98,8 @@ function cartService(APP_CONFIG, orderService, rx) {
 	}
 	
 	function _saveOrUpdateOrder() {
-		orderService.saveOrUpdateOrder(_cart);
+		orderService.saveOrUpdateOrder(_cart, _readyDate, customerService.getCurrentCustomer());
+		_clear();
 	}
 	
 	return {
@@ -94,12 +110,12 @@ function cartService(APP_CONFIG, orderService, rx) {
 		addItem: _addItem,
 		update: _update,
 		saveOrUpdateOrder: _saveOrUpdateOrder,
+		setReadyDate: _setReadyDate,
+		defaultReadyDate: _defaultReadyDate,
 		getTotalQuantity: function() {
-			let i, len;
 			let total = 0;
-			let cart = _cart;
-			for(i=0, len=cart.length; i < len; i++) {
-				total = total + cart[i].quantity;
+			for(let i=0; i < _cart.length; i++) {
+				total = total + _cart[i].quantity;
 			}
 			return total;
 		},
@@ -126,5 +142,5 @@ class _CartItem {
 		if (this.typeName)
 			return this.typeName.concat(" ", this.item.name);
 		return this.item.name;
-	}	
+	}
 }

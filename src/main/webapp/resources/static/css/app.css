@@ -108,7 +108,7 @@ manageitem div span {
 }
 
 .cart-container {
-	padding-left: 30px;
+	padding-left: 40px;
 	padding-right:10px;
 }
 
@@ -121,12 +121,20 @@ manageitem div span {
 }
 
 .cart-info {
-	margin-bottom: 20px;
+	margin-bottom: 10px;
+	line-height: 50px;
 }
 
-.cart-info  sw-button  span  button {
+.cart-info  sw-button  span  button, .cart-info span,
+.cart-info p input, .cart-info p span button {
 	font-size : 20px;
 	font-weight: bold;
+	height: 50px;
+}
+
+.dropdown-menu table {
+	height: 400px;
+	width: 550px;
 }
 
 .cart-item {

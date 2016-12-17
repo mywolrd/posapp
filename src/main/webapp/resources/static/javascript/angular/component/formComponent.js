@@ -22,7 +22,7 @@ let formComponent = {
 		+ 		'<div class="col-xs-12 labeled-input-row" data-ng-repeat="input in $ctrl.formInput">'
 		+			'<sw-labeled-input label-for="{{input.id}}" input-value="input.value" span-width="6" input-label="{{input.label}}"'
 		+				'input-type="text" item-index="$index" input-name="{{input.id}}" is-required="input.required" place-holder="{{input.label}}"'
-		+				'font-size="20" on-update="$ctrl.update(name, value, index)"/>'
+		+				'font-size="20" on-update="$ctrl.update(name, value, index)" keyboard-config="input.keyboardConfig"/>'
 		+ 		'</div>'
 		+		'<span class="col-xs-3" />'
 		+		'<sw-button type="submit" button-class="btn-primary" span-width="9" font-size="20" button-name="{{$ctrl.buttonName}}" />'

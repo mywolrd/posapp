@@ -2,8 +2,8 @@
  * Customer Service
  */
 function customerService(APP_CONFIG, $http, urlService, stringService) {
-	let current,
-		previous;
+	let current = null,
+		previous = null;
 	
 	function _getSearchCustomerInputFields() {
 		return angular.copy(APP_CONFIG.SEARCH_CUSTOMER_INPUT);
@@ -51,7 +51,7 @@ function customerService(APP_CONFIG, $http, urlService, stringService) {
 		update: _update,
 		search: _search,
 		setCurrentCustomer: _setCurrentCustomer,
-		getCurrent: _getCurrentCustomer,
+		getCurrentCustomer: _getCurrentCustomer,
 		clearCurrentCustomer: _clearCurrentCustomer,
 		subscribe: _subscribe
 	};

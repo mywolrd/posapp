@@ -11,9 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.pos.model.application.Customer;
 import com.pos.model.parameter.CustomerParameter;
+import com.pos.model.persist.Customer;
 import com.pos.service.CustomerService;
+import com.pos.utils.CustomerUtils;
 import com.pos.utils.Utils;
 
 @Controller
@@ -23,36 +24,40 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
+    @Autowired
+    private CustomerUtils customerUtils;
+
     @RequestMapping(value = "/save", method = RequestMethod.POST)
-    public ResponseEntity<Customer> save(@RequestBody CustomerParameter customer) {
-        if (!this.isValidCustomerParameter(customer)) {
+    public ResponseEntity<Customer> save(@RequestBody CustomerParameter param) {
+        if (!this.isValidCustomerParameter(param)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
-        long createdId = this.customerService.save(customer);
-        Customer created = this.customerService.uniqueById(createdId);
+        Customer customer = customerUtils.to_Customer(param);
+        Customer created = this.customerService.save(customer);
         return new ResponseEntity<>(created, HttpStatus.ACCEPTED);
     }
 
     @RequestMapping(value = "/update", method = RequestMethod.POST)
-    public ResponseEntity<Customer> update(@RequestBody CustomerParameter customer) {
+    public ResponseEntity<Customer> update(
+            @RequestBody CustomerParameter param) {
 
-        if (!this.isValidCustomerParameter(customer)) {
+        if (!this.isValidCustomerParameter(param)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        if (Utils.ZERO == customer.getId()) {
+        if (Utils.ZERO == param.getId()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
-        long updatedId = this.customerService.update(customer);
-        Customer updated = this.customerService.uniqueById(updatedId);
+        Customer customer = customerUtils.to_Customer(param);
+        Customer updated = this.customerService.update(customer);
         return new ResponseEntity<>(updated, HttpStatus.ACCEPTED);
     }
 
     @RequestMapping(value = "/search/{lastNameLike}", method = RequestMethod.GET)
-    public ResponseEntity<List<Customer>> search(@PathVariable String lastNameLike) {
-        List<Customer> customers = this.customerService.searchByLikeLastName(lastNameLike.toUpperCase());
+    public ResponseEntity<List<Customer>> search(
+            @PathVariable String lastNameLike) {
+        List<Customer> customers = this.customerService
+                .searchByLikeLastName(lastNameLike.toUpperCase());
         return new ResponseEntity<>(customers, HttpStatus.OK);
     }
 

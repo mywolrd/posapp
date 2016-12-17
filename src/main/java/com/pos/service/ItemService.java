@@ -10,9 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pos.dao.AddonItemDao;
 import com.pos.dao.ItemDao;
 import com.pos.dao.ItemTypeDao;
-import com.pos.model.application.AddonItem;
-import com.pos.model.application.Item;
-import com.pos.model.application.ItemType;
+import com.pos.model.persist.Active;
+import com.pos.model.persist.AddonItem;
+import com.pos.model.persist.Item;
+import com.pos.model.persist.ItemType;
+import com.pos.utils.ItemUtils;
 import com.pos.utils.POSDatabaseException;
 
 @Service
@@ -27,55 +29,60 @@ public class ItemService {
     @Autowired
     private AddonItemDao addonItemDao;
 
-    @Transactional(readOnly = true)
+    @Autowired
+    private ItemUtils itemUtils;
+
+    private <T extends Active> List<T> filterActive(List<T> list) {
+        List<T> filtered = new LinkedList<>();
+        for (T item : list) {
+            if (item.isActive())
+                filtered.add(item);
+        }
+        return filtered;
+    }
+
+    @Transactional
     public List<Item> listItems() {
-        List<Item> items = itemDao.listItems();
-        return this.listActiveItems(items);
+        return itemDao.list();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
+    public List<Item> listActiveItems() {
+        List<Item> items = itemDao.list();
+        return this.filterActive(items);
+    }
+
+    @Transactional
     public List<Item> listItemsByType(long itemTypeId) {
+        return itemDao.listItemsByType(itemTypeId);
+    }
+
+    @Transactional
+    public List<Item> listActiveItemsByType(long itemTypeId) {
         List<Item> items = itemDao.listItemsByType(itemTypeId);
-        return this.listActiveItems(items);
+        return this.filterActive(items);
     }
 
-    private List<Item> listActiveItems(List<Item> items) {
-        List<Item> activeItems = new LinkedList<>();
-        for (Item item : items) {
-            if (item.isActive())
-                activeItems.add(item);
-        }
-        return activeItems;
-    }
-
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ItemType> listItemTypes() {
-        List<ItemType> itemTypes = itemTypeDao.listItemTypes();
-        return this.listActiveItemType(itemTypes);
+        return itemTypeDao.list();
     }
 
-    public List<ItemType> listActiveItemType(List<ItemType> itemTypes) {
-        List<ItemType> activeItems = new LinkedList<>();
-        for (ItemType itemType : itemTypes) {
-            if (itemType.isActive())
-                activeItems.add(itemType);
-        }
-        return activeItems;
+    @Transactional
+    public List<ItemType> listActiveItemTypes() {
+        List<ItemType> itemTypes = itemTypeDao.list();
+        return this.filterActive(itemTypes);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<AddonItem> listAddonItems() {
-        List<AddonItem> addonItems = this.addonItemDao.listAddonItems();
-        return this.listActiveAddonItems(addonItems);
+        return this.addonItemDao.list();
     }
 
-    public List<AddonItem> listActiveAddonItems(List<AddonItem> addonItems) {
-        List<AddonItem> active = new LinkedList<>();
-        for (AddonItem item : addonItems) {
-            if (item.isActive())
-                active.add(item);
-        }
-        return active;
+    @Transactional
+    public List<AddonItem> listActiveAddonItems() {
+        List<AddonItem> addonItems = this.addonItemDao.list();
+        return this.filterActive(addonItems);
     }
 
     /*
@@ -83,78 +90,84 @@ public class ItemService {
      * AddonItem. This method changes the active flag to false in the database
      * when updating an existing record, and inserts a record.
      */
-    @Transactional(readOnly = false)
-    public void saveOrUpdateItem(Item item) throws POSDatabaseException {
 
-        if (0 != item.getId()) {
-            this.itemDao.deactivate(item.getId());
-        }
-
-        if (item.isActive()) {
-            Item _item = new Item.ItemBuilder(item).id(0).build();
-            this.saveItem(_item);
-        }
-    }
-
-    @Transactional(readOnly = false)
+    @Transactional
     public void saveOrUpdateItemType(ItemType itemType)
             throws POSDatabaseException {
-
         if (0 != itemType.getId()) {
-            this.itemTypeDao.deactivate(itemType.getId());
+            this.deactivateItemType(itemType.getId());
         }
 
         if (itemType.isActive()) {
-            ItemType _itemType = new ItemType.ItemTypeBuilder(itemType).id(0)
-                    .build();
-            this.saveItemType(_itemType);
+            this.saveItemType(itemType);
         }
     }
 
-    @Transactional(readOnly = false)
+    @Transactional
+    public void saveOrUpdateItem(Item item) throws POSDatabaseException {
+
+        if (0 != item.getId()) {
+            this.deactivateItem(item.getId());
+        }
+
+        if (item.isActive()) {
+            this.saveItem(item);
+        }
+    }
+
+    @Transactional
     public void saveOrUpdateAddonItem(AddonItem addonItem)
             throws POSDatabaseException {
         if (0 != addonItem.getId()) {
-            this.addonItemDao.deactivate(addonItem.getId());
+            this.deactivateAddonItem(addonItem.getId());
         }
 
         if (addonItem.isActive()) {
-            AddonItem _addonItem = new AddonItem.AddonItemBuilder(addonItem)
-                    .id(0).build();
-            this.saveAddonItem(_addonItem);
+            this.saveAddonItem(addonItem);
         }
+    }
+
+    private void deactivateItemType(long itemTypeId) {
+        ItemType _itemType = this.itemTypeDao.uniqueForId(itemTypeId);
+        _itemType.setActive(false);
+        this.itemTypeDao.update(_itemType);
+    }
+
+    private void deactivateItem(long itemId) {
+        Item _item = this.itemDao.uniqueForId(itemId);
+        _item.setActive(false);
+        this.itemDao.update(_item);
+    }
+
+    private void deactivateAddonItem(long addonItemId) {
+        AddonItem _addonItem = this.addonItemDao.uniqueForId(addonItemId);
+        _addonItem.setActive(false);
+        this.addonItemDao.update(_addonItem);
+    }
+
+    private void saveItemType(ItemType itemType) {
+        int weight = itemType.getWeight() == 0
+                ? this.itemTypeDao.getMaxWeight() + 1 : itemType.getWeight();
+
+        ItemType newItemType = itemUtils.new_itemType_weight(itemType, weight);
+        this.itemTypeDao.save(newItemType);
     }
 
     private void saveItem(Item item) {
         int weight = item.getWeight() == 0
                 ? this.itemDao.getMaxWeight(item.getItemTypeId()) + 1
                 : item.getWeight();
-        // TODO
-        // Throw an exception in Dao and catch in controller
-        Item _newItem = new Item.ItemBuilder(item).weight(weight).build();
-        this.itemDao.save(_newItem);
-    }
 
-    private void saveItemType(ItemType itemType) {
-        // TODO
-        // What should happen when there are two save operations, each from a
-        // different instances of the same app?
-        int weight = itemType.getWeight() == 0
-                ? this.itemTypeDao.getMaxWeight() + 1 : itemType.getWeight();
-        // TODO
-        // Throw an exception in Dao and catch in controller
-        ItemType newItemType = new ItemType.ItemTypeBuilder(itemType)
-                .weight(weight).build();
-        this.itemTypeDao.save(newItemType);
+        Item _newItem = itemUtils.new_item_weight(item, weight);
+        this.itemDao.save(_newItem);
     }
 
     private void saveAddonItem(AddonItem addonItem) {
         int weight = addonItem.getWeight() == 0
                 ? this.addonItemDao.getMaxWeight() + 1 : addonItem.getWeight();
 
-        AddonItem _addonItem = new AddonItem.AddonItemBuilder(addonItem)
-                .weight(weight).build();
+        AddonItem _addonItem = itemUtils.new_addonItem_weight(addonItem,
+                weight);
         this.addonItemDao.save(_addonItem);
-
     }
 }

@@ -3,6 +3,7 @@ package com.pos.model.parameter;
 public class OrderDetailAddonItemParameter {
     private long id;
     private long addonItemId;
+    private long orderDetailId;
     private PriceParameter newPrice;
     private boolean active;
 
@@ -20,6 +21,14 @@ public class OrderDetailAddonItemParameter {
 
     public void setAddonItemId(long addonItemId) {
         this.addonItemId = addonItemId;
+    }
+
+    public long getOrderDetailId() {
+        return orderDetailId;
+    }
+
+    public void setOrderDetailId(long orderDetailId) {
+        this.orderDetailId = orderDetailId;
     }
 
     public PriceParameter getNewPrice() {

@@ -7,8 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pos.dao.CustomerDao;
-import com.pos.model.application.Customer;
-import com.pos.model.parameter.CustomerParameter;
+import com.pos.model.persist.Customer;
 
 @Service
 public class CustomerService {
@@ -17,12 +16,12 @@ public class CustomerService {
     private CustomerDao customerDao;
 
     @Transactional(readOnly = false)
-    public long save(CustomerParameter customer) {
-        return customerDao.save(customer);
+    public Customer save(Customer customer) {
+        return this.customerDao.save(customer);
     }
 
     @Transactional(readOnly = false)
-    public long update(CustomerParameter customer) {
+    public Customer update(Customer customer) {
         return customerDao.update(customer);
     }
 
@@ -32,7 +31,7 @@ public class CustomerService {
     }
 
     @Transactional(readOnly = true)
-    public Customer uniqueById(long id) {
-        return this.customerDao.uniqueById(id);
+    public Customer uniqueForId(long id) {
+        return this.customerDao.uniqueForId(id);
     }
 }

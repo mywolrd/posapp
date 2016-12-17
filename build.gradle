@@ -15,14 +15,21 @@ repositories {
 }
 
 dependencies {
+	compile 'org.hibernate:hibernate-core:5.2.5.Final'
+
+	compile group: 'javax.transaction', name: 'jta', version: '1.1'
+
     compile 'org.springframework:spring-context:4.3.2.RELEASE'
     compile 'org.springframework:spring-jdbc:4.3.2.RELEASE'
     compile 'org.springframework:spring-test:4.3.2.RELEASE'
     compile 'org.springframework:spring-webmvc:4.3.2.RELEASE'
+    compile 'org.springframework:spring-orm:4.3.2.RELEASE'
+    compile 'org.springframework:spring-util:4.3.2.RELEASE'
 
 	compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.7.0'
-	compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.7.0'
-    
+	compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.7.0'    
+    compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.7.0'
+
     compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.6.2'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.6.2'
 
@@ -74,7 +81,7 @@ karma {
     
 	profile('default')  {
         libraryBases = ['src/main/webapp/resources/static/javascript/lib/']
-        libraryFiles = ['angular-1.5.8.min.js'] 
+        libraryFiles = ['angular-1.5.8.min.js', 'angular-mocks-1.5.8.js'] 
 
         sourceBases = ['src/main/webapp/resources/static/javascript/']
         sourceFiles = ['app.js']

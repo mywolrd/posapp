@@ -21,6 +21,10 @@ public class OrderParameter {
     private boolean completed;
     private boolean voided;
 
+    private int quantity;
+    private int dollar;
+    private int cent;
+
     public long getId() {
         return id;
     }
@@ -91,5 +95,29 @@ public class OrderParameter {
 
     public void setCustomerId(long customerId) {
         this.customerId = customerId;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public int getDollar() {
+        return dollar;
+    }
+
+    public void setDollar(int dollar) {
+        this.dollar = dollar;
+    }
+
+    public int getCent() {
+        return cent;
+    }
+
+    public void setCent(int cent) {
+        this.cent = cent;
     }
 }

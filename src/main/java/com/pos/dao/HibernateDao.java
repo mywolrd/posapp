@@ -7,6 +7,8 @@ public interface HibernateDao<T, ID extends Serializable> {
 
     List<T> list();
 
+    List<T> listByIds(List<Long> idList);
+
     T uniqueForId(ID id);
 
     T save(T entity);

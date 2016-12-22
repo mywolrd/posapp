@@ -6,8 +6,9 @@ public class W_OrderDetailAddonItem {
 
     private long id;
     private long addonItemId;
-    private long orderDetailsId;
+
     private Price newPrice;
+    private boolean active;
 
     public long getId() {
         return id;
@@ -25,14 +26,6 @@ public class W_OrderDetailAddonItem {
         this.addonItemId = addonItemId;
     }
 
-    public long getOrderDetailsId() {
-        return orderDetailsId;
-    }
-
-    public void setOrderDetailsId(long orderDetailsId) {
-        this.orderDetailsId = orderDetailsId;
-    }
-
     public Price getNewPrice() {
         return newPrice;
     }
@@ -40,4 +33,13 @@ public class W_OrderDetailAddonItem {
     public void setNewPrice(Price newPrice) {
         this.newPrice = newPrice;
     }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
 }

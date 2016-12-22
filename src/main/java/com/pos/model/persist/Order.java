@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -26,7 +27,7 @@ public class Order {
     private long id;
     private long customerId;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "order_details_map", joinColumns = @JoinColumn(name = "order_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "orderdetail_id", referencedColumnName = "id"))
     private Set<OrderDetail> details;
 
@@ -37,6 +38,10 @@ public class Order {
     private boolean active;
     private boolean completed;
     private boolean voided;
+
+    private int quantity;
+    private int dollar;
+    private int cent;
 
     public long getId() {
         return id;
@@ -108,5 +113,29 @@ public class Order {
 
     public void setPickupDate(LocalDateTime pickupDate) {
         this.pickupDate = pickupDate;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public int getDollar() {
+        return dollar;
+    }
+
+    public void setDollar(int dollar) {
+        this.dollar = dollar;
+    }
+
+    public int getCent() {
+        return cent;
+    }
+
+    public void setCent(int cent) {
+        this.cent = cent;
     }
 }

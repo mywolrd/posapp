@@ -8,6 +8,7 @@ import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -41,11 +42,16 @@ public abstract class HibernateBaseDao<T, ID extends Serializable>
         return this.findByCriteria();
     }
 
+    public List<T> listByIds(List<Long> idList) {
+        return this.findByCriteria(Restrictions.in(DBNames.ID, idList));
+    }
+
     @SuppressWarnings("unchecked")
     protected List<T> findByCriteria(Criterion... criterion) {
         try {
             Criteria criteria = this.getSession()
-                    .createCriteria(this.getPersistentClass());
+                    .createCriteria(this.getPersistentClass())
+                    .setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
             for (Criterion c : criterion) {
                 criteria.add(c);
             }

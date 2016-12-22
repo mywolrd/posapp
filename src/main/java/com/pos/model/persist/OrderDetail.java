@@ -8,6 +8,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -37,7 +38,7 @@ public class OrderDetail {
     private Price newPrice;
     private boolean active;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "order_detail_addon_items_map", joinColumns = @JoinColumn(name = "orderdetail_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "orderdetailaddonitem_id", referencedColumnName = "id"))
     Set<OrderDetailAddonItem> orderDetailAddonItems;
 
@@ -89,5 +90,4 @@ public class OrderDetail {
     public void setActive(boolean active) {
         this.active = active;
     }
-
 }

@@ -1,15 +1,25 @@
 package com.pos.model.web;
 
-import java.time.LocalDateTime;
 import java.util.List;
-
-import com.pos.model.persist.Customer;
 
 public class W_Order {
 
     private long id;
-    private Customer customer;
+    private long customerId;
+
+    private List<W_OrderDetail> orderDetails;
+
+    private long dropDate;
+    private long readyDate;
+    private long pickupDate;
+
+    private boolean active;
     private boolean completed;
+    private boolean voided;
+
+    private int quantity;
+    private int dollar;
+    private int cent;
 
     public long getId() {
         return id;
@@ -19,12 +29,52 @@ public class W_Order {
         this.id = id;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public long getCustomerId() {
+        return customerId;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public void setCustomerId(long customerId) {
+        this.customerId = customerId;
+    }
+
+    public List<W_OrderDetail> getOrderDetails() {
+        return orderDetails;
+    }
+
+    public void setOrderDetails(List<W_OrderDetail> orderDetails) {
+        this.orderDetails = orderDetails;
+    }
+
+    public long getDropDate() {
+        return dropDate;
+    }
+
+    public void setDropDate(long dropDate) {
+        this.dropDate = dropDate;
+    }
+
+    public long getReadyDate() {
+        return readyDate;
+    }
+
+    public void setReadyDate(long readyDate) {
+        this.readyDate = readyDate;
+    }
+
+    public long getPickupDate() {
+        return pickupDate;
+    }
+
+    public void setPickupDate(long pickupDate) {
+        this.pickupDate = pickupDate;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public boolean isCompleted() {
@@ -43,41 +93,27 @@ public class W_Order {
         this.voided = voided;
     }
 
-    public List<W_OrderDetail> getDetails() {
-        return details;
+    public int getQuantity() {
+        return quantity;
     }
 
-    public void setDetails(List<W_OrderDetail> details) {
-        this.details = details;
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
-    public LocalDateTime getDropDate() {
-        return dropDate;
+    public int getDollar() {
+        return dollar;
     }
 
-    public void setDropDate(LocalDateTime dropDate) {
-        this.dropDate = dropDate;
+    public void setDollar(int dollar) {
+        this.dollar = dollar;
     }
 
-    public LocalDateTime getReadyDate() {
-        return readyDate;
+    public int getCent() {
+        return cent;
     }
 
-    public void setReadyDate(LocalDateTime readyDate) {
-        this.readyDate = readyDate;
+    public void setCent(int cent) {
+        this.cent = cent;
     }
-
-    public LocalDateTime getPickupDate() {
-        return pickupDate;
-    }
-
-    public void setPickupDate(LocalDateTime pickupDate) {
-        this.pickupDate = pickupDate;
-    }
-
-    private boolean voided;
-    private List<W_OrderDetail> details;
-    private LocalDateTime dropDate;
-    private LocalDateTime readyDate;
-    private LocalDateTime pickupDate;
 }

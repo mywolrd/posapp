@@ -2,18 +2,16 @@ package com.pos.model.web;
 
 import java.util.List;
 
-import com.pos.model.persist.Item;
-import com.pos.model.persist.OrderDetailAddonItem;
 import com.pos.model.persist.Price;
 
 public class W_OrderDetail {
 
     private long id;
-    private long orderId;
-    private List<OrderDetailAddonItem> addonItems;
+    private long itemId;
+    private List<W_OrderDetailAddonItem> orderDetailAddonItems;
     private Price newPrice;
     private int quantity;
-    private Item item;
+    private boolean active;
 
     public long getId() {
         return id;
@@ -23,20 +21,21 @@ public class W_OrderDetail {
         this.id = id;
     }
 
-    public long getOrderId() {
-        return orderId;
+    public long getItemId() {
+        return itemId;
     }
 
-    public void setOrderId(long orderId) {
-        this.orderId = orderId;
+    public void setItemId(long itemId) {
+        this.itemId = itemId;
     }
 
-    public List<OrderDetailAddonItem> getAddonItems() {
-        return addonItems;
+    public List<W_OrderDetailAddonItem> getOrderDetailAddonItems() {
+        return orderDetailAddonItems;
     }
 
-    public void setAddonItems(List<OrderDetailAddonItem> addonItems) {
-        this.addonItems = addonItems;
+    public void setOrderDetailAddonItems(
+            List<W_OrderDetailAddonItem> orderDetailAddonItems) {
+        this.orderDetailAddonItems = orderDetailAddonItems;
     }
 
     public Price getNewPrice() {
@@ -55,11 +54,11 @@ public class W_OrderDetail {
         this.quantity = quantity;
     }
 
-    public Item getItem() {
-        return item;
+    public boolean isActive() {
+        return active;
     }
 
-    public void setItem(Item item) {
-        this.item = item;
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

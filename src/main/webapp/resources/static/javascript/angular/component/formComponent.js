@@ -16,10 +16,10 @@ let formComponent = {
 		onUpdate: '&'
 	},
 	template:
-			'<form id="search-customer" class="input-form col-xs-6" data-ng-submit="$ctrl.submit()">'
-		+		'<span class="col-xs-1" /><h2 class="col-xs-6">{{$ctrl.title}}</h2>'
-		+		'<span class="col-xs-12"/>'
-		+ 		'<div class="col-xs-12 labeled-input-row" data-ng-repeat="input in $ctrl.formInput">'
+			'<form id="input-form" class="input-form col-xs-12" data-ng-submit="$ctrl.submit()">'
+		+		'<span class="col-xs-1" data-ng-if="$ctrl.title"/><h2 class="col-xs-11" data-ng-if="$ctrl.title">{{$ctrl.title}}</h2>'
+		+		'<span data-ng-if="$ctrl.formInput" class="col-xs-12"/>'
+		+ 		'<div data-ng-if="$ctrl.formInput" class="col-xs-12 labeled-input-row" data-ng-repeat="input in $ctrl.formInput">'
 		+			'<sw-labeled-input label-for="{{input.id}}" input-value="input.value" span-width="6" input-label="{{input.label}}"'
 		+				'input-type="text" item-index="$index" input-name="{{input.id}}" is-required="input.required" place-holder="{{input.label}}"'
 		+				'font-size="20" on-update="$ctrl.update(name, value, index)" keyboard-config="input.keyboardConfig"/>'

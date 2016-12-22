@@ -15,12 +15,9 @@ let searchCustomerComponent = {
 			};
 			
 			ctrl.search = function() {
-				customerService.search(ctrl.search_customer_input[0].value, function(res) {
-					ctrl.results = res.data;
-					ctrl.results.map(function(customer) {
-						customer.name = customer.lastName + ', ' + customer.firstName; 
-						customer.displayValue = formatString(customer);
-					});
+				customerService.search(ctrl.search_customer_input[0].value, 
+					function(customers) {
+					ctrl.results = customers;
 					_reset();
 				}, function(res) {
 
@@ -31,29 +28,15 @@ let searchCustomerComponent = {
 				customerService.setCurrentCustomer(selected);
 				navigationService.back();
 			};
-	
-			function formatString(customer) {
-				let displayValue = [];
-				displayValue.push(customer.lastName);
-	
-				if (customer.firstName) {
-					displayValue.push(customer.firstName);
-				}
-	
-				if (customer.number) {
-					displayValue.push(customer.number);
-				}
-	
-				return displayValue;
-			};
-	
+			
 			function _reset() {
 				ctrl.search_customer_input[0].value = null;
 			};
 		},
 	template:
-			'<p-form form-input="$ctrl.search_customer_input" title="{{$ctrl.title}}" button-name="Find"'
+			'<div class="col-xs-6">'
+		+		'<p-form form-input="$ctrl.search_customer_input" title="{{$ctrl.title}}" button-name="Find"'
 		+		'on-update="$ctrl.update(name, value, index)" submit="$ctrl.search()" />'
-		
+		+	'</div>'
 		+	'<select-list list="$ctrl.results" col="3" do-click="$ctrl.select(selected)"/>'
 }

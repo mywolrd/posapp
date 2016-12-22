@@ -277,10 +277,10 @@ let formComponent = {
 		onUpdate: '&'
 	},
 	template:
-			'<form id="search-customer" class="input-form col-xs-6" data-ng-submit="$ctrl.submit()">'
-		+		'<span class="col-xs-1" /><h2 class="col-xs-6">{{$ctrl.title}}</h2>'
-		+		'<span class="col-xs-12"/>'
-		+ 		'<div class="col-xs-12 labeled-input-row" data-ng-repeat="input in $ctrl.formInput">'
+			'<form id="input-form" class="input-form col-xs-12" data-ng-submit="$ctrl.submit()">'
+		+		'<span class="col-xs-1" data-ng-if="$ctrl.title"/><h2 class="col-xs-11" data-ng-if="$ctrl.title">{{$ctrl.title}}</h2>'
+		+		'<span data-ng-if="$ctrl.formInput" class="col-xs-12"/>'
+		+ 		'<div data-ng-if="$ctrl.formInput" class="col-xs-12 labeled-input-row" data-ng-repeat="input in $ctrl.formInput">'
 		+			'<sw-labeled-input label-for="{{input.id}}" input-value="input.value" span-width="6" input-label="{{input.label}}"'
 		+				'input-type="text" item-index="$index" input-name="{{input.id}}" is-required="input.required" place-holder="{{input.label}}"'
 		+				'font-size="20" on-update="$ctrl.update(name, value, index)" keyboard-config="input.keyboardConfig"/>'
@@ -407,8 +407,10 @@ let newCustomerComponent = {
 			};
 		},
 	template:
-			'<p-form form-input="$ctrl.new_customer_info" title="{{$ctrl.title}}" button-name="Save"'
-		+		'on-update="$ctrl.update(name, value, index)" submit="$ctrl.save()" />'
+			'<div class="col-xs-6">'
+		+		'<p-form form-input="$ctrl.new_customer_info" title="{{$ctrl.title}}" button-name="Save"'
+		+			'on-update="$ctrl.update(name, value, index)" submit="$ctrl.save()" />'
+		+	'</div>'
 }
 let spanWrappedLabeledInputComponent = {
 	controller:
@@ -464,12 +466,9 @@ let searchCustomerComponent = {
 			};
 			
 			ctrl.search = function() {
-				customerService.search(ctrl.search_customer_input[0].value, function(res) {
-					ctrl.results = res.data;
-					ctrl.results.map(function(customer) {
-						customer.name = customer.lastName + ', ' + customer.firstName; 
-						customer.displayValue = formatString(customer);
-					});
+				customerService.search(ctrl.search_customer_input[0].value, 
+					function(customers) {
+					ctrl.results = customers;
 					_reset();
 				}, function(res) {
 
@@ -480,31 +479,299 @@ let searchCustomerComponent = {
 				customerService.setCurrentCustomer(selected);
 				navigationService.back();
 			};
-	
-			function formatString(customer) {
-				let displayValue = [];
-				displayValue.push(customer.lastName);
-	
-				if (customer.firstName) {
-					displayValue.push(customer.firstName);
-				}
-	
-				if (customer.number) {
-					displayValue.push(customer.number);
-				}
-	
-				return displayValue;
-			};
-	
+			
 			function _reset() {
 				ctrl.search_customer_input[0].value = null;
 			};
 		},
 	template:
-			'<p-form form-input="$ctrl.search_customer_input" title="{{$ctrl.title}}" button-name="Find"'
+			'<div class="col-xs-6">'
+		+		'<p-form form-input="$ctrl.search_customer_input" title="{{$ctrl.title}}" button-name="Find"'
 		+		'on-update="$ctrl.update(name, value, index)" submit="$ctrl.search()" />'
-		
+		+	'</div>'
 		+	'<select-list list="$ctrl.results" col="3" do-click="$ctrl.select(selected)"/>'
+}
+let pickupComponent = {
+	controller:
+		function pickupCtrl(customerService, itemService,
+				navigationService, orderService, stringService, cartService, $filter) {
+			let ctrl = this;
+			
+			ctrl.$onInit = function() {
+				ctrl.search_input = [
+					{label: 'Order ID', id: "orderId", value: null, required: false, keyboardConfig: null}];
+				ctrl.customer_button = 'Find Customer';		
+				ctrl.customer = customerService.getCurrentCustomer();			
+			}
+			
+			ctrl.update = function(name, value, index) {
+				ctrl.search_input[index].value = value;
+			}
+			
+			ctrl.updateCheckBox = function(index, value) {
+				ctrl.checked[index] = value;
+				if (value) {
+					ctrl.order = ctrl.list[index];
+				}
+			};
+			
+			ctrl.search = function() {
+				//Search for a single order
+				if (ctrl.search_input[0].value) {
+					let orderId = ctrl.search_input[0].value;
+					if (stringService.isNumberOnly(orderId)) {
+						orderService.getById(orderId, showOrder, fail);
+					}
+				} else {
+					//Get all orders for a customer
+					if (ctrl.customer) {
+						orderService.getByCustomer(ctrl.customer, showOrders, fail);
+					}
+				}
+			};
+			
+			function showOrders(orders) {
+				ctrl.select = true;
+
+				let _orders = $filter('orderBy')(orders, 'id');
+				ctrl.list = _orders;
+				ctrl.checked = new Array(orders.length);
+			}
+			
+			function showOrder(order) {
+				ctrl.select = false;
+				
+				let _order = [];				
+				_order.push(order);
+				ctrl.list = _order;
+				ctrl.checked = new Array(1);
+			}
+			
+			function fail() {
+				
+			}
+			
+			ctrl.searchCustomer = function() {
+				navigationService.setRoute('searchcustomer');
+				navigationService.go();
+			}
+			
+			ctrl.pickup = function() {
+				let checkedIds = _getCheckedOrderIds(true);
+				orderService.completeOrders(checkedIds);
+			}
+			
+			ctrl.cancel = function() {
+				let checkedIds = _getCheckedOrderIds(false);
+				orderService.voidOrders(checkedIds);
+			}
+			
+			ctrl.modify = function() {
+				if (!ctrl.select && ctrl.list) {
+					ctrl.order = ctrl.list[0];
+				}
+				let checkedOrders = _getCheckedOrderIds(false);
+				if (!ctrl.order || checkedOrders.length !== 1)
+					return;
+				
+				cartService.clear();
+				
+				let order = ctrl.order, itemMap = itemService.getItemMap(),
+				itemTypeMap = itemService.getItemTypeMap(), 
+				addonItemMap = itemService.getAddonItemMap();
+				
+				let orderDetails = order.orderDetails;
+				let cart = [];
+				for (let i = 0, len = orderDetails.length; i < len; i++) {
+					let itemId = orderDetails[i].itemId;
+					let item = itemMap.get(itemId);
+					let itemType = itemTypeMap.get(item.itemTypeId);
+				
+					cartService.addItem(itemType.name, item, orderDetails[i].newPrice, orderDetails[i].quantity);	
+				
+					let addonItems = orderDetails[i].orderDetailAddonItems;
+					for (let j = 0, n = addonItems.length; j < n; j++) {
+						let addonItem = addonItems[j];
+						cartService.addItem(null, addonItemMap.get(addonItem.id), addonItem.newPrice);
+					}
+				}
+				let readyDate = new Date(0);
+				readyDate.setUTCSeconds(order.readyDate / 1000);
+				cartService.setReadyDate(readyDate);
+				cartService.setOrderId(order.id);
+				navigationService.setRoute('neworder');
+				navigationService.go();
+			}
+			
+			function _getCheckedOrderIds(pickup) {
+				let orderIdList = [];
+				if (!ctrl.list)
+					return orderIdList;
+				
+				if (ctrl.select) {
+					for (let i = 0, len = ctrl.list.length; i < len; i++) {
+						if (ctrl.checked[i] && !(ctrl.list[i].completed && pickup)) {
+							orderIdList.push(ctrl.list[i].id);
+						}
+					}
+				} else {
+					if (ctrl.list.length === 1) {
+						orderIdList.push(ctrl.list[0].id);
+					}
+				}
+				return orderIdList;
+			}
+	},
+	template:
+			'<div class="col-xs-4">'
+		+		'<span class="col-xs-3" /> <h2 class="col-xs-6">Pick Up</h2>'
+		
+		+		'<p-form button-name="{{$ctrl.customer ? $ctrl.customer.name : $ctrl.customer_button}}" submit="$ctrl.searchCustomer()" />'
+		+		'<span class="col-xs-12" />'
+		+		'<p-form form-input="$ctrl.search_input" title="{{$ctrl.title}}" button-name="Find Order(s)"'
+		+			'on-update="$ctrl.update(name, value, index)" submit="$ctrl.search()" />'
+		
+		+		'<span class="col-xs-12" />'
+		+		'<span class="col-xs-12" />'
+		+		'<span class="col-xs-12" />'
+		+		'<span class="col-xs-12" />'
+		+		'<p-form class="btn-default" button-name="Pick-Up" submit="$ctrl.pickup()" />'
+		+		'<span class="col-xs-12" />'
+		+		'<span class="col-xs-12" />'
+		+		'<p-form button-name="Change" submit="$ctrl.modify()" />'
+		+		'<span class="col-xs-12" />'
+		+		'<span class="col-xs-12" />'
+		+		'<p-form button-name="Cancel" submit="$ctrl.cancel()" />'
+		
+		+	'</div>'
+		
+		+	'<div class="col-xs-8">'
+		+		'<order-item-list on-update="$ctrl.updateCheckBox(index, value)" list="$ctrl.list"/>'
+		+	'</div>'
+}
+
+let orderItemListComponent = {
+	controller:
+		function() {
+			let ctrl = this;
+					
+			ctrl.$onInit = function() {
+				if (!ctrl.prefPageSize)
+					ctrl.prefPageSize = 10;
+				
+				ctrl.pageSize = ctrl.prefPageSize;
+				ctrl.curPage = 0;
+						
+				ctrl.maxPageNum = getMaxPageNum(ctrl.list, ctrl.pageSize);
+				
+				ctrl.isSingle = true;
+				ctrl.picked = false;
+
+				if (ctrl.list)	{
+					if (ctrl.list.length > 1)	ctrl.isSingle = false;
+				}
+			}
+					
+			ctrl.$onChanges = function(changesObj) {
+				ctrl.updateList();
+				setNewPageNum();
+			}
+
+			function setNewPageNum() {
+				let newMaxPageNum = getMaxPageNum(ctrl.filteredList, ctrl.pageSize);
+				
+				if (newMaxPageNum !== ctrl.maxPageNum) {
+					ctrl.maxPageNum = newMaxPageNum;
+					ctrl.curPage = ctrl.maxPageNum;
+				}
+			}
+			
+			ctrl.changePageNum = function(curPage) {
+				ctrl.curPage = curPage;
+			}
+
+			ctrl.update = function(index, value) {	
+				ctrl.onUpdate({index: (ctrl.pageSize * ctrl.curPage) + index, value: value});
+			}
+			
+			ctrl.updateList = function() {
+				if (ctrl.list) {
+					ctrl.isSingle = true;
+					if (ctrl.list.length > 1)
+						ctrl.isSingle = false;
+					
+					ctrl.filteredList = [];
+					for (let i=0, len=ctrl.list.length; i < len; i++) {
+						let item = ctrl.list[i];
+						if (!(item.voided || item.completed) || ctrl.picked) {
+							ctrl.filteredList.push(item);
+						}
+					}
+					setNewPageNum();
+				}
+			}
+			
+			function getMaxPageNum(array, pageSize) {
+				if (angular.isDefined(array) && angular.isObject(array)) {
+					let len = array.length,
+						div = Math.floor(len / pageSize),
+						rem = len % pageSize;
+					if (rem > 0) div++;
+					div--;
+					return div;
+				}
+				return 0;
+			}
+	},
+	bindings: {
+		list: '<',
+		onUpdate: '&',
+		prefPageSize: '@'
+	},
+	template:
+			'<div class="col-xs-12 order-item-header">'
+		+		'<span data-ng-if="!$ctrl.isSingle" class="col-xs-1" />'
+		+		'<span class="col-xs-1">Id</span>'
+		+		'<span class="col-xs-1">Q.</span>'
+		+		'<span class="col-xs-2">Price</span>'
+		+		'<span class="col-xs-2">Drop</span>'
+		+		'<span class="col-xs-2">Ready</span>'
+		+		'<span class="col-xs-2">Picked</span>'
+		+		'<span class="col-xs-1">'
+		+			'<input type="checkbox" data-ng-model="$ctrl.picked" data-ng-change="$ctrl.updateList()"/>'
+		+		'</span>'
+		+	'</div>'	
+		+	'<div class="col-xs-12 cursor-pointer order-item" data-ng-class="{strike: item.voided}" '
+		+		'data-ng-repeat="item in $ctrl.filteredList | limitTo:$ctrl.pageSize:$ctrl.curPage*$ctrl.pageSize">'
+		+		'<order-item item="item" is-single="$ctrl.isSingle" item-index="$index" on-update="$ctrl.update(index, value)" />'
+		+	'</div>'
+		+	'<pn-buttons cur-page="$ctrl.curPage" update-current-page="$ctrl.changePageNum(curPage)" max-page="$ctrl.maxPageNum" />'
+}
+
+let orderItemComponent = {
+	controller:
+		function() {
+			let ctrl = this;
+			ctrl.update = function() {
+				ctrl.onUpdate({index: ctrl.itemIndex, value: ctrl.checked});
+			}
+	},
+	bindings: {
+		item: '<',
+		itemIndex: '<',
+		onUpdate: '&',
+		isSingle: '<'
+	},
+	template:
+			'<span data-ng-if="!$ctrl.isSingle" class="col-xs-1">'
+		+		'<input data-ng-if="!$ctrl.item.voided" type="checkbox" data-ng-model="$ctrl.checked" data-ng-change="$ctrl.update()"/>'
+		+	'</span>'
+		+	'<span class="col-xs-1">{{$ctrl.item.id}}</span>'
+		+	'<span class="col-xs-1">{{$ctrl.item.quantity}}</span>'
+		+	'<span class="col-xs-2">{{$ctrl.item.dollar}}.{{$ctrl.item.cent}}</span>'
+		+	'<span class="col-xs-2" data-ng-if="!$ctrl.item.voided">{{$ctrl.item.dropDate | date:"EEE MM/dd"}}</span>'
+		+	'<span class="col-xs-2" data-ng-if="!$ctrl.item.voided">{{$ctrl.item.readyDate | date:"EEE MM/dd"}}</span>'
+		+	'<span class="col-xs-2" data-ng-if="$ctrl.item.completed && !$ctrl.item.voided">{{$ctrl.item.pickupDate | date:"EEE MM/dd"}}</span>'
 }
 let manageAddonItemComponent = {
 	controller:
@@ -847,13 +1114,13 @@ let cartComponent = {
 		ctrl.$onInit = function() {
 			cartSubscription = cartService.subscribe(function(d) {
 				ctrl.cart = flattenCart(d);
-				calculateTotal();
+				total();
 			})
 			
 			let cart = cartService.get();
 			if (cart) {
 				ctrl.cart = flattenCart(cart);
-				calculateTotal();
+				total();
 			}
 			
 			ctrl.customer = customerService.getCurrentCustomer();
@@ -877,6 +1144,8 @@ let cartComponent = {
 		}
 
 		ctrl.$onDestroy = function() {
+			cartService.setReadyDate(null);
+
 			if (cartSubscription)
 				cartSubscription.dispose();
 		}
@@ -913,47 +1182,27 @@ let cartComponent = {
 				cartService.update(name, value, cartItem.index, cartItem.parentIndex);
 			}
 		}
-		
-		function calculateTotal() {
-			let quantity = 0, cent = 0, dollar = 0;
-			for (let i = 0, n = ctrl.cart.length; i < n; i++) {
-				let cartItem = ctrl.cart[i];
-				let c = Number(cartItem.cent), d = Number(cartItem.dollar);
-				
-				if (cartItem.hasQuantity) {
-					let q = Number(cartItem.quantity);
-					quantity += q;
-					
-					c *= q;
-					d *= q;
-				}
-				cent += c;
-				dollar += d;
-			}
-			
-			let rem = cent % 100;
-			dollar += ((cent - rem) / 100);
-			cent = rem;
-			
-			ctrl.tQ = quantity;
-			ctrl.tDollar = dollar;
-			ctrl.tCent = cent;
+
+		function total() {
+			let total = cartService.getTotal();
+			ctrl.tQ = total.q;
+			ctrl.tDollar = total.d;
+			ctrl.tCent = total.c;
 		}
 		
 		function flattenCart(cartArray) {
 			let newCart = [];
 			
-			for (let i = 0; i < cartArray.length; i++) {
+			for (let i = 0, len = cartArray.length; i < len; i++) {
 				newCart.push(cartArray[i]);
 				
-				let addonItems = cartArray[i].addonItems;
-				if (addonItems) {
-					newCart = newCart.concat(addonItems);
+				let orderDetailAddonItems = cartArray[i].orderDetailAddonItems;
+				if (orderDetailAddonItems) {
+					newCart = newCart.concat(orderDetailAddonItems);
 				}
 			}
 			return newCart;
-		}
-		
+		}	
 	},
 	template:
 			'<div class="col-xs-12 cart-info">'
@@ -1145,17 +1394,18 @@ function stringService() {
 /**
  * Cart Service
  */
-function cartService(APP_CONFIG, orderService, rx) {
+function cartService(APP_CONFIG, orderService, customerService, utilsService, rx) {
 	let _cart = [],
 		subject = new rx.Subject(),
-		_readyDate = null;
+		_readyDate = null,
+		orderId = 0;
 	
 	function _remove(index, parentIndex) {
 		if (angular.isUndefined(parentIndex)) {
 			_cart.splice(index, 1);
 			reindex();
 		} else {
-			_cart[parentIndex].addonItems.splice(index, 1);
+			_cart[parentIndex].orderDetailAddonItems.splice(index, 1);
 			reindex(parentIndex)
 		}
 		subject.onNext(Array.from(_cart));
@@ -1164,16 +1414,16 @@ function cartService(APP_CONFIG, orderService, rx) {
 	function reindex(parentIndex) {
 		let listToIndex = _cart;
 		if (angular.isDefined(parentIndex)) {
-			listToIndex = _cart[parentIndex].addonItems;
+			listToIndex = _cart[parentIndex].orderDetailAddonItems;
 		}
 		
 		for (let i = 0; i < listToIndex.length; i++) {
 			listToIndex[i].index = i;
-			let addonItems = listToIndex[i].addonItems;
+			let orderDetailAddonItems = listToIndex[i].orderDetailAddonItems;
 
-			if (angular.isUndefined(parentIndex) && addonItems) {
-				for (let j = 0; j < addonItems.length; j++) {
-					addonItems[j].parentIndex = i;
+			if (angular.isUndefined(parentIndex) && orderDetailAddonItems) {
+				for (let j = 0; j < orderDetailAddonItems.length; j++) {
+					orderDetailAddonItems[j].parentIndex = i;
 				}
 			}
 		}
@@ -1184,6 +1434,9 @@ function cartService(APP_CONFIG, orderService, rx) {
 	}
 
 	function _defaultReadyDate() {
+		if (_readyDate)
+			return _readyDate;
+		
 		_readyDate = new Date();
 		_readyDate.setDate(_readyDate.getDate() + 3);
 		if (_readyDate.getDay() == 0) {
@@ -1195,7 +1448,7 @@ function cartService(APP_CONFIG, orderService, rx) {
 	function _update(name, value, index, parentIndex) {
 		let item = _cart[index];
 		if (angular.isDefined(parentIndex)) {
-			item = _cart[parentIndex].addonItems[index];
+			item = _cart[parentIndex].orderDetailAddonItems[index];
 		}
 		item[name] = value;
 		subject.onNext(Array.from(_cart));
@@ -1210,22 +1463,31 @@ function cartService(APP_CONFIG, orderService, rx) {
 		return Array.from(_cart);
 	}
 	
-	function _addItem(typeName, item) {
-		let itemCopy = angular.copy(item);
+	function _addItem(typeName, item, price, quantity) {
+		let itemCopy = item;//angular.copy(item);
 		let cartItem = itemCopy.itemTypeId ? 
 						new _CartItem(itemCopy, typeName, 1) 
 					: 	new _CartItem(itemCopy, typeName, 0);
 		
+		if (quantity) {
+			cartItem.quantity = quantity;
+		}				
+		
+		if (price) {
+			cartItem.dollar = price.dollar;
+			cartItem.cent = price.cent;
+		}
+		
 		//For addon items
 		if (! cartItem.hasQuantity) {
 			let _parentItem = _cart[_cart.length - 1];
-			if (! _parentItem.addonItems) {
-				_parentItem.addonItems = [];
+			if (! _parentItem.orderDetailAddonItems) {
+				_parentItem.orderDetailAddonItems = [];
 			}
 			
 			cartItem.parentIndex = _cart.length - 1;
-			cartItem.index = _parentItem.addonItems.length;
-			_parentItem.addonItems.push(cartItem);
+			cartItem.index = _parentItem.orderDetailAddonItems.length;
+			_parentItem.orderDetailAddonItems.push(cartItem);
 		} else {
 			cartItem.index = _cart.length;
 			_cart.push(cartItem);
@@ -1237,13 +1499,66 @@ function cartService(APP_CONFIG, orderService, rx) {
 		return _cart.length == 0;
 	}
 	
+	function _setOrderId(id) {
+		orderId = id;
+	}
+	
 	function _subscribe(o) {
 		return subject.subscribe(o);
 	}
 	
 	function _saveOrUpdateOrder() {
-		orderService.saveOrUpdateOrder(_cart, _readyDate, customerService.getCurrentCustomer());
-		_clear();
+		let customer = customerService.getCurrentCustomer();
+		let total = _getTotal()
+		if (customer && total.q > 0) {
+			let opts = 
+				
+			{	id : orderId,
+				customerId: customer.id,
+				dropDate : utilsService.formatDateTime(Date.now()),
+				readyDate: utilsService.formatDateTime(_readyDate),
+				quantity: total.q,
+				dollar: total.d,
+				cent: total.c
+			};
+			
+			orderService.saveOrUpdateOrder(_cart, opts);
+			_clear();
+			orderId = 0;
+		}
+	}
+	
+	function _getTotal() {
+		return _calculateTotal(_cart);
+	}
+	
+	function _calculateTotal(items) {
+		let q = 0, c = 0, d = 0;
+		for (let i = 0, n = items.length; i < n; i++) {
+			let cartItem = items[i];
+			let dollar = Number(cartItem.dollar), cent = Number(cartItem.cent),
+				quantity = Number(cartItem.quantity);
+			let addonItems = cartItem.orderDetailAddonItems;
+			if (addonItems) {
+				for (let j = 0, len = addonItems.length; j < len; j++) {
+					let addonItem = addonItems[j];
+					dollar += Number(addonItem.dollar);
+					cent += Number(addonItem.cent);
+				}
+			}
+			
+			dollar = dollar * quantity;
+			cent = cent * quantity;
+			
+			q += quantity;
+			d += dollar;
+			c += cent;
+		}
+
+		let rem = c % 100;
+		d = d + ((c - rem) / 100);
+		c = rem;
+		return {q: q, d: d, c: c};
 	}
 	
 	return {
@@ -1256,17 +1571,9 @@ function cartService(APP_CONFIG, orderService, rx) {
 		saveOrUpdateOrder: _saveOrUpdateOrder,
 		setReadyDate: _setReadyDate,
 		defaultReadyDate: _defaultReadyDate,
-		getTotalQuantity: function() {
-			let total = 0;
-			for(let i=0; i < _cart.length; i++) {
-				total = total + _cart[i].quantity;
-			}
-			return total;
-		},
-		getTotalPrice: function() {
-			
-		},
-		isEmpty: _isEmpty
+		getTotal: _getTotal,
+		isEmpty: _isEmpty,
+		setOrderId: _setOrderId
 	};
 }
 
@@ -1315,7 +1622,7 @@ function keyboardService(APP_CONFIG) {
 		}
 	};
 }
-function orderService(APP_CONFIG, $http, urlService, utilsService) {
+function orderService(APP_CONFIG, $http, urlService) {
     
 	function _collapseDuplicateOrderDetails(orderDetails) {
 		let unique = [];
@@ -1346,13 +1653,13 @@ function orderService(APP_CONFIG, $http, urlService, utilsService) {
 		return unique;
 	}
 	
-	function _saveOrUpdate(cartItems, readyDate, customer) {
+	function _saveOrUpdate(cartItems, options) {
 		let _orderDetails = [];
-		for (let i = 0; i < cartItems.length ; i++) {
+		for (let i = 0, n = cartItems.length; i < n; i++) {
 			let _addonItems = [];
-			if (cartItems[i].addonItems) {
-				for (let j = 0; j < cartItems[i].addonItems.length; j++) {
-					let addonItem = new _OrderDetailAddonItemRequestBody(cartItems[i].addonItems[j]);
+			if (cartItems[i].orderDetailAddonItems) {
+				for (let j = 0, len = cartItems[i].orderDetailAddonItems.length; j < len; j++) {
+					let addonItem = new _OrderDetailAddonItemRequestBody(cartItems[i].orderDetailAddonItems[j]);
 					_addonItems.push(addonItem);
 				}
 			}
@@ -1360,17 +1667,56 @@ function orderService(APP_CONFIG, $http, urlService, utilsService) {
 			_orderDetails.push(orderDetail);
 		}
 		_orderDetails = _collapseDuplicateOrderDetails(_orderDetails);		
-
-		let _order = new _OrderRequestBody({customerId: customer.id,
-											orderDetails: _orderDetails,
-											dropDate : utilsService.formatDateTime(Date.now()),
-											readyDate: utilsService.formatDateTime(readyDate)});
-
+		options.orderDetails = _orderDetails;
+		
+		let _order = new _OrderRequestBody(options);
 		$http.post(urlService.order + '/save', _order);
 	}
 	
+	function _getById(orderId, success, fail) {
+		$http.get(urlService.order + '/' + orderId)
+			.then(function(res) {
+				success(res.data);
+			}, fail);
+	}
+	
+	function _getByCustomer(customer, success, fail) {
+		$http.get(urlService.order + '/customer/' + customer.id)
+			.then(function(res) {
+				success(res.data);
+			}, fail);
+	}
+	
+	function _completeOrders(orders, success, fail) {
+		$http.post(urlService.order + '/complete', {orderId : orders}).then(function(res) {
+			//success(res.data);
+		}, fail);
+	}
+	
+	function _completeOrder(order, success, fail) {
+		
+	}
+	
+	function _voidOrders(orders, success, fail) {
+		$http.post(urlService.order + '/void', {orderId : orders}).then(function(res) {
+			//success(res.data);
+		}, fail);
+	}
+	
+	function _voidOrder(order, success, fail) {
+		$http.post(urlService.order + '/void', {orderId : orders}).then(function(res) {
+			//success(res.data);
+		}, fail);
+	}
+	
 	return {
-		saveOrUpdateOrder: _saveOrUpdate
+		saveOrUpdateOrder: _saveOrUpdate,
+		getById: _getById,
+		getByCustomer: _getByCustomer,
+		completeOrders: _completeOrders,
+		voidOrders: _voidOrders,
+		completeOrder: _completeOrder,
+		voidOrder: _voidOrder
 	};
 }
 
@@ -1387,6 +1733,10 @@ class _OrderRequestBody {
 		this.active = angular.isDefined(options.active) ? options.active:true;
 		this.completed = angular.isDefined(options.completed) ? options.completed:false;
 		this.voided = angular.isDefined(options.voided) ? options.voided:false;
+	
+		this.quantity = options.quantity;
+		this.dollar = options.dollar;
+		this.cent = options.cent;
 	}
 }
 
@@ -1621,9 +1971,32 @@ function customerService(APP_CONFIG, $http, urlService, stringService) {
 		$http.post(urlService.customer + '/update', info).then(success, fail);
 	}
 	
+	function _formatString(customer) {
+		let displayValue = [];
+		displayValue.push(customer.lastName);
+
+		if (customer.firstName) {
+			displayValue.push(customer.firstName);
+		}
+
+		if (customer.number) {
+			displayValue.push(customer.number);
+		}
+
+		return displayValue;
+	}
+	
 	function _search(querystr, success, fail) {
 		if (querystr)
-			$http.get(urlService.customer + '/search/'+ querystr.toLowerCase()).then(success, fail);
+			$http.get(urlService.customer + '/search/'+ querystr.toLowerCase())
+				.then(function (res) {
+					let customers = res.data;
+					customers.map(function(customer) {
+						customer.name = customer.lastName + ', ' + customer.firstName; 
+						customer.displayValue = _formatString(customer);
+					});
+					success(customers);
+				}, fail);
 	}
 	
 	function _setCurrentCustomer(customer) {
@@ -1694,14 +2067,21 @@ function itemService(APP_CONFIG, $http, urlService) {
 	let _data = {};
 	
 	function _groupItemsByType(items) {
+		let itemMap = new Map();
 		let groupedByType = items.reduce(function(map, currentItem) {
-			let itemTypeId = currentItem['itemTypeId'];
-			let items = map.get(itemTypeId) || [];
-			items.push(currentItem);
-			map.set(itemTypeId, items);
+			itemMap.set(currentItem.id, currentItem);
+			
+			if (currentItem.active) {
+				let itemTypeId = currentItem['itemTypeId'];
+				let items = map.get(itemTypeId) || [];
+				items.push(currentItem);
+				map.set(itemTypeId, items);
+			}
 			return map;
 		}, new Map());
 		
+		_data.itemMap = itemMap;
+
 		for (let items of groupedByType.values()) {
 			items.sort(_sortByWeight);
 		}
@@ -1757,9 +2137,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 		let _item = new _ItemRequestBody(item);
 		$http.post(urlService.item + '/item', _item)
 			.then(function success(res){
-				let _items = res.data;
-				_items.sort(_sortByWeight);
-				_data.items.set(_item.itemTypeId, _items);
+				_setItemsByItemType(res.data, _item.itemTypeId);
 				fn();
 		}, function error() {
 		
@@ -1770,9 +2148,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 		let _addonItem = new _AddonItemRequestBody(addonItem);
 		$http.post(urlService.item + '/addonitem', _addonItem)
 		.then(function success(res){
-			let _addonItems = res.data;
-			_addonItems.sort(_sortByWeight);
-			_data.addonItems = _addonItems;
+			_setAddonItems(res.data);
 			fn();
 		}, function error() {
 	
@@ -1782,6 +2158,12 @@ function itemService(APP_CONFIG, $http, urlService) {
 	function _setItemTypes(itemTypes) {
 		_data.itemTypes = null;
 		if (angular.isArray(itemTypes)) {
+			let itemTypeMap = new Map();
+			for (let i=0, len=itemTypes.length; i < len; i++) {
+				itemTypeMap.set(itemTypes[i].id, itemTypes[i]);
+			}
+			_data.itemTypeMap = itemTypeMap;
+
 			itemTypes.sort(_sortByWeight);
 			_data.itemTypes = itemTypes;
 		}
@@ -1795,18 +2177,50 @@ function itemService(APP_CONFIG, $http, urlService) {
 		}
 	}
 	
+	function _getItemMap(){
+		return _data.itemMap;
+	}
+	
+	function _getItemTypeMap() {
+		return _data.itemTypeMap;
+	}
+	
+	function _getAddonItemMap() {
+		return _data.addonItemMap
+	}
+	
+	function _setItemsByItemType(items, itemType) {
+		let oldItems = _data.items.get(itemType);
+		for (let i = 0, len = oldItems.length; i < len; i++) {
+			_data.itemMap.delete(oldItems[i].id);
+		}
+		
+		for (let i = 0, len = items.length; i < len; i++) {
+			_data.itemMap.set(items[i].id, items[i]);
+		}
+		
+		items.sort(_sortByWeight);
+		let activeItems = items.filter(function(item) {
+			return item.active;
+		})
+		_data.items.set(itemType, activeItems);
+	}
+	
 	function _setAddonItems(addonItems) {
 		_data.addonItems = null;
 		if (angular.isArray(addonItems)) {
+			let addonItemMap = new Map();
+			for (let i=0, len=addonItems.length; i < len; i++) {
+				addonItemMap.set(addonItems[i].id, addonItems[i]);
+			}
+			_data.addonItemMap = addonItemMap;
+			
 			addonItems.sort(_sortByWeight);
 			_data.addonItems = addonItems;
 		}
 	}
 	
 	return {
-		//groupItemsByType: function(itemTypes, items) {
-		//	return _groupItemsByType(itemTypes, items);
-		//},
 		getAJAXItemPromises: function() {
 			let promises = [];
 			
@@ -1833,6 +2247,9 @@ function itemService(APP_CONFIG, $http, urlService) {
 		setItems: _setItems,
 		setItemTypes: _setItemTypes,
 		setAddonItems: _setAddonItems,
+		getItemMap: _getItemMap,
+		getItemTypeMap: _getItemTypeMap,
+		getAddonItemMap: _getAddonItemMap,
 		getItems: function() {
 			if (!_data.items)	return null;
 			
@@ -1992,10 +2409,6 @@ let app =
 			            	  menu:	[{
 										name: "New",
 										link: "newcustomer"
-									}, 
-									{
-										name: "Search",
-										link: "searchcustomer"
 									}],
 									customer : true
 			              },
@@ -2108,19 +2521,18 @@ let app =
 								template : '<neworder></neworder>'
 							}).state('pickuporder', {
 								url : '/app/pickuporder',
-								tempate : '<h2>Pick Up Order</h2>'
+								template : '<pickup></pickup>'
 							}).state('managemenu', {
 								url: '/app/manage_menu',
 								template: '<managemenu></managemenu>'
 							})
-						} ])
-						
+						} ])		
 		.provider('spinnerModal', spinnerModalProvider)
 		.factory('keyboardService', ['APP_CONFIG', keyboardService])
 		.factory('stringService', stringService)
 		.factory('urlService', urlService)
 		.factory('orderService', [ 'APP_CONFIG', '$http', 'urlService', 'utilsService', orderService ])
-		.factory('cartService', [ 'APP_CONFIG', 'orderService', 'rx', cartService ])
+		.factory('cartService', [ 'APP_CONFIG', 'orderService', 'customerService', 'utilsService', 'rx', cartService ])
 		.factory('customerService', [ 'APP_CONFIG', '$http', 'urlService', 'stringService', customerService ])
 		.factory('navigationService', [ 'APP_CONFIG', '$state', navigationService ])
 		.factory('itemService', [ 'APP_CONFIG', '$http', 'urlService', itemService])
@@ -2133,6 +2545,7 @@ let app =
 		.component('addonitems', addonItemsComponent)
 		.component('cart', cartComponent)
 		.component('neworder', newOrderComponent)
+		.component('pickup', pickupComponent)
 		.component('managemenu', manageMenuComponent)
 		.component('manageitemtype', manageItemTypeComponent)
 		.component('manageitem', manageItemComponent)
@@ -2150,6 +2563,9 @@ let app =
 		.component('pForm', formComponent)
 		.component('selectList', selectListComponent)
 		.component('manageaddon', manageAddonItemComponent)
-.run(['$templateCache', 'menuService', function($templateCache, menuService) {
+		.component('orderItem', orderItemComponent)
+		.component('orderItemList', orderItemListComponent)
+.run(['menuService', 'navigationService', function(menuService, navigationService) {
 	menuService.initMenu();
+	navigationService.setRoute();
 }]);

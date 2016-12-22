@@ -17,9 +17,32 @@ function customerService(APP_CONFIG, $http, urlService, stringService) {
 		$http.post(urlService.customer + '/update', info).then(success, fail);
 	}
 	
+	function _formatString(customer) {
+		let displayValue = [];
+		displayValue.push(customer.lastName);
+
+		if (customer.firstName) {
+			displayValue.push(customer.firstName);
+		}
+
+		if (customer.number) {
+			displayValue.push(customer.number);
+		}
+
+		return displayValue;
+	}
+	
 	function _search(querystr, success, fail) {
 		if (querystr)
-			$http.get(urlService.customer + '/search/'+ querystr.toLowerCase()).then(success, fail);
+			$http.get(urlService.customer + '/search/'+ querystr.toLowerCase())
+				.then(function (res) {
+					let customers = res.data;
+					customers.map(function(customer) {
+						customer.name = customer.lastName + ', ' + customer.firstName; 
+						customer.displayValue = _formatString(customer);
+					});
+					success(customers);
+				}, fail);
 	}
 	
 	function _setCurrentCustomer(customer) {

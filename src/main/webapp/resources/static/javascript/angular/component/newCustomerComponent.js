@@ -36,6 +36,8 @@ let newCustomerComponent = {
 			};
 		},
 	template:
-			'<p-form form-input="$ctrl.new_customer_info" title="{{$ctrl.title}}" button-name="Save"'
-		+		'on-update="$ctrl.update(name, value, index)" submit="$ctrl.save()" />'
+			'<div class="col-xs-6">'
+		+		'<p-form form-input="$ctrl.new_customer_info" title="{{$ctrl.title}}" button-name="Save"'
+		+			'on-update="$ctrl.update(name, value, index)" submit="$ctrl.save()" />'
+		+	'</div>'
 }

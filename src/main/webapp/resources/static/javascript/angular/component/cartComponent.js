@@ -11,13 +11,13 @@ let cartComponent = {
 		ctrl.$onInit = function() {
 			cartSubscription = cartService.subscribe(function(d) {
 				ctrl.cart = flattenCart(d);
-				calculateTotal();
+				total();
 			})
 			
 			let cart = cartService.get();
 			if (cart) {
 				ctrl.cart = flattenCart(cart);
-				calculateTotal();
+				total();
 			}
 			
 			ctrl.customer = customerService.getCurrentCustomer();
@@ -41,6 +41,8 @@ let cartComponent = {
 		}
 
 		ctrl.$onDestroy = function() {
+			cartService.setReadyDate(null);
+
 			if (cartSubscription)
 				cartSubscription.dispose();
 		}
@@ -77,47 +79,27 @@ let cartComponent = {
 				cartService.update(name, value, cartItem.index, cartItem.parentIndex);
 			}
 		}
-		
-		function calculateTotal() {
-			let quantity = 0, cent = 0, dollar = 0;
-			for (let i = 0, n = ctrl.cart.length; i < n; i++) {
-				let cartItem = ctrl.cart[i];
-				let c = Number(cartItem.cent), d = Number(cartItem.dollar);
-				
-				if (cartItem.hasQuantity) {
-					let q = Number(cartItem.quantity);
-					quantity += q;
-					
-					c *= q;
-					d *= q;
-				}
-				cent += c;
-				dollar += d;
-			}
-			
-			let rem = cent % 100;
-			dollar += ((cent - rem) / 100);
-			cent = rem;
-			
-			ctrl.tQ = quantity;
-			ctrl.tDollar = dollar;
-			ctrl.tCent = cent;
+
+		function total() {
+			let total = cartService.getTotal();
+			ctrl.tQ = total.q;
+			ctrl.tDollar = total.d;
+			ctrl.tCent = total.c;
 		}
 		
 		function flattenCart(cartArray) {
 			let newCart = [];
 			
-			for (let i = 0; i < cartArray.length; i++) {
+			for (let i = 0, len = cartArray.length; i < len; i++) {
 				newCart.push(cartArray[i]);
 				
-				let addonItems = cartArray[i].addonItems;
-				if (addonItems) {
-					newCart = newCart.concat(addonItems);
+				let orderDetailAddonItems = cartArray[i].orderDetailAddonItems;
+				if (orderDetailAddonItems) {
+					newCart = newCart.concat(orderDetailAddonItems);
 				}
 			}
 			return newCart;
-		}
-		
+		}	
 	},
 	template:
 			'<div class="col-xs-12 cart-info">'

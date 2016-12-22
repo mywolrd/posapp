@@ -45,10 +45,6 @@ let app =
 			            	  menu:	[{
 										name: "New",
 										link: "newcustomer"
-									}, 
-									{
-										name: "Search",
-										link: "searchcustomer"
 									}],
 									customer : true
 			              },
@@ -161,19 +157,18 @@ let app =
 								template : '<neworder></neworder>'
 							}).state('pickuporder', {
 								url : '/app/pickuporder',
-								tempate : '<h2>Pick Up Order</h2>'
+								template : '<pickup></pickup>'
 							}).state('managemenu', {
 								url: '/app/manage_menu',
 								template: '<managemenu></managemenu>'
 							})
-						} ])
-						
+						} ])		
 		.provider('spinnerModal', spinnerModalProvider)
 		.factory('keyboardService', ['APP_CONFIG', keyboardService])
 		.factory('stringService', stringService)
 		.factory('urlService', urlService)
 		.factory('orderService', [ 'APP_CONFIG', '$http', 'urlService', 'utilsService', orderService ])
-		.factory('cartService', [ 'APP_CONFIG', 'orderService', 'rx', cartService ])
+		.factory('cartService', [ 'APP_CONFIG', 'orderService', 'customerService', 'utilsService', 'rx', cartService ])
 		.factory('customerService', [ 'APP_CONFIG', '$http', 'urlService', 'stringService', customerService ])
 		.factory('navigationService', [ 'APP_CONFIG', '$state', navigationService ])
 		.factory('itemService', [ 'APP_CONFIG', '$http', 'urlService', itemService])
@@ -186,6 +181,7 @@ let app =
 		.component('addonitems', addonItemsComponent)
 		.component('cart', cartComponent)
 		.component('neworder', newOrderComponent)
+		.component('pickup', pickupComponent)
 		.component('managemenu', manageMenuComponent)
 		.component('manageitemtype', manageItemTypeComponent)
 		.component('manageitem', manageItemComponent)
@@ -203,6 +199,9 @@ let app =
 		.component('pForm', formComponent)
 		.component('selectList', selectListComponent)
 		.component('manageaddon', manageAddonItemComponent)
-.run(['$templateCache', 'menuService', function($templateCache, menuService) {
+		.component('orderItem', orderItemComponent)
+		.component('orderItemList', orderItemListComponent)
+.run(['menuService', 'navigationService', function(menuService, navigationService) {
 	menuService.initMenu();
+	navigationService.setRoute();
 }]);

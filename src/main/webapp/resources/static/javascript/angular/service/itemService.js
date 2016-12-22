@@ -5,14 +5,21 @@ function itemService(APP_CONFIG, $http, urlService) {
 	let _data = {};
 	
 	function _groupItemsByType(items) {
+		let itemMap = new Map();
 		let groupedByType = items.reduce(function(map, currentItem) {
-			let itemTypeId = currentItem['itemTypeId'];
-			let items = map.get(itemTypeId) || [];
-			items.push(currentItem);
-			map.set(itemTypeId, items);
+			itemMap.set(currentItem.id, currentItem);
+			
+			if (currentItem.active) {
+				let itemTypeId = currentItem['itemTypeId'];
+				let items = map.get(itemTypeId) || [];
+				items.push(currentItem);
+				map.set(itemTypeId, items);
+			}
 			return map;
 		}, new Map());
 		
+		_data.itemMap = itemMap;
+
 		for (let items of groupedByType.values()) {
 			items.sort(_sortByWeight);
 		}
@@ -68,9 +75,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 		let _item = new _ItemRequestBody(item);
 		$http.post(urlService.item + '/item', _item)
 			.then(function success(res){
-				let _items = res.data;
-				_items.sort(_sortByWeight);
-				_data.items.set(_item.itemTypeId, _items);
+				_setItemsByItemType(res.data, _item.itemTypeId);
 				fn();
 		}, function error() {
 		
@@ -81,9 +86,7 @@ function itemService(APP_CONFIG, $http, urlService) {
 		let _addonItem = new _AddonItemRequestBody(addonItem);
 		$http.post(urlService.item + '/addonitem', _addonItem)
 		.then(function success(res){
-			let _addonItems = res.data;
-			_addonItems.sort(_sortByWeight);
-			_data.addonItems = _addonItems;
+			_setAddonItems(res.data);
 			fn();
 		}, function error() {
 	
@@ -93,6 +96,12 @@ function itemService(APP_CONFIG, $http, urlService) {
 	function _setItemTypes(itemTypes) {
 		_data.itemTypes = null;
 		if (angular.isArray(itemTypes)) {
+			let itemTypeMap = new Map();
+			for (let i=0, len=itemTypes.length; i < len; i++) {
+				itemTypeMap.set(itemTypes[i].id, itemTypes[i]);
+			}
+			_data.itemTypeMap = itemTypeMap;
+
 			itemTypes.sort(_sortByWeight);
 			_data.itemTypes = itemTypes;
 		}
@@ -106,18 +115,50 @@ function itemService(APP_CONFIG, $http, urlService) {
 		}
 	}
 	
+	function _getItemMap(){
+		return _data.itemMap;
+	}
+	
+	function _getItemTypeMap() {
+		return _data.itemTypeMap;
+	}
+	
+	function _getAddonItemMap() {
+		return _data.addonItemMap
+	}
+	
+	function _setItemsByItemType(items, itemType) {
+		let oldItems = _data.items.get(itemType);
+		for (let i = 0, len = oldItems.length; i < len; i++) {
+			_data.itemMap.delete(oldItems[i].id);
+		}
+		
+		for (let i = 0, len = items.length; i < len; i++) {
+			_data.itemMap.set(items[i].id, items[i]);
+		}
+		
+		items.sort(_sortByWeight);
+		let activeItems = items.filter(function(item) {
+			return item.active;
+		})
+		_data.items.set(itemType, activeItems);
+	}
+	
 	function _setAddonItems(addonItems) {
 		_data.addonItems = null;
 		if (angular.isArray(addonItems)) {
+			let addonItemMap = new Map();
+			for (let i=0, len=addonItems.length; i < len; i++) {
+				addonItemMap.set(addonItems[i].id, addonItems[i]);
+			}
+			_data.addonItemMap = addonItemMap;
+			
 			addonItems.sort(_sortByWeight);
 			_data.addonItems = addonItems;
 		}
 	}
 	
 	return {
-		//groupItemsByType: function(itemTypes, items) {
-		//	return _groupItemsByType(itemTypes, items);
-		//},
 		getAJAXItemPromises: function() {
 			let promises = [];
 			
@@ -144,6 +185,9 @@ function itemService(APP_CONFIG, $http, urlService) {
 		setItems: _setItems,
 		setItemTypes: _setItemTypes,
 		setAddonItems: _setAddonItems,
+		getItemMap: _getItemMap,
+		getItemTypeMap: _getItemTypeMap,
+		getAddonItemMap: _getAddonItemMap,
 		getItems: function() {
 			if (!_data.items)	return null;
 			

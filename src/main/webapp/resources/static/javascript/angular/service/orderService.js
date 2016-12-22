@@ -1,4 +1,4 @@
-function orderService(APP_CONFIG, $http, urlService, utilsService) {
+function orderService(APP_CONFIG, $http, urlService) {
     
 	function _collapseDuplicateOrderDetails(orderDetails) {
 		let unique = [];
@@ -29,13 +29,13 @@ function orderService(APP_CONFIG, $http, urlService, utilsService) {
 		return unique;
 	}
 	
-	function _saveOrUpdate(cartItems, readyDate, customer) {
+	function _saveOrUpdate(cartItems, options) {
 		let _orderDetails = [];
-		for (let i = 0; i < cartItems.length ; i++) {
+		for (let i = 0, n = cartItems.length; i < n; i++) {
 			let _addonItems = [];
-			if (cartItems[i].addonItems) {
-				for (let j = 0; j < cartItems[i].addonItems.length; j++) {
-					let addonItem = new _OrderDetailAddonItemRequestBody(cartItems[i].addonItems[j]);
+			if (cartItems[i].orderDetailAddonItems) {
+				for (let j = 0, len = cartItems[i].orderDetailAddonItems.length; j < len; j++) {
+					let addonItem = new _OrderDetailAddonItemRequestBody(cartItems[i].orderDetailAddonItems[j]);
 					_addonItems.push(addonItem);
 				}
 			}
@@ -43,17 +43,56 @@ function orderService(APP_CONFIG, $http, urlService, utilsService) {
 			_orderDetails.push(orderDetail);
 		}
 		_orderDetails = _collapseDuplicateOrderDetails(_orderDetails);		
-
-		let _order = new _OrderRequestBody({customerId: customer.id,
-											orderDetails: _orderDetails,
-											dropDate : utilsService.formatDateTime(Date.now()),
-											readyDate: utilsService.formatDateTime(readyDate)});
-
+		options.orderDetails = _orderDetails;
+		
+		let _order = new _OrderRequestBody(options);
 		$http.post(urlService.order + '/save', _order);
 	}
 	
+	function _getById(orderId, success, fail) {
+		$http.get(urlService.order + '/' + orderId)
+			.then(function(res) {
+				success(res.data);
+			}, fail);
+	}
+	
+	function _getByCustomer(customer, success, fail) {
+		$http.get(urlService.order + '/customer/' + customer.id)
+			.then(function(res) {
+				success(res.data);
+			}, fail);
+	}
+	
+	function _completeOrders(orders, success, fail) {
+		$http.post(urlService.order + '/complete', {orderId : orders}).then(function(res) {
+			//success(res.data);
+		}, fail);
+	}
+	
+	function _completeOrder(order, success, fail) {
+		
+	}
+	
+	function _voidOrders(orders, success, fail) {
+		$http.post(urlService.order + '/void', {orderId : orders}).then(function(res) {
+			//success(res.data);
+		}, fail);
+	}
+	
+	function _voidOrder(order, success, fail) {
+		$http.post(urlService.order + '/void', {orderId : orders}).then(function(res) {
+			//success(res.data);
+		}, fail);
+	}
+	
 	return {
-		saveOrUpdateOrder: _saveOrUpdate
+		saveOrUpdateOrder: _saveOrUpdate,
+		getById: _getById,
+		getByCustomer: _getByCustomer,
+		completeOrders: _completeOrders,
+		voidOrders: _voidOrders,
+		completeOrder: _completeOrder,
+		voidOrder: _voidOrder
 	};
 }
 
@@ -70,6 +109,10 @@ class _OrderRequestBody {
 		this.active = angular.isDefined(options.active) ? options.active:true;
 		this.completed = angular.isDefined(options.completed) ? options.completed:false;
 		this.voided = angular.isDefined(options.voided) ? options.voided:false;
+	
+		this.quantity = options.quantity;
+		this.dollar = options.dollar;
+		this.cent = options.cent;
 	}
 }
 
